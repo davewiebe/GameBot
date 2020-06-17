@@ -1,0 +1,2 @@
+# GameBot
+Discord Game Bot
