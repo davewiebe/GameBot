@@ -1,17 +1,13 @@
-﻿using Discord;
-using Discord.Commands;
+﻿using Discord.Commands;
 using GameBot.Data;
 using GameBot.Services;
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace GameBot.Modules
 {
-    public class Commands : ModuleBase<SocketCommandContext>
+    public partial class Commands : ModuleBase<SocketCommandContext>
     {
         private GameBotDbContext _db;
 
