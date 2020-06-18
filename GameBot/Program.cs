@@ -71,7 +71,7 @@ namespace GameBot
             if (message.Author.IsBot) return;
 
             var argPos = 0;
-            if (message.HasStringPrefix("<@", ref argPos))
+            if (message.Content.EndsWith("++") || message.Content.EndsWith("+=1") || message.Content.EndsWith("--") || message.Content.EndsWith("-=1"))
             {
                 var result = await _commands.ExecuteAsync(context, "karma", _services);
                 if (!result.IsSuccess) Console.WriteLine(result.ErrorReason);

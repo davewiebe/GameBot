@@ -1,7 +1,9 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using GameBot.Services;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace GameBot.Modules
@@ -11,22 +13,24 @@ namespace GameBot.Modules
         [Command("karma")]
         public async Task Karma()
         {
-            if (Context.Message.MentionedUsers.Count != 1) return;
-            var splitskis = Context.Message.Content.Split('>');
-            if (splitskis.Length != 2) return;
-            var action = splitskis.Last().Trim();
+            var karmaService = new KarmaService(Context);
 
-            var user = Context.Message.MentionedUsers.First();
-            if (action == "++" || action == "+=1")
+            var text = Context.Message.Content;
+            var karma = karmaService.RemoveKarmaFromText(ref text);
+            if (text.Contains(' ')) return;
+            var user = karmaService.GetUserFromText(text);
+
+            if (user != null)
             {
-                await ReplyAsync($"Booya! Extra karma for {user.Username}");
-                return;
+                // Give karma to user
+                await ReplyAsync($"{karma} karma for {user.Nickname ?? user.Username}");
             }
-            else if (action == "--" || action == "-=1")
+            else if (Regex.IsMatch(text, @"^[a-zA-Z0-9]+$"))
             {
-                await ReplyAsync($"Shucks. Less karma for {user.Username}");
-                return;
+                // Give karma to object
+                await ReplyAsync($"{karma} karma for {text}");
             }
         }
+
     }
 }
