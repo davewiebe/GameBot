@@ -8,6 +8,8 @@ using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
+using GameBot.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace GameBot
 {
@@ -30,10 +32,14 @@ namespace GameBot
             _client = new DiscordSocketClient();
             _commands = new CommandService();
 
+
             _services = new ServiceCollection()
                 .AddSingleton(_client)
                 .AddSingleton(_commands)
                 .AddSingleton(_configuration)
+                .AddEntityFrameworkSqlServer()
+                .AddDbContext<GameBotDbContext>(options => 
+                    options.UseSqlServer(_configuration.GetConnectionString("GameBotDb")))
                 .BuildServiceProvider();
 
             var token = _configuration.GetSection("DiscordToken").Value;
