@@ -30,8 +30,8 @@ namespace GameBot
                 .Build();
 
             _client = new DiscordSocketClient();
-            _commands = new CommandService();
 
+            _commands = new CommandService();
 
             _services = new ServiceCollection()
                 .AddSingleton(_client)
@@ -47,11 +47,8 @@ namespace GameBot
             _client.Log += _client_Log;
 
             await RegisterCommandsAsync();
-
             await _client.LoginAsync(TokenType.Bot, token);
-
             await _client.StartAsync();
-
             await Task.Delay(-1);
         }
 
