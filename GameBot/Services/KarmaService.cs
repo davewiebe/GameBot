@@ -1,57 +1,76 @@
 ﻿using Discord.Commands;
 using Discord.WebSocket;
+using GameBot.Data;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace GameBot.Services
 {
     public class KarmaService
     {
         private SocketCommandContext _context;
-        public KarmaService(SocketCommandContext context)
+        private GameBotDbContext _db;
+        private UserService _userService;
+
+        public KarmaService(SocketCommandContext context, GameBotDbContext db)
         {
             _context = context;
+            _db = db;
+            _userService = new UserService(_context);
         }
 
-        public SocketGuildUser GetUserFromText(string text)
+        public string GiveKarma(string thing, int karmaPoints)
         {
-            SocketGuildUser user = null;
-            if (text.StartsWith("<@") && text.EndsWith(">"))
+            var timeDifference = TimeInMinutesSinceLastKarmaSent(thing);
+
+            if (timeDifference < 5)
             {
-                var userIdString = text.Trim(new char[] { '<', '>', '@', '!' });
-                var userId = ulong.Parse(userIdString);
-                user = _context.Guild.GetUser(userId);
+                return "Slow down, buddy.";
             }
 
-            return user;
+            SaveKarma(thing, karmaPoints, _context.Message.Author.Id);
+
+            var totalPoints = GetTotalKarmaPoints(thing);
+
+            return $"{_userService.GetNicknameIfUser(thing)}'s karma has {(karmaPoints > 0 ? "increased" : "decreased")} to {totalPoints}";
+
         }
 
-        public int RemoveKarmaFromText(ref string text)
+        private int GetTotalKarmaPoints(string thing)
         {
-            var karma = 0;
-            if (text.EndsWith("++"))
-            {
-                karma += 1;
-                text = text.Substring(0, text.Length - 2).Trim();
-            }
-            else if (text.EndsWith("+=1"))
-            {
-                karma += 1;
-                text = text.Substring(0, text.Length - 3).Trim();
-            }
-            else if (text.EndsWith("-=1"))
-            {
-                karma += -1;
-                text = text.Substring(0, text.Length - 3).Trim();
-            }
-            else if (text.EndsWith("--"))
-            {
-                karma += -1;
-                text = text.Substring(0, text.Length - 2).Trim();
-            }
+            return _db.Karma.AsQueryable().Where(x => x.Thing == thing).Select(x => x.Points).Sum();
+        }
 
-            return karma;
+        private double TimeInMinutesSinceLastKarmaSent(string thing)
+        {
+            var fromUserId = _context.Message.Author.Id;
+            var mostRecentKarma = _db.Karma.AsQueryable()
+                .Where(x => x.FromUserId == fromUserId)
+                .Where(x => x.Thing == thing)
+                .ToList()
+                .LastOrDefault();
+
+            if (mostRecentKarma == null) return double.MaxValue;
+
+            var timeDifference = DateTime.Now - mostRecentKarma.GivenOn;
+            return timeDifference.TotalMinutes;
+        }
+
+        private void SaveKarma(string thing, int karmaPoints, ulong from)
+        {
+            var karma = new Karma
+            {
+                Points = karmaPoints,
+                Thing = thing,
+                FromUserId = from,
+                GivenOn = DateTime.Now
+            };
+            _db.Karma.Add(karma);
+            _db.SaveChanges();
         }
     }
 }

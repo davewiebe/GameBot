@@ -1,11 +1,10 @@
-﻿using Discord;
-using Discord.Commands;
+﻿using Discord.Commands;
 using Discord.WebSocket;
 using GameBot.Data;
 using GameBot.Services;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -13,53 +12,40 @@ namespace GameBot.Modules
 {
     public partial class Commands : ModuleBase<SocketCommandContext>
     {
-        [Command("karma")]
-        public async Task Karma()
+        [Command("spreadkarma")]
+        public async Task SpreadKarma()
         {
-            var karmaService = new KarmaService(Context);
+            var userService = new UserService(Context);
+            var karmaService = new KarmaService(Context, _db);
 
             var text = Context.Message.Content;
-            var karmaPoints = karmaService.RemoveKarmaFromText(ref text);
+            var karmaPoints = KarmaExtensions.RemoveKarmaFromText(ref text);
             if (text.Contains(' ')) return;
-            var user = karmaService.GetUserFromText(text);
+            var user = userService.GetUserFromText(text);
 
             if (user != null)
             {
-                var karma = new Karma
-                {
-                    Points = karmaPoints,
-                    Thing = user.Id.ToString(),
-                    FromUserId = Context.Message.Author.Id,
-                    GivenOn = DateTime.Now
-                };
-                _db.Karma.Add(karma);
-                _db.SaveChanges();
-                await ReplyAsync($"{karmaPoints} karma for {user.Nickname ?? user.Username}");
+                await ReplyAsync(karmaService.GiveKarma(user.Id.ToString(), karmaPoints));
             }
             else if (Regex.IsMatch(text, @"^[a-zA-Z0-9]+$"))
             {
-                var karma = new Karma
-                {
-                    Points = karmaPoints,
-                    Thing = text,
-                    FromUserId = Context.Message.Author.Id,
-                    GivenOn = DateTime.Now
-                };
-                _db.Karma.Add(karma);
-                _db.SaveChanges();
-                await ReplyAsync($"{karmaPoints} karma for {text}");
+                await ReplyAsync(karmaService.GiveKarma(text, karmaPoints));
             }
         }
 
 
-        [Command("karmaboard")]
-        public async Task Karmaboard()
+        [Command("karma")]
+        public async Task Karma()
         {
-            //_db.Karma.ToList()
-            //    .GroupBy(x => x.Thing)
-            //    .Select(x => x.Ke;
-            await ReplyAsync("Pong");
-        }
+            var userService = new UserService(Context);
 
+            var scores = _db.Karma.ToList()
+                .GroupBy(x => x.Thing)
+                .OrderByDescending(x => x.Sum(y => y.Points))
+                .Select(x => $"{userService.GetNicknameIfUser(x.Key)}: {x.Sum(y => y.Points)} karma");
+
+
+            await ReplyAsync("Karma leaderboard:\n\n" + string.Join("\n", scores));
+        }
     }
 }
