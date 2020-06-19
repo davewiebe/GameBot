@@ -44,11 +44,13 @@ namespace GameBot.Modules
                     {
                         await ReplyAsync("Awe, thanks. Right back at you");
                         await ReplyAsync(karmaService.GiveKarma(user.Id.ToString(), karmaPoints));
+                        return;
                     }
                     else
                     {
                         await ReplyAsync(karmaService.GiveKarma(user.Id.ToString(), karmaPoints));
                         await ReplyAsync("Yeah buddy.");
+                        return;
                     }
                 }
 
