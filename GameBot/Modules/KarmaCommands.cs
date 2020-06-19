@@ -43,13 +43,18 @@ namespace GameBot.Modules
                     if (!karmaService.HasGivenKarmaRecently(user.Id.ToString(), 10080))
                     {
                         await ReplyAsync("Awe, thanks. Right back at you");
-                        await ReplyAsync(karmaService.GiveKarma(user.Id.ToString(), karmaPoints));
+
+                        karmaService.SaveKarma(user.Id.ToString(), karmaPoints, Context.Message.Author.Id);
+                        var totalPoints = karmaService.GetTotalKarmaPoints(user.Id.ToString());
+                        await ReplyAsync($"{user.Nickname}'s karma has {(karmaPoints > 0 ? "increased" : "decreased")} to {totalPoints}");
                         return;
                     }
                     else
                     {
-                        await ReplyAsync(karmaService.GiveKarma(user.Id.ToString(), karmaPoints));
-                        await ReplyAsync("Yeah buddy.");
+                        karmaService.SaveKarma(user.Id.ToString(), karmaPoints, Context.Message.Author.Id);
+                        var totalPoints = karmaService.GetTotalKarmaPoints(user.Id.ToString());
+                        await ReplyAsync($"{user.Nickname}'s karma has {(karmaPoints > 0 ? "increased" : "decreased")} to {totalPoints}");
+                        await ReplyAsync("Yeah buddy."); // TODO, UNLESS IT WENT DOWN
                         return;
                     }
                 }

@@ -65,7 +65,7 @@ namespace GameBot.Services
             return timeDifference.TotalMinutes;
         }
 
-        private void SaveKarma(string thing, int karmaPoints, ulong from)
+        public void SaveKarma(string thing, int karmaPoints, ulong from)
         {
             var karma = new Karma
             {
