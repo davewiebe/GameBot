@@ -23,14 +23,19 @@ namespace GameBot.Services
             _userService = new UserService(_context);
         }
 
-        public string GiveKarma(string thing, int karmaPoints)
+        public bool HasGivenKarmaRecently(string thing, int minutes)
         {
             var timeDifference = TimeInMinutesSinceLastKarmaSent(thing);
 
-            if (timeDifference < 5)
+            if (timeDifference < minutes)
             {
-                return "Slow down, buddy.";
+                return true;
             }
+            return false;
+        }
+
+        public string GiveKarma(string thing, int karmaPoints)
+        {
 
             SaveKarma(thing, karmaPoints, _context.Message.Author.Id);
 
@@ -40,7 +45,7 @@ namespace GameBot.Services
 
         }
 
-        private int GetTotalKarmaPoints(string thing)
+        public int GetTotalKarmaPoints(string thing)
         {
             return _db.Karma.AsQueryable().Where(x => x.Thing == thing).Select(x => x.Points).Sum();
         }

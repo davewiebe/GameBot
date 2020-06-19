@@ -73,7 +73,7 @@ namespace GameBot
             var argPos = 0;
             if (message.Content.EndsWith("++") || message.Content.EndsWith("+=1") || message.Content.EndsWith("--") || message.Content.EndsWith("-=1"))
             {
-                var result = await _commands.ExecuteAsync(context, "spreadkarma", _services);
+                var result = await _commands.ExecuteAsync(context, "givekarma", _services);
                 if (!result.IsSuccess) Console.WriteLine(result.ErrorReason);
             }
             else if(message.HasStringPrefix("!", ref argPos))
