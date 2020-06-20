@@ -10,10 +10,14 @@ namespace GameBot.Modules
     public partial class Commands : ModuleBase<SocketCommandContext>
     {
         private GameBotDbContext _db;
+        private KarmaService _karmaService;
+        private UserService _userService;
 
         public Commands()
         {
             _db = new GameBotDbContext();
+            _karmaService = new KarmaService(Context, _db);
+            _userService = new UserService(Context);
         }
 
         [Command("ping")]

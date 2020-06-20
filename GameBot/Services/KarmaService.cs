@@ -34,17 +34,6 @@ namespace GameBot.Services
             return false;
         }
 
-        public string GiveKarma(string thing, int karmaPoints)
-        {
-
-            SaveKarma(thing, karmaPoints, _context.Message.Author.Id);
-
-            var totalPoints = GetTotalKarmaPoints(thing);
-
-            return $"{_userService.GetNicknameIfUser(thing)}'s karma has {(karmaPoints > 0 ? "increased" : "decreased")} to {totalPoints}";
-
-        }
-
         public int GetTotalKarmaPoints(string thing)
         {
             return _db.Karma.AsQueryable().Where(x => x.Thing == thing).Select(x => x.Points).Sum();
