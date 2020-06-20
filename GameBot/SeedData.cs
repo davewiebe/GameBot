@@ -35,7 +35,43 @@ namespace GameBot
                         new Phrase{ Text = "Awe thanks." },
                         new Phrase{ Text = ":)" },
                     }
-                }
+                },
+                new KeyPhrase{
+                    Text = Enums.KeyPhrases.GetCurrentKarma,
+                    Phrases = new List<Phrase>{
+                        new Phrase{ Text = "<thing> has <totalkarma> karma" }
+                    }
+                },
+                new KeyPhrase{
+                    Text = Enums.KeyPhrases.KarmaIncreased,
+                    Phrases = new List<Phrase>{
+                        new Phrase{ Text = "<thing>'s karma has increased to <totalkarma>" }
+                    }
+                },
+                new KeyPhrase{
+                    Text = Enums.KeyPhrases.KarmaDecreased,
+                    Phrases = new List<Phrase>{
+                        new Phrase{ Text = "<thing>'s karma has decreased to <totalkarma>" }
+                    }
+                },
+                new KeyPhrase{
+                    Text = Enums.KeyPhrases.HoldUp,
+                    Phrases = new List<Phrase>{
+                        new Phrase{ Text = "Hold up... I see what you did there." }
+                    }
+                },
+                new KeyPhrase{
+                    Text = Enums.KeyPhrases.BotIsHurt,
+                    Phrases = new List<Phrase>{
+                        new Phrase{ Text = "I thought we were friends." }
+                    }
+                },
+                new KeyPhrase{
+                    Text = Enums.KeyPhrases.RightBackAtYou,
+                    Phrases = new List<Phrase>{
+                        new Phrase{ Text = "Right back at you!" }
+                    }
+                },
             };
 
             foreach (var keyPhrase in keyPhrases)
