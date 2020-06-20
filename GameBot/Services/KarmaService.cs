@@ -23,6 +23,10 @@ namespace GameBot.Services
             _userService = new UserService(_context);
         }
 
+        public bool HasGivenKarmaRecently(ulong userId, int minutes)
+        {
+            return HasGivenKarmaRecently(userId.ToString(), minutes);
+        }
         public bool HasGivenKarmaRecently(string thing, int minutes)
         {
             var timeDifference = TimeInMinutesSinceLastKarmaSent(thing);
@@ -32,6 +36,11 @@ namespace GameBot.Services
                 return true;
             }
             return false;
+        }
+
+        public int GetTotalKarmaPoints(ulong userId)
+        {
+            return GetTotalKarmaPoints(userId.ToString());
         }
 
         public int GetTotalKarmaPoints(string thing)
@@ -54,6 +63,10 @@ namespace GameBot.Services
             return timeDifference.TotalMinutes;
         }
 
+        public void SaveKarma(ulong userId, int karmaPoints, ulong from)
+        {
+            SaveKarma(userId.ToString(), karmaPoints, from);
+        }
         public void SaveKarma(string thing, int karmaPoints, ulong from)
         {
             var karma = new Karma
