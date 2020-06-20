@@ -71,6 +71,7 @@ namespace GameBot.Services
         {
             var karma = new Karma
             {
+                Server = _context.Guild.Id,
                 Points = karmaPoints,
                 Thing = thing,
                 FromUserId = from,

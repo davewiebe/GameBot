@@ -149,7 +149,10 @@ namespace GameBot.Modules
         {
             _userService = new UserService(Context);
 
-            var scores = _db.Karma.ToList()
+            var scores = _db.Karma
+                .AsQueryable()
+                .Where(x => x.Server == Context.Guild.Id)
+                .ToList()
                 .GroupBy(x => x.Thing, StringComparer.InvariantCultureIgnoreCase)
                 .OrderByDescending(x => x.Sum(y => y.Points))
                 .Select(x => $"{_userService.GetNicknameIfUser(x.Key)}: {x.Sum(y => y.Points)} karma");
@@ -165,6 +168,7 @@ namespace GameBot.Modules
 
             var karma = _db.Karma
                 .AsQueryable()
+                .Where(x => x.Server == Context.Guild.Id)
                 .Where(x => x.Thing.ToUpper() == thing.ToUpper())
                 .Sum(x => x.Points);
 
