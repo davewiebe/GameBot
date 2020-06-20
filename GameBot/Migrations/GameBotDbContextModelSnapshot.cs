@@ -99,7 +99,7 @@ namespace GameBot.Migrations
             modelBuilder.Entity("GameBot.Data.Phrase", b =>
                 {
                     b.HasOne("GameBot.Data.KeyPhrase", "KeyPhrase")
-                        .WithMany()
+                        .WithMany("Phrases")
                         .HasForeignKey("KeyPhraseId");
                 });
 #pragma warning restore 612, 618

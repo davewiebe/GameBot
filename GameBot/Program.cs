@@ -10,10 +10,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using GameBot.Data;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace GameBot
 {
-    class Program
+    partial class Program
     {
         static void Main(string[] args) => new Program().RunBotASync().GetAwaiter().GetResult();
 
@@ -38,9 +39,11 @@ namespace GameBot
                 .AddSingleton(_commands)
                 .AddSingleton(_configuration)
                 .AddEntityFrameworkSqlServer()
-                .AddDbContext<GameBotDbContext>(options => 
+                .AddDbContext<GameBotDbContext>(options =>
                     options.UseSqlServer(_configuration.GetConnectionString("GameBotDb")))
                 .BuildServiceProvider();
+
+            SeedDatabase();
 
             var token = _configuration.GetSection("DiscordToken").Value;
 
