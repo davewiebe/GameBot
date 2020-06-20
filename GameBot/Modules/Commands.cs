@@ -12,12 +12,12 @@ namespace GameBot.Modules
         private GameBotDbContext _db;
         private KarmaService _karmaService;
         private UserService _userService;
+        private PhraseService _phraseService;
 
         public Commands()
         {
             _db = new GameBotDbContext();
-            _karmaService = new KarmaService(Context, _db);
-            _userService = new UserService(Context);
+            _phraseService = new PhraseService(_db);
         }
 
         [Command("ping")]

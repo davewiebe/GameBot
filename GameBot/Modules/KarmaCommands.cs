@@ -1,6 +1,7 @@
 ﻿using Discord.Commands;
 using Discord.WebSocket;
 using GameBot.Data;
+using GameBot.Enums;
 using GameBot.Services;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -16,6 +17,9 @@ namespace GameBot.Modules
         [Command("givekarma")]
         public async Task GiveKarma()
         {
+            _karmaService = new KarmaService(Context, _db);
+            _userService = new UserService(Context);
+
             var text = Context.Message.Content;
             var fromUser = Context.Guild.GetUser(Context.Message.Author.Id);
             var karmaPoints = KarmaExtensions.RemoveKarmaFromText(ref text);
@@ -23,7 +27,7 @@ namespace GameBot.Modules
 
             if (HasGivenKarmaRecently(text, 5))
             {
-                await ReplyAsync("Slow down, buddy.");
+                await ReplyAsync(_phraseService.GetPhrase(KeyPhrases.SlowDown));
                 return;
             }
 
@@ -81,7 +85,7 @@ namespace GameBot.Modules
 
                 if (_karmaService.HasGivenKarmaRecently(appDevBot.Id, 10080))
                 {
-                    await ReplyAsync("Awe, thanks.");
+                    await ReplyAsync(_phraseService.GetPhrase(KeyPhrases.ThankYouFromBot));
                 } else { 
                     await ReplyAsync("Right back at you.");
                     _karmaService.SaveKarma(fromUser.Id, karmaPoints, appDevBot.Id);
@@ -100,7 +104,7 @@ namespace GameBot.Modules
         private bool HasGivenKarmaRecently(string text, int minutes)
         {
             var user = _userService.TryGetUserFromText(text);
-            if (user == null) return _karmaService.HasGivenKarmaRecently(user.Id, minutes);
+            if (user == null) return _karmaService.HasGivenKarmaRecently(text, minutes);
             return _karmaService.HasGivenKarmaRecently(user.Id, minutes);
         }
 
@@ -130,6 +134,8 @@ namespace GameBot.Modules
         [Command("karma")]
         public async Task Karma()
         {
+            _userService = new UserService(Context);
+
             var scores = _db.Karma.ToList()
                 .GroupBy(x => x.Thing, StringComparer.InvariantCultureIgnoreCase)
                 .OrderByDescending(x => x.Sum(y => y.Points))
@@ -142,6 +148,8 @@ namespace GameBot.Modules
         [Command("karma")]
         public async Task Karma(string thing)
         {
+            _userService = new UserService(Context);
+
             var karma = _db.Karma
                 .AsQueryable()
                 .Where(x => x.Thing.ToUpper() == thing.ToUpper())

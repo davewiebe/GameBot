@@ -9,10 +9,8 @@ using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using GameBot.Data;
-using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Collections.Generic;
-using System.Security.Cryptography.X509Certificates;
 
 namespace GameBot
 {
@@ -26,13 +24,13 @@ namespace GameBot
             var keyPhrases = new List<KeyPhrase>
             {
                 new KeyPhrase{ 
-                    Text = "Slow down" , 
+                    Text = Enums.KeyPhrases.SlowDown , 
                     Phrases = new List<Phrase>{
                         new Phrase{ Text = "Slow down, buddy." }
                     }
                 },
                 new KeyPhrase{
-                    Text = "Thankyou from bot" ,
+                    Text = Enums.KeyPhrases.ThankYouFromBot,
                     Phrases = new List<Phrase>{
                         new Phrase{ Text = "Awe thanks." },
                         new Phrase{ Text = ":)" },
