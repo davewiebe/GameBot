@@ -25,6 +25,11 @@ namespace GameBot.Modules
             var karmaPoints = KarmaExtensions.RemoveKarmaFromText(ref text);
             if (text.Contains(' ')) return;
 
+            _phraseService.AddReplacement("<from>", fromUser.Nickname);
+            _phraseService.AddReplacement("<karma>", karmaPoints.ToString());
+            _phraseService.AddReplacement("<thing>", _userService.GetNicknameIfUser(text));
+            _phraseService.AddReplacement("<bot>", Context.Client.CurrentUser.Username);
+
             if (HasGivenKarmaRecently(text, 5))
             {
                 await ReplyAsync(_phraseService.GetPhrase(KeyPhrases.SlowDown));
@@ -154,6 +159,12 @@ namespace GameBot.Modules
                 .AsQueryable()
                 .Where(x => x.Thing.ToUpper() == thing.ToUpper())
                 .Sum(x => x.Points);
+
+            var fromUser = Context.Guild.GetUser(Context.Message.Author.Id);
+            _phraseService.AddReplacement("<from>", fromUser.Nickname);
+            _phraseService.AddReplacement("<bot>", Context.Client.CurrentUser.Username);
+            _phraseService.AddReplacement("<karma>", karma.ToString());
+            _phraseService.AddReplacement("<thing>", _userService.GetNicknameIfUser(thing));
 
             await ReplyAsync($"{_userService.GetNicknameIfUser(thing)} has {karma} karma");
         }

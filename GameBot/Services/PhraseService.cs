@@ -1,24 +1,25 @@
-﻿using Discord.Commands;
-using Discord.WebSocket;
-using GameBot.Data;
+﻿using GameBot.Data;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GameBot.Services
 {
     public class PhraseService
     {
         private GameBotDbContext _db;
+        private List<(string, string)> _replacements;
 
         public PhraseService(GameBotDbContext db)
         {
             _db = db;
+            _replacements = new List<(string, string)>();
+        }
+
+        public void AddReplacement(string replace, string value)
+        {
+            _replacements.Add((replace, value));
         }
 
         public string GetPhrase(string keyPhrase)
@@ -30,7 +31,13 @@ namespace GameBot.Services
                 .Single(x => x.Text == keyPhrase)
                 .Phrases;
 
-            return phrases.ElementAt(r.Next(0, phrases.Count())).Text;
+            var text = phrases.ElementAt(r.Next(0, phrases.Count())).Text;
+
+            foreach (var replacement in _replacements)
+            {
+                text = text.Replace(replacement.Item1, replacement.Item2);
+            }
+            return text;
         }
     }
 }
