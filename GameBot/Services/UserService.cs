@@ -11,7 +11,7 @@ namespace GameBot.Services
             _context = context;
         }
 
-        public SocketGuildUser GetUserFromText(string text)
+        public SocketGuildUser TryGetUserFromText(string text)
         {
             SocketGuildUser user = null;
             if (text.StartsWith("<@") && text.EndsWith(">"))

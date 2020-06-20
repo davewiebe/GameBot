@@ -17,21 +17,17 @@ namespace GameBot.Modules
         public async Task GiveKarma()
         {
             var text = Context.Message.Content;
+            var fromUser = Context.Guild.GetUser(Context.Message.Author.Id);
             var karmaPoints = KarmaExtensions.RemoveKarmaFromText(ref text);
             if (text.Contains(' ')) return;
-            var user = _userService.GetUserFromText(text);
 
-            var fromUser = Context.Guild.GetUser(Context.Message.Author.Id);
-            var appDevBot = Context.Client.CurrentUser;
-
-            int totalPoints;
-            
             if (HasGivenKarmaRecently(text, 5))
             {
                 await ReplyAsync("Slow down, buddy.");
                 return;
             }
 
+            var user = _userService.TryGetUserFromText(text);
             if (user != null)
             {
                 if (user.Id == fromUser.Id)
@@ -40,22 +36,35 @@ namespace GameBot.Modules
                     return;
                 }
 
-                if (user.Id == appDevBot.Id)
+                if (user.Id == Context.Client.CurrentUser.Id)
                 {
                     await GivingAppDevBotKarma(fromUser, karmaPoints);
                     return;
                 }
 
                 _karmaService.SaveKarma(user.Id, karmaPoints, fromUser.Id);
-                totalPoints = _karmaService.GetTotalKarmaPoints(user.Id);
-                await ReplyAsync($"{user.Nickname}'s karma has {(karmaPoints > 0 ? "increased" : "decreased")} to {totalPoints}");
+                var totalPoints = _karmaService.GetTotalKarmaPoints(user.Id);
+                if (karmaPoints > 0)
+                {
+                    await ReplyAsync($"{user.Nickname}'s karma has increased to {totalPoints}");
+                }
+                else
+                {
+                    await ReplyAsync($"{user.Nickname}'s karma has decreased to {totalPoints}");
+                }
                 return;
             }
             else if (Regex.IsMatch(text, @"^[a-zA-Z0-9]+$"))
             {
                 _karmaService.SaveKarma(text, karmaPoints, fromUser.Id);
-                totalPoints = _karmaService.GetTotalKarmaPoints(text);
-                await ReplyAsync($"{text}'s karma has {(karmaPoints > 0 ? "increased" : "decreased")} to {totalPoints}");
+                var totalPoints = _karmaService.GetTotalKarmaPoints(text);
+                if (karmaPoints > 0)
+                {
+                    await ReplyAsync($"{text}'s karma has increased to {totalPoints}");
+                } else
+                {
+                    await ReplyAsync($"{text}'s karma has decreased to {totalPoints}");
+                }
                 return;
             }
         }
@@ -63,32 +72,34 @@ namespace GameBot.Modules
         private async Task GivingAppDevBotKarma(SocketGuildUser fromUser, int karmaPoints)
         {
             var appDevBot = Context.Client.CurrentUser;
-            if (!_karmaService.HasGivenKarmaRecently(appDevBot.Id, 10080))
+            _karmaService.SaveKarma(appDevBot.Id, karmaPoints, fromUser.Id);
+            var totalPoints = _karmaService.GetTotalKarmaPoints(appDevBot.Id);
+
+            if (karmaPoints > 0)
             {
-                _karmaService.SaveKarma(appDevBot.Id, karmaPoints, fromUser.Id);
-                var totalPoints = _karmaService.GetTotalKarmaPoints(appDevBot.Id);
-                await ReplyAsync($"{appDevBot.Username}'s karma has {(karmaPoints > 0 ? "increased" : "decreased")} to {totalPoints}");
-                await ReplyAsync("Awe, thanks. Right back at you"); // TODO, unless it went down!
+                await ReplyAsync($"{appDevBot.Username}'s karma has increased to {totalPoints}");
 
-                _karmaService.SaveKarma(fromUser.Id, karmaPoints, appDevBot.Id);
-                totalPoints = _karmaService.GetTotalKarmaPoints(fromUser.Id);
-                await ReplyAsync($"{fromUser.Nickname}'s karma has {(karmaPoints > 0 ? "increased" : "decreased")} to {totalPoints}");
-
+                if (_karmaService.HasGivenKarmaRecently(appDevBot.Id, 10080))
+                {
+                    await ReplyAsync("Awe, thanks.");
+                } else { 
+                    await ReplyAsync("Right back at you.");
+                    _karmaService.SaveKarma(fromUser.Id, karmaPoints, appDevBot.Id);
+                    totalPoints = _karmaService.GetTotalKarmaPoints(fromUser.Id);
+                    await ReplyAsync($"{fromUser.Nickname}'s karma has increased to {totalPoints}");
+                }
             }
             else
             {
-                _karmaService.SaveKarma(appDevBot.Id, karmaPoints, fromUser.Id);
-                var totalPoints = _karmaService.GetTotalKarmaPoints(appDevBot.Id);
-                await ReplyAsync($"{appDevBot.Username}'s karma has {(karmaPoints > 0 ? "increased" : "decreased")} to {totalPoints}");
-                await ReplyAsync("Yeah buddy."); // TODO, UNLESS IT WENT DOWN
-
+                await ReplyAsync($"{appDevBot.Username}'s karma has decreased to {totalPoints}");
+                await ReplyAsync("I thought we were friends");
             }
             return;
         }
 
         private bool HasGivenKarmaRecently(string text, int minutes)
         {
-            var user = _userService.GetUserFromText(text);
+            var user = _userService.TryGetUserFromText(text);
             if (user == null) return _karmaService.HasGivenKarmaRecently(user.Id, minutes);
             return _karmaService.HasGivenKarmaRecently(user.Id, minutes);
         }
@@ -98,10 +109,9 @@ namespace GameBot.Modules
             int totalPoints;
             _karmaService.SaveKarma(user.Id, karmaPoints, user.Id);
             totalPoints = _karmaService.GetTotalKarmaPoints(user.Id);
-            await ReplyAsync($"{user.Nickname}'s karma has {(karmaPoints > 0 ? "increased" : "decreased")} to {totalPoints}");
-
             if (karmaPoints > 0)
             {
+                await ReplyAsync($"{user.Nickname}'s karma has increased to {totalPoints}");
                 await ReplyAsync("Hold up... I see what you did there");
 
                 var minus = $"{user.Nickname}-- ";
@@ -109,6 +119,10 @@ namespace GameBot.Modules
 
                 _karmaService.SaveKarma(user.Id, -5, Context.Client.CurrentUser.Id);
                 totalPoints = _karmaService.GetTotalKarmaPoints(user.Id);
+                await ReplyAsync($"{user.Nickname}'s karma has decreased to {totalPoints}");
+            }
+            else
+            {
                 await ReplyAsync($"{user.Nickname}'s karma has decreased to {totalPoints}");
             }
         }
