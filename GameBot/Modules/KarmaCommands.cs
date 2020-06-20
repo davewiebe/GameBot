@@ -142,13 +142,12 @@ namespace GameBot.Modules
         [Command("karma")]
         public async Task Karma(string thing)
         {
-            var scores = _db.Karma.ToList()
-                .GroupBy(x => x.Thing, StringComparer.InvariantCultureIgnoreCase)
-                .OrderByDescending(x => x.Sum(y => y.Points))
-                .Select(x => $"{_userService.GetNicknameIfUser(x.Key)}: {x.Sum(y => y.Points)} karma");
+            var karma = _db.Karma
+                .AsQueryable()
+                .Where(x => x.Thing.ToUpper() == thing.ToUpper())
+                .Sum(x => x.Points);
 
-
-            await ReplyAsync("Karma leaderboard:\n\n" + string.Join("\n", scores));
+            await ReplyAsync($"{_userService.GetNicknameIfUser(thing)} has {karma} karma");
         }
     }
 }

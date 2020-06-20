@@ -21,6 +21,8 @@ namespace GameBot.Data
 
         public DbSet<Score> Scores { get; set; }
         public DbSet<Karma> Karma { get; set; }
+        public DbSet<Phrase> Phrase { get; set; }
+        public DbSet<KeyPhrase> KeyPhrase { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
