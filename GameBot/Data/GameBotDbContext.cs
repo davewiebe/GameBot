@@ -29,7 +29,7 @@ namespace GameBot.Data
             if (!optionsBuilder.IsConfigured)
             {
                 IConfigurationRoot configuration = new ConfigurationBuilder()
-                    .SetBasePath(Directory.GetParent(AppContext.BaseDirectory).FullName)
+                    .SetBasePath(Directory.GetCurrentDirectory())
                     .AddJsonFile("appsettings.json", false)
                     .Build();
 
