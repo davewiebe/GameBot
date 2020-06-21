@@ -1,13 +1,10 @@
 ﻿using Discord.Commands;
 using Discord.WebSocket;
-using GameBot.Data;
 using GameBot.Enums;
 using GameBot.Services;
-using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace GameBot.Modules
@@ -30,7 +27,7 @@ namespace GameBot.Modules
             _phraseService.AddReplacement("<thing>", _userService.GetNicknameIfUser(text));
             _phraseService.AddReplacement("<bot>", Context.Client.CurrentUser.Username);
 
-            if (HasGivenKarmaRecently(text, 5))
+            if (HasGivenKarmaRecently(text, maxKarma:3, minutes:5))
             {
                 await ReplyAsync(_phraseService.GetPhrase(KeyPhrases.SlowDown));
                 return;
@@ -91,7 +88,7 @@ namespace GameBot.Modules
             {
                 await ReplyAsync(_phraseService.GetPhrase(KeyPhrases.KarmaIncreased));
 
-                if (_karmaService.HasGivenKarmaRecently(appDevBot.Id, 10080))
+                if (_karmaService.HasGivenTooMuchKarmaRecently(appDevBot.Id, 1, 10080))
                 {
                     await ReplyAsync(_phraseService.GetPhrase(KeyPhrases.ThankYouFromBot));
                 } else
@@ -111,11 +108,11 @@ namespace GameBot.Modules
             return;
         }
 
-        private bool HasGivenKarmaRecently(string text, int minutes)
+        private bool HasGivenKarmaRecently(string text, int maxKarma, int minutes)
         {
             var user = _userService.TryGetUserFromText(text);
-            if (user == null) return _karmaService.HasGivenKarmaRecently(text, minutes);
-            return _karmaService.HasGivenKarmaRecently(user.Id, minutes);
+            if (user != null) text = user.Id.ToString();
+            return _karmaService.HasGivenTooMuchKarmaRecently(text, maxKarma, minutes);
         }
 
         private async Task ManipulatingOwnKarma(SocketGuildUser user, int karmaPoints)

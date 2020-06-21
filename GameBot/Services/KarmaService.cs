@@ -23,15 +23,15 @@ namespace GameBot.Services
             _userService = new UserService(_context);
         }
 
-        public bool HasGivenKarmaRecently(ulong userId, int minutes)
+        public bool HasGivenTooMuchKarmaRecently(ulong userId, int maxKarma, int minutes)
         {
-            return HasGivenKarmaRecently(userId.ToString(), minutes);
+            return HasGivenTooMuchKarmaRecently(userId.ToString(), maxKarma, minutes);
         }
-        public bool HasGivenKarmaRecently(string thing, int minutes)
+        public bool HasGivenTooMuchKarmaRecently(string thing, int maxKarma, int minutes)
         {
-            var timeDifference = TimeInMinutesSinceLastKarmaSent(thing);
+            var numberOfKarma = GetNumberOfKarmaSentRecently(thing, minutes);
 
-            if (timeDifference < minutes)
+            if (numberOfKarma >= maxKarma)
             {
                 return true;
             }
@@ -48,19 +48,17 @@ namespace GameBot.Services
             return _db.Karma.AsQueryable().Where(x => x.Thing == thing).Select(x => x.Points).Sum();
         }
 
-        private double TimeInMinutesSinceLastKarmaSent(string thing)
+        private double GetNumberOfKarmaSentRecently(string thing, int minutes)
         {
+            var fiveMinutesAgo = DateTime.Now.AddMinutes(-1 * minutes);
             var fromUserId = _context.Message.Author.Id;
             var mostRecentKarma = _db.Karma.AsQueryable()
                 .Where(x => x.FromUserId == fromUserId)
                 .Where(x => x.Thing == thing)
-                .ToList()
-                .LastOrDefault();
+                .Where(x => x.GivenOn >= fiveMinutesAgo)
+                .Sum(x => x.Points);
 
-            if (mostRecentKarma == null) return double.MaxValue;
-
-            var timeDifference = DateTime.Now - mostRecentKarma.GivenOn;
-            return timeDifference.TotalMinutes;
+            return mostRecentKarma;
         }
 
         public void SaveKarma(ulong userId, int karmaPoints, ulong from)
