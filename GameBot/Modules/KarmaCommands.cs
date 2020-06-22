@@ -163,6 +163,9 @@ namespace GameBot.Modules
         {
             _userService = new UserService(Context);
 
+            var user = _userService.TryGetUserFromText(thing);
+            if (user != null) thing = user.Id.ToString();
+
             var karma = _db.Karma
                 .AsQueryable()
                 .Where(x => x.Server == Context.Guild.Id)
