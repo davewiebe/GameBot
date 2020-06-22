@@ -30,6 +30,7 @@ namespace GameBot.Modules
         [Command("highscore")]
         public async Task Highscore()
         {
+            return;
             var monkey = _db.Scores.FirstOrDefault();
             if (monkey == null)
             {
@@ -43,6 +44,7 @@ namespace GameBot.Modules
         [Command("nothanks")]
         public async Task NoThanks()
         {
+            return;
             await ReplyAsync("Oh boy");
             Thread.Sleep(500);
 
@@ -53,12 +55,14 @@ namespace GameBot.Modules
         [Command("add")]
         public async Task AddUserToGame()
         {
+            return;
             await ReplyAsync($"{Context.User.Username} added to game");
         }
 
         [Command("start")]
         public async Task Start()
         {
+            return;
             await ReplyAsync($"Starting the game!");
 
 
