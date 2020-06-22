@@ -14,5 +14,6 @@ namespace GameBot.Enums
         public const string RightBackAtYou = "Right back at you";
         public const string HoldUp = "Hold up";
         public const string BotIsHurt = "Bot is hurt";
+        public const string HeckleCoffeeBot = "Heckle Coffee Bot";
     }
 }

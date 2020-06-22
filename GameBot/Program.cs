@@ -71,7 +71,11 @@ namespace GameBot
         {
             var message = arg as SocketUserMessage;
             var context = new SocketCommandContext(_client, message);
-            if (message.Author.IsBot) return;
+            if (message.Author.IsBot)
+            {
+                var result = await _commands.ExecuteAsync(context, "hecklecoffeebot", _services);
+                if (!result.IsSuccess) Console.WriteLine(result.ErrorReason);
+            }
 
             var argPos = 0;
             if (message.Content.EndsWith("++") || message.Content.EndsWith("+=1") || message.Content.EndsWith("--") || message.Content.EndsWith("-=1"))

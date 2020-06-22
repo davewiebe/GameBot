@@ -72,6 +72,12 @@ namespace GameBot
                         new Phrase{ Text = "Right back at you!" }
                     }
                 },
+                new KeyPhrase{
+                    Text = Enums.KeyPhrases.HeckleCoffeeBot,
+                    Phrases = new List<Phrase>{
+                        new Phrase{ Text = "Hey <coffeebot>, I hope Andrey's paying you!" }
+                    }
+                },
             };
 
             foreach (var keyPhrase in keyPhrases)
