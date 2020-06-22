@@ -19,6 +19,7 @@ namespace GameBot.Services
 
         public void AddReplacement(string replace, string value)
         {
+            _replacements.RemoveAll(x => x.Item1 == replace);
             _replacements.Add((replace, value));
         }
 

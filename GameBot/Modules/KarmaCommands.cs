@@ -96,6 +96,9 @@ namespace GameBot.Modules
                     await ReplyAsync(_phraseService.GetPhrase(KeyPhrases.RightBackAtYou));
                     _karmaService.SaveKarma(fromUser.Id, karmaPoints, appDevBot.Id);
                     totalPoints = _karmaService.GetTotalKarmaPoints(fromUser.Id);
+
+                    _phraseService.AddReplacement("<from>", appDevBot.Username);
+                    _phraseService.AddReplacement("<thing>", fromUser.Nickname);
                     _phraseService.AddReplacement("<totalkarma>", totalPoints.ToString());
                     await ReplyAsync(_phraseService.GetPhrase(KeyPhrases.KarmaIncreased));
                 }
@@ -104,6 +107,14 @@ namespace GameBot.Modules
             {
                 await ReplyAsync(_phraseService.GetPhrase(KeyPhrases.KarmaDecreased));
                 await ReplyAsync(_phraseService.GetPhrase(KeyPhrases.BotIsHurt));
+
+                _karmaService.SaveKarma(fromUser.Id, -1 * karmaPoints, appDevBot.Id);
+                totalPoints = _karmaService.GetTotalKarmaPoints(fromUser.Id);
+
+                _phraseService.AddReplacement("<from>", appDevBot.Username);
+                _phraseService.AddReplacement("<thing>", fromUser.Nickname);
+                _phraseService.AddReplacement("<totalkarma>", totalPoints.ToString());
+                await ReplyAsync(_phraseService.GetPhrase(KeyPhrases.KarmaDecreased));
             }
             return;
         }
