@@ -23,7 +23,7 @@ namespace GameBot.Modules
             var userMention = Context.Message.Author.Mention;
             _phraseService.AddReplacement("<coffeebot>", userMention);
             
-            if (Context.Message.Timestamp.Hour == 14 && Context.Message.Timestamp.Minute == 0)
+            if (Context.Message.Timestamp.Hour == 21 && Context.Message.Timestamp.Minute == 0)
             {
                 await ReplyAsync(_phraseService.GetPhrase(KeyPhrases.HeckleCoffeeBot));
             }
