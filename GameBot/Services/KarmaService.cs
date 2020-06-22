@@ -45,7 +45,10 @@ namespace GameBot.Services
 
         public int GetTotalKarmaPoints(string thing)
         {
-            return _db.Karma.AsQueryable().Where(x => x.Thing == thing).Select(x => x.Points).Sum();
+            return _db.Karma.AsQueryable()
+                .Where(x => x.Thing == thing)
+                .Where(x => x.Server == _context.Guild.Id)
+                .Select(x => x.Points).Sum();
         }
 
         private double GetNumberOfKarmaSentRecently(string thing, int minutes)
@@ -55,6 +58,7 @@ namespace GameBot.Services
             var mostRecentKarma = _db.Karma.AsQueryable()
                 .Where(x => x.FromUserId == fromUserId)
                 .Where(x => x.Thing == thing)
+                .Where(x => x.Server == _context.Guild.Id)
                 .Where(x => x.GivenOn >= fiveMinutesAgo)
                 .Sum(x => x.Points);
 

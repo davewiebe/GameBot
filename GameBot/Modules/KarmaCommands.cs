@@ -146,16 +146,25 @@ namespace GameBot.Modules
         {
             _userService = new UserService(Context);
 
-            var scores = _db.Karma
+            var karmas = _db.Karma
                 .AsQueryable()
                 .Where(x => x.Server == Context.Guild.Id)
-                .ToList()
-                .GroupBy(x => x.Thing, StringComparer.InvariantCultureIgnoreCase)
+                .ToList();
+
+            var userScores = karmas
+                .Where(x => x.Thing != _userService.GetNicknameIfUser(x.Thing))
+                .GroupBy(x => _userService.GetNicknameIfUser(x.Thing), StringComparer.InvariantCultureIgnoreCase)
                 .OrderByDescending(x => x.Sum(y => y.Points))
-                .Select(x => $"{_userService.GetNicknameIfUser(x.Key)}: {x.Sum(y => y.Points)} karma");
+                .Select(x => $"{x.Sum(y => y.Points)} karma - {x.Key}");
 
+            var objectScores = karmas
+                .Where(x => x.Thing == _userService.GetNicknameIfUser(x.Thing))
+                .GroupBy(x => _userService.GetNicknameIfUser(x.Thing), StringComparer.InvariantCultureIgnoreCase)
+                .OrderByDescending(x => x.Sum(y => y.Points))
+                .Select(x => $"{x.Sum(y => y.Points)} karma - {x.Key}");
 
-            await ReplyAsync("Karma leaderboard:\n\n" + string.Join("\n", scores));
+            await ReplyAsync("User Karma Leaderboard:\n\n" + string.Join("\n", userScores));
+            await ReplyAsync("Other Karma Leaderboard:\n\n" + string.Join("\n", objectScores));
         }
 
         [Command("karma")]
@@ -166,11 +175,12 @@ namespace GameBot.Modules
             var user = _userService.TryGetUserFromText(thing);
             if (user != null) thing = user.Id.ToString();
 
-            var karma = _db.Karma
+            var karmaQuery = _db.Karma
                 .AsQueryable()
                 .Where(x => x.Server == Context.Guild.Id)
-                .Where(x => x.Thing.ToUpper() == thing.ToUpper())
-                .Sum(x => x.Points);
+                .Where(x => x.Thing.ToUpper() == thing.ToUpper());
+
+            var karma = karmaQuery.Sum(x => x.Points);
 
             var fromUser = Context.Guild.GetUser(Context.Message.Author.Id);
             _phraseService.AddReplacement("<from>", fromUser.Nickname);
