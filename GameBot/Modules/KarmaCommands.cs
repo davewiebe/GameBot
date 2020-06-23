@@ -1,5 +1,6 @@
 ﻿using Discord.Commands;
 using Discord.WebSocket;
+using GameBot.Data;
 using GameBot.Enums;
 using GameBot.Services;
 using System;
@@ -108,7 +109,7 @@ namespace GameBot.Modules
                 await ReplyAsync(_phraseService.GetPhrase(KeyPhrases.KarmaDecreased));
                 await ReplyAsync(_phraseService.GetPhrase(KeyPhrases.BotIsHurt));
 
-                _karmaService.SaveKarma(fromUser.Id, -1 * karmaPoints, appDevBot.Id);
+                _karmaService.SaveKarma(fromUser.Id, karmaPoints, appDevBot.Id);
                 totalPoints = _karmaService.GetTotalKarmaPoints(fromUser.Id);
 
                 _phraseService.AddReplacement("<from>", appDevBot.Username);
@@ -170,12 +171,27 @@ namespace GameBot.Modules
 
             var objectScores = karmas
                 .Where(x => x.Thing == _userService.GetNicknameIfUser(x.Thing))
-                .GroupBy(x => _userService.GetNicknameIfUser(x.Thing), StringComparer.InvariantCultureIgnoreCase)
+                .GroupBy(x => _userService.GetNicknameIfUser(x.Thing), StringComparer.InvariantCultureIgnoreCase);
+
+            var topObjectScores = objectScores
                 .OrderByDescending(x => x.Sum(y => y.Points))
-                .Select(x => $"{x.Sum(y => y.Points)} karma - {x.Key}");
+                .Take(5)
+                .ToList()
+                .Select(x => $"{x.Sum(y => y.Points)} karma - {NewMethod(x.Key)}");
+
+            var bottomObjectScores = objectScores
+                .OrderBy(x => x.Sum(y => y.Points))
+                .Take(4)
+                .ToList()
+                .Select(x => $"{x.Sum(y => y.Points)} karma - {NewMethod(x.Key)}");
 
             await ReplyAsync("User Karma Leaderboard:\n\n" + string.Join("\n", userScores));
-            await ReplyAsync("Other Karma Leaderboard:\n\n" + string.Join("\n", objectScores));
+            await ReplyAsync("Other Karma Leaderboard:\n\n" + string.Join("\n", topObjectScores) + "\n...\n" + string.Join("\n", bottomObjectScores));
+        }
+
+        private static string NewMethod(string x)
+        {
+            return (x.Length > 16) ? x.Substring(0, 15) + "..." : x;
         }
 
         [Command("karma")]
