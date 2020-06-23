@@ -1,4 +1,5 @@
-﻿using Discord.Commands;
+﻿using Discord;
+using Discord.Commands;
 using Discord.WebSocket;
 using GameBot.Data;
 using GameBot.Enums;
@@ -167,7 +168,8 @@ namespace GameBot.Modules
                 .Where(x => x.Thing != _userService.GetNicknameIfUser(x.Thing))
                 .GroupBy(x => _userService.GetNicknameIfUser(x.Thing), StringComparer.InvariantCultureIgnoreCase)
                 .OrderByDescending(x => x.Sum(y => y.Points))
-                .Select(x => $"{x.Sum(y => y.Points)} karma - {x.Key}");
+                .Select(x => $"`{x.Sum(y => y.Points)} karma` - {x.Key}");
+
 
             var objectScores = karmas
                 .Where(x => x.Thing == _userService.GetNicknameIfUser(x.Thing))
@@ -177,16 +179,32 @@ namespace GameBot.Modules
                 .OrderByDescending(x => x.Sum(y => y.Points))
                 .Take(5)
                 .ToList()
-                .Select(x => $"{x.Sum(y => y.Points)} karma - {NewMethod(x.Key)}");
+                .Select(x => $"`{x.Sum(y => y.Points)} karma` - {NewMethod(x.Key)}");
+
+            var take = 4;
+            if (objectScores.ToList().Count < 10)
+            {
+                take = objectScores.ToList().Count - 5;
+            }
 
             var bottomObjectScores = objectScores
                 .OrderBy(x => x.Sum(y => y.Points))
                 .Take(4)
                 .ToList()
-                .Select(x => $"{x.Sum(y => y.Points)} karma - {NewMethod(x.Key)}");
+                .OrderByDescending(x => x.Sum(y => y.Points))
+                .Select(x => $"`{x.Sum(y => y.Points)} karma` - {NewMethod(x.Key)}");
 
-            await ReplyAsync("User Karma Leaderboard:\n\n" + string.Join("\n", userScores));
-            await ReplyAsync("Other Karma Leaderboard:\n\n" + string.Join("\n", topObjectScores) + "\n...\n" + string.Join("\n", bottomObjectScores));
+
+
+            var builder = new EmbedBuilder()
+                .WithTitle("Karma leaderboard")
+                .AddField("Users", string.Join("\n", userScores), inline: true)
+                .AddField("Non-users", string.Join("\n", topObjectScores) + "\n...\n" + string.Join("\n", bottomObjectScores), inline: true);
+            var embed = builder.Build();
+
+            await Context.Channel.SendMessageAsync(
+                embed: embed)
+                .ConfigureAwait(false);
         }
 
         private static string NewMethod(string x)

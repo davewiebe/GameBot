@@ -60,7 +60,7 @@ namespace GameBot.Services
                 .Where(x => x.Thing == thing)
                 .Where(x => x.Server == _context.Guild.Id)
                 .Where(x => x.GivenOn >= fiveMinutesAgo)
-                .Sum(x => x.Points);
+                .Sum(x => Math.Abs(x.Points));
 
             return mostRecentKarma;
         }

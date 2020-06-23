@@ -75,6 +75,7 @@ namespace GameBot
             {
                 var result = await _commands.ExecuteAsync(context, "hecklecoffeebot", _services);
                 if (!result.IsSuccess) Console.WriteLine(result.ErrorReason);
+                return;
             }
 
             var argPos = 0;
