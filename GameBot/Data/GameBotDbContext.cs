@@ -23,6 +23,17 @@ namespace GameBot.Data
         public DbSet<Karma> Karma { get; set; }
         public DbSet<Phrase> Phrase { get; set; }
         public DbSet<KeyPhrase> KeyPhrase { get; set; }
+        public DbSet<DeepThought> DeepThoughts { get; set; }
+        public DbSet<Game> Games { get; set; }
+        public DbSet<Player> Players { get; set; }
+        public DbSet<Bid> Bids { get; set; }
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Game>()
+                .HasOne(b => b.PlayerTurn)
+                .WithOne(i => i.Game)
+                .HasForeignKey<Player>(b => b.GameId);
+        }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

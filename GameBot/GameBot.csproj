@@ -6,6 +6,11 @@
     <UserSecretsId>e07363f1-50f5-4f85-a9ea-0630a5a782e9</UserSecretsId>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+
   <ItemGroup>
     <Compile Remove="Migrations\20200618155017_AddedKarmaTable.cs" />
     <Compile Remove="Migrations\20200618155017_AddedKarmaTable.Designer.cs" />
@@ -23,6 +28,9 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.5" />
     <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="3.1.5" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.1.5" />
+    <PackageReference Include="NAudio" Version="1.10.0" />
+    <PackageReference Include="RedditSharp" Version="1.1.14" />
+    <PackageReference Include="TenorSharp" Version="1.4.1" />
   </ItemGroup>
 
   <ItemGroup>

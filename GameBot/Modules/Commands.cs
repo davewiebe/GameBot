@@ -1,6 +1,8 @@
 ﻿using Discord.Commands;
 using GameBot.Data;
 using GameBot.Services;
+using Microsoft.Extensions.Configuration;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,60 +15,24 @@ namespace GameBot.Modules
         private KarmaService _karmaService;
         private UserService _userService;
         private PhraseService _phraseService;
+        private readonly AudioService _audioService;
+        private string _tenorToken;
+        private string _botType;
 
-        public Commands()
+        public Commands(AudioService service)
         {
+            IConfigurationRoot configuration = new ConfigurationBuilder()
+                    .SetBasePath(Directory.GetCurrentDirectory())
+                    .AddJsonFile("appsettings.json", false)
+                    .Build();
+
+            _tenorToken = configuration.GetSection("TenorToken").Value;
+            _botType = configuration.GetSection("BotType").Value;
+
             _db = new GameBotDbContext();
             _phraseService = new PhraseService(_db);
-        }
 
-        [Command("ping")]
-        public async Task Ping()
-        {
-            await ReplyAsync("Pong");
-        }
-
-
-        [Command("highscore")]
-        public async Task Highscore()
-        {
-            return;
-            var monkey = _db.Scores.FirstOrDefault();
-            if (monkey == null)
-            {
-                await ReplyAsync("No scores yet");
-                return;
-            }
-            await ReplyAsync($"Highest score: {monkey.Points}");
-        }
-
-
-        [Command("nothanks")]
-        public async Task NoThanks()
-        {
-            return;
-            await ReplyAsync("Oh boy");
-            Thread.Sleep(500);
-
-            await ReplyAsync("Add users with !add");
-
-        }
-
-        [Command("add")]
-        public async Task AddUserToGame()
-        {
-            return;
-            await ReplyAsync($"{Context.User.Username} added to game");
-        }
-
-        [Command("start")]
-        public async Task Start()
-        {
-            return;
-            await ReplyAsync($"Starting the game!");
-
-
-            var deck = new ClassicDeck();
+            _audioService = service;
         }
     }
 }

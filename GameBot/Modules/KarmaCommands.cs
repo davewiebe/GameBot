@@ -16,6 +16,15 @@ namespace GameBot.Modules
         [Command("givekarma")]
         public async Task GiveKarma()
         {
+            if (_botType != "karma") return;
+
+            var channel = Context.Guild.GetChannel(Context.Channel.Id);
+            if (channel.PermissionOverwrites.Count > 0)
+            {
+                await ReplyAsync("Sorry. This channel is too exclusive for me.");
+                return;
+            }
+
             _karmaService = new KarmaService(Context, _db);
             _userService = new UserService(Context);
 
@@ -157,6 +166,8 @@ namespace GameBot.Modules
         [Command("karma")]
         public async Task Karma()
         {
+            if (_botType != "karma") return;
+
             _userService = new UserService(Context);
 
             var karmas = _db.Karma
@@ -215,6 +226,8 @@ namespace GameBot.Modules
         [Command("karma")]
         public async Task Karma(string thing)
         {
+            if (_botType != "karma") return;
+
             _userService = new UserService(Context);
 
             var user = _userService.TryGetUserFromText(thing);

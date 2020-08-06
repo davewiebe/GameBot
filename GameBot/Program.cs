@@ -11,6 +11,7 @@ using Microsoft.Extensions.Configuration;
 using GameBot.Data;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
+using GameBot.Services;
 
 namespace GameBot
 {
@@ -23,6 +24,8 @@ namespace GameBot
         private IServiceProvider _services;
         private IConfigurationRoot _configuration;
 
+        private string _botType = "";
+
         public async Task RunBotASync()
         {
             _configuration = new ConfigurationBuilder()
@@ -31,13 +34,13 @@ namespace GameBot
                 .Build();
 
             _client = new DiscordSocketClient();
-
             _commands = new CommandService();
 
             _services = new ServiceCollection()
                 .AddSingleton(_client)
                 .AddSingleton(_commands)
                 .AddSingleton(_configuration)
+                .AddSingleton(new AudioService())
                 .AddEntityFrameworkSqlServer()
                 .AddDbContext<GameBotDbContext>(options =>
                     options.UseSqlServer(_configuration.GetConnectionString("GameBotDb")))
@@ -46,6 +49,8 @@ namespace GameBot
             SeedDatabase();
 
             var token = _configuration.GetSection("DiscordToken").Value;
+
+            _botType = _configuration.GetSection("BotType").Value;
 
             _client.Log += _client_Log;
 
@@ -71,22 +76,64 @@ namespace GameBot
         {
             var message = arg as SocketUserMessage;
             var context = new SocketCommandContext(_client, message);
-            if (message.Author.IsBot)
+
+            IResult result = null;
+
+            if (_botType == "deepthought")
             {
-                var result = await _commands.ExecuteAsync(context, "hecklecoffeebot", _services);
-                if (!result.IsSuccess) Console.WriteLine(result.ErrorReason);
-                return;
+                if (message.MentionedUsers.FirstOrDefault()?.Id == context.Client.CurrentUser.Id)
+                {
+                    result = await _commands.ExecuteAsync(context, "thoughtsxyz", _services);
+                }
+            }
+            else if (_botType == "perudo")
+            {
+                var argPos = 0;
+                if (message.HasStringPrefix("!", ref argPos))
+                {
+                    result = await _commands.ExecuteAsync(context, argPos, _services);
+                }
             }
 
-            var argPos = 0;
-            if (message.Content.EndsWith("++") || message.Content.EndsWith("+=1") || message.Content.EndsWith("--") || message.Content.EndsWith("-=1"))
+            else if (_botType == "marvin")
             {
-                var result = await _commands.ExecuteAsync(context, "givekarma", _services);
-                if (!result.IsSuccess) Console.WriteLine(result.ErrorReason);
+                if (message.MentionedUsers.FirstOrDefault()?.Id == context.Client.CurrentUser.Id)
+                {
+                    result = await _commands.ExecuteAsync(context, "deepxyz", _services);
+                }
             }
-            else if(message.HasStringPrefix("!", ref argPos))
+
+            else if (_botType == "jif")
             {
-                var result = await _commands.ExecuteAsync(context, argPos, _services);
+                if (message.Content.StartsWith("!jif"))
+                {
+                    result = await _commands.ExecuteAsync(context, "jifxyz", _services);
+                }
+            }
+
+            else if (_botType == "gif")
+            {
+                if (message.Content.StartsWith("!gif"))
+                {
+                    result = await _commands.ExecuteAsync(context, "gifxyz" + message.Content.Substring(4), _services);
+                }
+            }
+
+            else if (_botType == "karma")
+            {
+                var argPos = 0;
+                if (message.Content.EndsWith("++") || message.Content.EndsWith("+=1") || message.Content.EndsWith("--") || message.Content.EndsWith("-=1"))
+                {
+                    result = await _commands.ExecuteAsync(context, "givekarma", _services);
+                }
+                else if (message.HasStringPrefix("!", ref argPos))
+                {
+                    result = await _commands.ExecuteAsync(context, argPos, _services);
+                }
+            }
+
+            if (result != null)
+            {
                 if (!result.IsSuccess) Console.WriteLine(result.ErrorReason);
             }
         }
