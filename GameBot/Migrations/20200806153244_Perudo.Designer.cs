@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GameBot.Migrations
 {
     [DbContext(typeof(GameBotDbContext))]
-    [Migration("20200806050903_Perudo")]
+    [Migration("20200806153244_Perudo")]
     partial class Perudo
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -31,9 +31,6 @@ namespace GameBot.Migrations
                     b.Property<string>("Call")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("GameId")
-                        .HasColumnType("int");
-
                     b.Property<int>("Pips")
                         .HasColumnType("int");
 
@@ -44,8 +41,6 @@ namespace GameBot.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("GameId");
 
                     b.HasIndex("PlayerId");
 
@@ -165,8 +160,7 @@ namespace GameBot.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("GameId")
-                        .IsUnique();
+                    b.HasIndex("GameId");
 
                     b.ToTable("Players");
                 });
@@ -191,12 +185,6 @@ namespace GameBot.Migrations
 
             modelBuilder.Entity("GameBot.Data.Bid", b =>
                 {
-                    b.HasOne("GameBot.Data.Game", "Game")
-                        .WithMany()
-                        .HasForeignKey("GameId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("GameBot.Data.Player", "Player")
                         .WithMany()
                         .HasForeignKey("PlayerId")
@@ -214,8 +202,8 @@ namespace GameBot.Migrations
             modelBuilder.Entity("GameBot.Data.Player", b =>
                 {
                     b.HasOne("GameBot.Data.Game", "Game")
-                        .WithOne("PlayerTurn")
-                        .HasForeignKey("GameBot.Data.Player", "GameId")
+                        .WithMany()
+                        .HasForeignKey("GameId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

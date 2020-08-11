@@ -4,14 +4,16 @@ using GameBot.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace GameBot.Migrations
 {
     [DbContext(typeof(GameBotDbContext))]
-    partial class GameBotDbContextModelSnapshot : ModelSnapshot
+    [Migration("20200806153349_Perudo2")]
+    partial class Perudo2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -28,9 +30,6 @@ namespace GameBot.Migrations
 
                     b.Property<string>("Call")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("GameId")
-                        .HasColumnType("int");
 
                     b.Property<int>("Pips")
                         .HasColumnType("int");
@@ -150,25 +149,10 @@ namespace GameBot.Migrations
                         .HasColumnType("int")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<int?>("Die1")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("Die2")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("Die3")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("Die4")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("Die5")
-                        .HasColumnType("int");
+                    b.Property<string>("Dice")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("GameId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("NumberOfDice")
                         .HasColumnType("int");
 
                     b.Property<string>("Username")

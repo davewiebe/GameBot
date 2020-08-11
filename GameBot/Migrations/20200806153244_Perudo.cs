@@ -47,7 +47,6 @@ namespace GameBot.Migrations
                 {
                     Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    GameId = table.Column<int>(nullable: false),
                     PlayerId = table.Column<int>(nullable: false),
                     Quantity = table.Column<int>(nullable: false),
                     Pips = table.Column<int>(nullable: false),
@@ -57,23 +56,12 @@ namespace GameBot.Migrations
                 {
                     table.PrimaryKey("PK_Bids", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Bids_Games_GameId",
-                        column: x => x.GameId,
-                        principalTable: "Games",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
                         name: "FK_Bids_Players_PlayerId",
                         column: x => x.PlayerId,
                         principalTable: "Players",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Bids_GameId",
-                table: "Bids",
-                column: "GameId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Bids_PlayerId",
@@ -83,8 +71,7 @@ namespace GameBot.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_Players_GameId",
                 table: "Players",
-                column: "GameId",
-                unique: true);
+                column: "GameId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)

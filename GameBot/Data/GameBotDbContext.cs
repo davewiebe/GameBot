@@ -27,13 +27,6 @@ namespace GameBot.Data
         public DbSet<Game> Games { get; set; }
         public DbSet<Player> Players { get; set; }
         public DbSet<Bid> Bids { get; set; }
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            modelBuilder.Entity<Game>()
-                .HasOne(b => b.PlayerTurn)
-                .WithOne(i => i.Game)
-                .HasForeignKey<Player>(b => b.GameId);
-        }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

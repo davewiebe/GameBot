@@ -14,6 +14,12 @@
   <ItemGroup>
     <Compile Remove="Migrations\20200618155017_AddedKarmaTable.cs" />
     <Compile Remove="Migrations\20200618155017_AddedKarmaTable.Designer.cs" />
+    <Compile Remove="Migrations\20200806050903_Perudo.cs" />
+    <Compile Remove="Migrations\20200806050903_Perudo.Designer.cs" />
+    <Compile Remove="Migrations\20200806152852_Perudo.cs" />
+    <Compile Remove="Migrations\20200806152852_Perudo.Designer.cs" />
+    <Compile Remove="Migrations\20200806153027_Perudo.cs" />
+    <Compile Remove="Migrations\20200806153027_Perudo.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>
