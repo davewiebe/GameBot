@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.Commands;
+using Discord.WebSocket;
 using GameBot.Data;
 using GameBot.Services;
 using Microsoft.EntityFrameworkCore;
@@ -57,10 +58,9 @@ namespace GameBot.Modules
             var players = await GetPlayersAsync(game);
             if (players.FirstOrDefault(x => x.Username == userToAdd.Username) != null)
             {
-                await ReplyAsync($"{userToAdd.Username} is already in the game.");
+                await ReplyAsync($"{GetUserNickname(userToAdd.Username)} is already in the game.");
                 return;
             }
-
 
             _db.Players.Add(new Player
             {
@@ -70,7 +70,7 @@ namespace GameBot.Modules
 
             _db.SaveChanges();
 
-            await ReplyAsync($"{userToAdd.Username} added to game. Start the game with \"!start\"");
+            await ReplyAsync($"{GetUserNickname(userToAdd.Username)} added to game. Start the game with \"!start\"");
         }
 
         [Command("remove")]
@@ -88,11 +88,12 @@ namespace GameBot.Modules
             }
 
             var userToRemove = _db.Players.FirstOrDefault(x => x.GameId == game.Id && x.Username == userToAdd.Username);
+            if (userToRemove == null) return;
 
             _db.Players.Remove(userToRemove);
             _db.SaveChanges();
 
-            await ReplyAsync($"{userToAdd.Username} added to game. Start the game with \"!start\"");
+            await ReplyAsync($"{GetUserNickname(userToAdd.Username)} removed from game.");
         }
 
         private async Task<bool> ValidateState(int stateId)
@@ -125,12 +126,13 @@ namespace GameBot.Modules
             game.State = IN_PROGRESS;
             game.PlayerTurnId = players.First().Id;
 
+            await ReplyAsync($"Starting the game!");
+            await ReplyAsync($"Use \"!bid 2 2s\" or \"!exact\" or \"!liar\" to play.");
+
             await RollDice(game);
 
             _db.SaveChanges();
 
-            await ReplyAsync($"Starting the game!");
-            await ReplyAsync($"Use \"!bid 2 2s\" or \"!exact\" or \"!liar\" to play.");
         }
 
         private async Task<List<Player>> GetPlayersAsync(Data.Game game)
@@ -146,40 +148,61 @@ namespace GameBot.Modules
             var activePlayers = lists.Where(x => x.NumberOfDice > 0);
             if (activePlayers.Count() == 1)
             {
-                await ReplyAsync($"{activePlayers.Single().Username} is the winner with {activePlayers.Single().NumberOfDice} dice remaining!");
+                await ReplyAsync($"{GetUser(activePlayers.Single().Username).Mention} is the winner with {activePlayers.Single().NumberOfDice} dice remaining!");
 
                 game.State = ENDED;
                 _db.SaveChanges();
                 return;
             }
 
-
             var r = new Random();
 
-            var players2 = _db.Players.AsQueryable().Where(x => x.GameId == game.Id).ToList();
+            var players2 = _db.Players
+                .AsQueryable()
+                .Where(x => x.GameId == game.Id)
+                .Where(x => x.NumberOfDice > 0)
+                .ToList();
 
             foreach (var player in players2)
             {
-                if (player.NumberOfDice >= 1) player.Die1 = r.Next(1, 7); else player.Die1 = null;
-                if (player.NumberOfDice >= 2) player.Die2 = r.Next(1, 7); else player.Die2 = null;
-                if (player.NumberOfDice >= 3) player.Die3 = r.Next(1, 7); else player.Die3 = null;
-                if (player.NumberOfDice >= 4) player.Die4 = r.Next(1, 7); else player.Die4 = null;
-                if (player.NumberOfDice >= 5) player.Die5 = r.Next(1, 7); else player.Die5 = null;
+                List<int?> dice = new List<int?>();
+                for (int i = 0; i < player.NumberOfDice; i++)
+                {
+                    dice.Add(r.Next(1, 7));
+                }
+
+                dice.Sort();
+
+                player.Die1 = dice.ElementAtOrDefault(0);
+                player.Die2 = dice.ElementAtOrDefault(1);
+                player.Die3 = dice.ElementAtOrDefault(2);
+                player.Die4 = dice.ElementAtOrDefault(3);
+                player.Die5 = dice.ElementAtOrDefault(4);
 
                 var user = Context.Guild.Users.Single(x => x.Username == player.Username);
-                await user.SendMessageAsync($"Your dice: {player.Die1} {player.Die2} {player.Die3} {player.Die4} {player.Die5}");
+                await user.SendMessageAsync($"Your dice: {player.Die1.GetEmoji()} {player.Die2.GetEmoji()} {player.Die3.GetEmoji()} {player.Die4.GetEmoji()} {player.Die5.GetEmoji()}");
             }
             _db.SaveChanges();
 
-            await ReplyAsync("A new round has begun. Your dice have been messaged to you.");
-
             var players = await GetPlayersAsync(game);
-            var playerDiceLeft = players.Select(x => $"{x.Username} - {x.NumberOfDice}");
+            var playerDiceLeft = players.Select(x => $"  {x.NumberOfDice} - {GetUserNickname(x.Username)}");
             var totalDice = players.Sum(x => x.NumberOfDice);
 
-            await ReplyAsync($"Current standings: {string.Join(",", playerDiceLeft)}. Total Dice: {totalDice}.");
+            await ReplyAsync($".\nCurrent standings:\n{string.Join("\n", playerDiceLeft)}\nTotal Dice: {totalDice}.\n.");
 
-            await ReplyAsync($"{GetCurrentPlayer(game).Username} goes first.");
+            await base.ReplyAsync($"A new round has begun. {GetUser(GetCurrentPlayer(game).Username).Mention} goes first.");
+        }
+
+        private SocketGuildUser GetUser(string username)
+        {
+            return Context.Guild.Users.First(x => x.Username == username);
+        }
+
+        private string GetUserNickname(string username)
+        {
+            var nickname = GetUser(username).Nickname;
+            if (string.IsNullOrEmpty(nickname)) return username;
+            return nickname;
         }
 
         [Command("terminate")]
@@ -206,7 +229,7 @@ namespace GameBot.Modules
 
             var game = await GetGameAsync(IN_PROGRESS);
 
-            var biddingPlayer = GetBiddingPlayer(game);
+            var biddingPlayer = GetCurrentPlayer(game);
 
             if (biddingPlayer.Username != Context.User.Username)
             {
@@ -224,7 +247,7 @@ namespace GameBot.Modules
 
             var game = await GetGameAsync(IN_PROGRESS);
 
-            var biddingPlayer = GetBiddingPlayer(game);
+            var biddingPlayer = GetCurrentPlayer(game);
 
             if (biddingPlayer.Username != Context.User.Username)
             {
@@ -254,8 +277,8 @@ namespace GameBot.Modules
             }
             else
             {
-                await ReplyAsync($"There was actually {countOfPips} dice");
-                await DecrementDieFromPlayerAndSetThierTurnAsync(game, GetCurrentPlayer(game));
+                await ReplyAsync($"There was actually {countOfPips} dice. {GetUser(biddingPlayer.Username).Mention} loses a die.");
+                DecrementDieFromPlayerAndSetThierTurnAsync(game, biddingPlayer);
             }
 
             await RollDice(game);
@@ -268,7 +291,7 @@ namespace GameBot.Modules
 
             var game = await GetGameAsync(IN_PROGRESS);
 
-            var biddingPlayer = GetBiddingPlayer(game);
+            var biddingPlayer = GetCurrentPlayer(game);
 
             if (biddingPlayer.Username != Context.User.Username)
             {
@@ -294,13 +317,13 @@ namespace GameBot.Modules
 
             if (countOfPips >= previousBid.Quantity)
             {
-                await ReplyAsync($"There was in fact {countOfPips} dice.");
-                await DecrementDieFromPlayerAndSetThierTurnAsync(game, GetCurrentPlayer(game));
+                await ReplyAsync($"There was in fact {countOfPips} dice. {GetUser(biddingPlayer.Username).Mention} loses a die.");
+                DecrementDieFromPlayerAndSetThierTurnAsync(game, GetCurrentPlayer(game));
             }
             else
             {
-                await ReplyAsync($"There was actually {countOfPips} dice.");
-                await DecrementDieFromPlayerAndSetThierTurnAsync(game, previousBid.Player);
+                await ReplyAsync($"There was actually {countOfPips} dice. {GetUser(previousBid.Player.Username).Mention} loses a die.");
+                DecrementDieFromPlayerAndSetThierTurnAsync(game, previousBid.Player);
             }
 
             await RollDice(game);
@@ -341,29 +364,19 @@ namespace GameBot.Modules
 
             var nextPlayer = GetCurrentPlayer(game);
 
-            await ReplyAsync($"{biddingPlayer.Username} bids {quantity} {pips}s. {nextPlayer.Username} is next");
+            await ReplyAsync($"{biddingPlayer.Username} bids {quantity} {pips}s. {GetUser(nextPlayer.Username).Mention} is next");
         }
-
-        private Player GetBiddingPlayer(Data.Game game)
-        {
-            return _db.Players
-                .AsQueryable()
-                .Single(x => x.Id == game.PlayerTurnId);
-        }
-
 
         private async Task DisplayAllDice(Data.Game game)
         {
             var players = (await GetPlayersAsync(game)).Where(x => x.NumberOfDice > 0);
-            var allDice = players.Select(x => $"{x.Username}'s Dice: {x.Die1} {x.Die2} {x.Die3} {x.Die4} {x.Die5}".TrimEnd());
-            await ReplyAsync(string.Join("\n", allDice));
+            var allDice = players.Select(x => $"{GetUserNickname(x.Username)}: {x.Die1.GetEmoji()} {x.Die2.GetEmoji()} {x.Die3.GetEmoji()} {x.Die4.GetEmoji()} {x.Die5.GetEmoji()}".TrimEnd());
+            await ReplyAsync(string.Join("  ", allDice) + "\n.");
         }
 
-        private async Task DecrementDieFromPlayerAndSetThierTurnAsync(Data.Game game, Player currentPlayer)
+        private void DecrementDieFromPlayerAndSetThierTurnAsync(Data.Game game, Player currentPlayer)
         {
             currentPlayer.NumberOfDice -= 1;
-
-            await ReplyAsync($"{currentPlayer.Username} loses a die and is down to {currentPlayer.NumberOfDice} dice.");
 
             if (currentPlayer.NumberOfDice == 0)
             { 
@@ -394,9 +407,9 @@ namespace GameBot.Modules
 
         private Player GetCurrentPlayer(Data.Game game)
         {
-            return _db.Players.AsQueryable()
-                .Where(x => x.GameId == game.Id)
-                .Where(x => x.Id == game.PlayerTurnId).Single();
+            return _db.Players
+                .AsQueryable()
+                .Single(x => x.Id == game.PlayerTurnId);
         }
 
         private void SetNextPlayer(Data.Game game, Player currentPlayer)

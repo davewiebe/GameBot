@@ -14,6 +14,7 @@ namespace GameBot.Data
         public int Id { get; set; }
         public virtual Game Game { get; set; }
         public int GameId { get; set; }
+        //public ulong UserId { get; set; }
         public string Username { get; set; }
         public int NumberOfDice { get; set; } = 5;
         public int? Die1 { get; set; }

@@ -22,12 +22,7 @@ namespace GameBot.Modules
         public async Task Help()
         {
             await ReplyAsync("Commands:" +
-                "\n@AppDevBot++" +
-                "\n@Josh--" +
-                "\n!karma @CoffeeBot" +
-                "\n!karma" +
-                "\n!changelog" +
-                "\n!help");
+                "\n!new");
         }
     }  
 }
