@@ -283,7 +283,7 @@ namespace GameBot.Modules
                 GameId = game.Id
             });
             _db.SaveChanges();
-
+            // INSERT NUMBER there was 5 *5*s
             await DisplayAllDice(game);
 
             if (countOfPips == previousBid.Quantity)
@@ -292,7 +292,7 @@ namespace GameBot.Modules
             }
             else
             {
-                await ReplyAsync($"There was actually {countOfPips} dice. {GetUser(biddingPlayer.Username).Mention} loses a die.");
+                await ReplyAsync($"There was actually `{countOfPips}` dice. {GetUser(biddingPlayer.Username).Mention} loses a die.");
                 DecrementDieFromPlayerAndSetThierTurnAsync(game, biddingPlayer);
             }
 
@@ -337,7 +337,7 @@ namespace GameBot.Modules
             }
             else
             {
-                await ReplyAsync($"There was actually {countOfPips} dice. {GetUser(previousBid.Player.Username).Mention} loses a die.");
+                await ReplyAsync($"There was actually `{countOfPips}` dice. {GetUser(previousBid.Player.Username).Mention} loses a die.");
                 DecrementDieFromPlayerAndSetThierTurnAsync(game, previousBid.Player);
             }
 
@@ -379,7 +379,7 @@ namespace GameBot.Modules
 
             var nextPlayer = GetCurrentPlayer(game);
 
-            await ReplyAsync($"{GetUserNickname(biddingPlayer.Username)} bids `{quantity}` {pips.GetEmoji()}s. {GetUser(nextPlayer.Username).Mention} is next");
+            await ReplyAsync($"{GetUserNickname(biddingPlayer.Username)} bids `{quantity}` ˣ {pips.GetEmoji()}s. {GetUser(nextPlayer.Username).Mention} is up.");
         }
 
         private async Task DisplayAllDice(Data.Game game)
