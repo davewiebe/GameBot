@@ -184,13 +184,28 @@ namespace GameBot.Modules
             }
             _db.SaveChanges();
 
-            var players = await GetPlayersAsync(game);
-            var playerDiceLeft = players.Select(x => $"  {x.NumberOfDice} - {GetUserNickname(x.Username)}");
-            var totalDice = players.Sum(x => x.NumberOfDice);
-
-            await ReplyAsync($".\nCurrent standings:\n{string.Join("\n", playerDiceLeft)}\nTotal Dice: {totalDice}.\n.");
+            await DisplayCurrentStandings(game);
 
             await base.ReplyAsync($"A new round has begun. {GetUser(GetCurrentPlayer(game).Username).Mention} goes first.");
+        }
+
+        private async Task DisplayCurrentStandings(Data.Game game)
+        {
+            var players = (await GetPlayersAsync(game)).OrderByDescending(x => x.NumberOfDice); ;
+            var totalDice = players.Sum(x => x.NumberOfDice);
+
+            //await ReplyAsync($".\nCurrent standings:\n{string.Join("\n", playerDiceLeft)}\nTotal Dice: {totalDice}.\n.");
+
+            var playerList = string.Join("\n", players.Select(x => $"`{x.NumberOfDice}` {GetUserNickname(x.Username)}"));
+
+            var builder = new EmbedBuilder()
+                .WithTitle("Current standings")
+                .AddField("Users", $"{playerList}\n\nTotal dice left: `{totalDice}`");
+            var embed = builder.Build();
+
+            await Context.Channel.SendMessageAsync(
+                embed: embed)
+                .ConfigureAwait(false);
         }
 
         private SocketGuildUser GetUser(string username)
@@ -317,7 +332,7 @@ namespace GameBot.Modules
 
             if (countOfPips >= previousBid.Quantity)
             {
-                await ReplyAsync($"There was in fact {countOfPips} dice. {GetUser(biddingPlayer.Username).Mention} loses a die.");
+                await ReplyAsync($"There was in fact `{countOfPips}` dice. {GetUser(biddingPlayer.Username).Mention} loses a die.");
                 DecrementDieFromPlayerAndSetThierTurnAsync(game, GetCurrentPlayer(game));
             }
             else
@@ -364,14 +379,14 @@ namespace GameBot.Modules
 
             var nextPlayer = GetCurrentPlayer(game);
 
-            await ReplyAsync($"{biddingPlayer.Username} bids {quantity} {pips}s. {GetUser(nextPlayer.Username).Mention} is next");
+            await ReplyAsync($"{GetUserNickname(biddingPlayer.Username)} bids `{quantity}` {pips.GetEmoji()}s. {GetUser(nextPlayer.Username).Mention} is next");
         }
 
         private async Task DisplayAllDice(Data.Game game)
         {
             var players = (await GetPlayersAsync(game)).Where(x => x.NumberOfDice > 0);
             var allDice = players.Select(x => $"{GetUserNickname(x.Username)}: {x.Die1.GetEmoji()} {x.Die2.GetEmoji()} {x.Die3.GetEmoji()} {x.Die4.GetEmoji()} {x.Die5.GetEmoji()}".TrimEnd());
-            await ReplyAsync(string.Join("  ", allDice) + "\n.");
+            await ReplyAsync(string.Join("  ", allDice));
         }
 
         private void DecrementDieFromPlayerAndSetThierTurnAsync(Data.Game game, Player currentPlayer)

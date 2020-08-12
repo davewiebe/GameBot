@@ -19,5 +19,9 @@ namespace GameBot.Services
             if (die == 6) return ":six:";
             return die.ToString();
         }
+        public static string GetEmoji(this int die)
+        {
+            return GetEmoji((int?)die);
+        }
     }
 }
