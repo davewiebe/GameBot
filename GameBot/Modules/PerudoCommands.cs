@@ -406,7 +406,7 @@ namespace GameBot.Modules
 
         private int GetNumberOfDiceMatchingBid(Data.Game game, int pips)
         {
-            var players = _db.Players.AsQueryable().Where(x => x.GameId == game.Id).ToList();
+            var players = _db.Players.AsQueryable().Where(x => x.GameId == game.Id).Where(x => x.NumberOfDice > 0).ToList();
 
             var countOfPips = players.Sum(x =>
             {
