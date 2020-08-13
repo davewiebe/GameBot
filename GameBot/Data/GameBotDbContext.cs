@@ -27,6 +27,7 @@ namespace GameBot.Data
         public DbSet<Game> Games { get; set; }
         public DbSet<Player> Players { get; set; }
         public DbSet<Bid> Bids { get; set; }
+        public DbSet<BotKey> BotKeys { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

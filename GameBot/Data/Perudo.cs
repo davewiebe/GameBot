@@ -23,6 +23,14 @@ namespace GameBot.Data
         public int? Die4 { get; set; }
         public int? Die5 { get; set; }
     }
+
+    public class BotKey
+    {
+        public int Id { get; set; }
+        public string Username { get; set; }
+        public string BotAesKey { get; set; }
+    }
+
     public class Bid
     {
         public int Id { get; set; }
