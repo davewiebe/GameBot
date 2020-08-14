@@ -194,13 +194,11 @@ namespace GameBot.Modules
                     }
                     catch (Exception e)
                     {
-                        await ReplyAsync($"Please setup a bot key with Dave");
+                        await SendEncryptedDice(player, user, player.Username);
                     }
                 } else
                 {
-                    var diceText = $"{player.Die1}{player.Die2}{player.Die3}{player.Die4}{player.Die5}";
-                    var encoded = SimpleAES.AES256.Encrypt(diceText, botKey.BotAesKey);
-                    await ReplyAsync($"{user.Mention}'s dice: ||{encoded}||");
+                    await SendEncryptedDice(player, user, botKey.BotAesKey);
                 }
             }
             _db.SaveChanges();
@@ -208,6 +206,13 @@ namespace GameBot.Modules
             await DisplayCurrentStandings(game);
 
             await base.ReplyAsync($"A new round has begun. {GetUser(GetCurrentPlayer(game).Username).Mention} goes first.");
+        }
+
+        private async Task SendEncryptedDice(Player player, SocketGuildUser user, string botKey)
+        {
+            var diceText = $"{player.Die1} {player.Die2} {player.Die3} {player.Die4} {player.Die5}";
+            var encoded = SimpleAES.AES256.Encrypt(diceText, botKey);
+            await ReplyAsync($"{user.Mention}'s dice: ||{encoded}||");
         }
 
         private async Task DisplayCurrentStandings(Data.Game game)
@@ -316,7 +321,7 @@ namespace GameBot.Modules
 
             await DisplayAllDice(game);
 
-            await ReplyAsync($"{GetUserNickname(biddingPlayer.Username)} called **exact** on `{previousBid.Quantity}` {previousBid.Pips.GetEmoji()}.");
+            await ReplyAsync($"{GetUserNickname(biddingPlayer.Username)} called **exact** on `{previousBid.Quantity}` ˣ {previousBid.Pips.GetEmoji()}.");
 
 
             if (countOfPips == previousBid.Quantity)
@@ -369,11 +374,11 @@ namespace GameBot.Modules
 
             await DisplayAllDice(game);
 
-            await ReplyAsync($"{GetUserNickname(biddingPlayer.Username)} called **liar** on `{previousBid.Quantity}` {previousBid.Pips.GetEmoji()}.");
+            await ReplyAsync($"{GetUserNickname(biddingPlayer.Username)} called **liar** on `{previousBid.Quantity}` ˣ {previousBid.Pips.GetEmoji()}.");
 
             if (countOfPips >= previousBid.Quantity)
             {
-                await ReplyAsync($"There was in fact `{countOfPips}` dice. {GetUser(biddingPlayer.Username).Mention} loses a die.");
+                await ReplyAsync($"There was actually `{countOfPips}` dice. {GetUser(biddingPlayer.Username).Mention} loses a die.");
                 await DecrementDieFromPlayerAndSetThierTurnAsync(game, GetCurrentPlayer(game));
             }
             else
@@ -436,7 +441,7 @@ namespace GameBot.Modules
         {
             var players = (await GetPlayersAsync(game)).Where(x => x.NumberOfDice > 0);
             var allDice = players.Select(x => $"{GetUserNickname(x.Username)}: {x.Die1.GetEmoji()} {x.Die2.GetEmoji()} {x.Die3.GetEmoji()} {x.Die4.GetEmoji()} {x.Die5.GetEmoji()}".TrimEnd());
-            await ReplyAsync(string.Join("  ", allDice));
+            await ReplyAsync($"Dice: {string.Join(",  ", allDice)}");
         }
 
         private async Task DecrementDieFromPlayerAndSetThierTurnAsync(Data.Game game, Player currentPlayer)
