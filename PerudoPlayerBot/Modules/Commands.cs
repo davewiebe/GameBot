@@ -2,6 +2,7 @@
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
 using PerudoPlayerBot.Data;
+using PerudoPlayerBot.Services;
 using System.IO;
 using System.Linq;
 
@@ -12,6 +13,9 @@ namespace PerudoPlayerBot.Modules
         private PerudoPlayerBotDbContext _db;
         private string _aesEncryptionKey;
         private string _perudoBotUsername;
+        private PlayerService _playerService;
+        private GameService _gameService;
+        private MessageParserService _messageParser;
 
         public Commands()
         {
@@ -24,6 +28,9 @@ namespace PerudoPlayerBot.Modules
             _perudoBotUsername = configuration.GetSection("PerudoBotUsername").Value;
 
             _db = new PerudoPlayerBotDbContext();
+            _playerService = new PlayerService(Context, _db);
+            _gameService = new GameService(Context, _db);
+            _messageParser = new MessageParserService(_perudoBotUsername, _aesEncryptionKey);
         }
     }
 }

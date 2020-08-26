@@ -8,6 +8,7 @@ namespace GameBot.Data
         public int State { get; set; }
         
         public int? PlayerTurnId { get; set; }
+        public int NumberOfDice { get; internal set; }
     }
     public class Player
     {
@@ -16,12 +17,9 @@ namespace GameBot.Data
         public int GameId { get; set; }
         //public ulong UserId { get; set; }
         public string Username { get; set; }
-        public int NumberOfDice { get; set; } = 5;
-        public int? Die1 { get; set; }
-        public int? Die2 { get; set; }
-        public int? Die3 { get; set; }
-        public int? Die4 { get; set; }
-        public int? Die5 { get; set; }
+        public int NumberOfDice { get; set; }
+        public string Dice { get; set; }
+        public int TurnOrder { get; internal set; }
     }
 
     public class BotKey

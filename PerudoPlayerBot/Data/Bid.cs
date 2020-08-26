@@ -14,10 +14,13 @@
         public virtual Player Player { get; set; }
         public int Quantity { get; set; }
         public int Pips { get; set; }
+        public bool IsExact { get; set; }
+        public bool IsLiar { get; set; }
     }
     public class Round
     {
         public int Id { get; set; }
+        public virtual Game Game { get; set; }
         public int GameId { get; set; }
         public bool Active { get; set; }
     }

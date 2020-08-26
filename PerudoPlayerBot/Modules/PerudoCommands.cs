@@ -1,12 +1,9 @@
 ﻿using Discord.Commands;
-using Discord.WebSocket;
 using PerudoPlayerBot.Data;
+using PerudoPlayerBot.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Mime;
-using System.Security.Cryptography;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace PerudoPlayerBot.Modules
@@ -17,169 +14,129 @@ namespace PerudoPlayerBot.Modules
         [Command("perudo")]
         public async Task Perudo()
         {
-            if (!MessageIsFromPerudoBot()) return;
+            MessageData message = _messageParser.Parse(Context.Message);
 
-            if (MessageIsStartGame())
-            {
-                DeactivatePreviousGames();
+            //if (!message.MessageIsFromPerudoBot()) return;
 
-                _db.Games.Add(new Data.Game() { Active = true });
-                _db.SaveChanges();
-            }
+            //if (_messageParser.MessageIsStartGame())
+            //{
+            //    _gameService.DeactivatePreviousGames();
 
-            if (MessageIsNewDice())
-            {
-                var dice = GetDice();
-                await ReplyAsync($"Got my dice: {string.Join(",", dice)}");
+            //    _db.Games.Add(new Game() { Active = true });
+            //    _db.SaveChanges();
+            //    return;
+            //}
 
-                if (IsFirstRound())
-                {
-                    // add new round
-                }
+            //if (_messageParser.MessageIsNewDice())
+            //{
+            //    var dice = _messageParser.GetDice();
+            //    await ReplyAsync($"Got my dice: {string.Join(", ", dice)}");
 
-                // Add dice
+            //    var botUsername = Context.Client.CurrentUser.Username;
 
-                return;
-            }
+            //    SaveDice(botUsername, dice);
+            //    return;
+            //}
 
-            if (MessageIsPlayerBid())
-            {
+            //if (_messageParser.MessageIsPlayerCall())
+            //{
+            //    // save call
+            //    // end round
+            //}
 
-            }
+            //if (_messageParser.MessageIsPlayerBid())
+            //{
+            //    // save call
+            //}
 
-            if (MessageIsMyTurn())
-            {
+            //if (_messageParser.MessageIsMyTurn())
+            //{
+            //    // calculate
+            //}
 
-            }
+            //if (_messageParser.MessageIsRoundSummary())
+            //{
+            //    SaveRoundSummary();
+            //    return;
+            //}
 
-            if (MessageIsDiceSummary())
-            {
-                SaveMyDice();
-            }
-
-            if (MessageIsCurrentStandings())
-            {
-                SaveCurrentStandings();
-            }
+            //if (_messageParser.MessageIsCurrentStandings())
+            //{
+            //    SaveCurrentStandings();
+            //    return;
+            //}
         }
 
-        private void SaveMyDice()
+        private void SaveDieCount(string username, int numberOfDice)
         {
-            throw new NotImplementedException();
-        }
+            var lastRound = _gameService.AddRoundIfNotExists();
+            var player = _playerService.AddPlayerIfNotExists(username);
 
-        private bool IsFirstRound()
-        {
-            throw new NotImplementedException();
-        }
-
-        private void DeactivatePreviousGames()
-        {
-            var activeGames = _db.Games.AsQueryable().Where(x => x.Active == true);
-            foreach (var activeGame in activeGames)
+            var playerRound = new PlayerRound()
             {
-                activeGame.Active = false;
-            }
+                NumberOfDice = numberOfDice,
+                Player = player,
+                Round = lastRound
+            };
+
+            _db.PlayerRound.Add(playerRound);
             _db.SaveChanges();
         }
 
-        private bool MessageIsStartGame()
+        private void SaveDice(string username, List<int> dice)
         {
-            return Context.Message.Content.StartsWith("Starting the game");
+            var currentRound = _gameService.AddRoundIfNotExists();
+            var player = _playerService.AddPlayerIfNotExists(username);
+
+            var playerRound = new PlayerRound()
+            {
+                Dice = string.Join(",", dice),
+                NumberOfDice = dice.Count,
+                Player = player,
+                Round = currentRound
+            };
+
+            _db.PlayerRound.Add(playerRound);
+            _db.SaveChanges();
         }
 
-        private bool MessageIsDiceSummary()
+        private void SaveRoundSummary()
         {
-            return Context.Message.Content.StartsWith("Dice: ");
+            var message = Context.Message.Content;
+            var userDiceCsv = message.Substring(message.IndexOf("Dice: "));
+            var userDiceList = userDiceCsv.Split(",").Select(x => x.Trim());
+            foreach (var userDice in userDiceList)
+            {
+                var username = userDice.Substring(0, userDice.IndexOf(": "));
+                var diceEmojis = userDice.Substring(userDice.IndexOf(": ")).Split(" ");
+
+                var dice = _messageParser.GetDiceFromEmojiList(diceEmojis);
+
+                // Todo, break this function into parser service + round service
+                SaveDice(username, dice);
+            }
         }
 
         private void SaveCurrentStandings()
         {
-            var summary = Context.Message.Embeds.Where(x => x.Title == "Current standings");
-            var stuff = summary.First().Fields.First().Value;
-            var listOfUsersAndDice = stuff.Split("\n");
+            //var usernameDiceList = _messageParser.GetUsernamesAndDiceInGame();
+            //_playerService.CreatePlayersThatDontExist(usernameDiceList.Select(x => x.Username).ToList());
 
-            //var players = _db.Players.AsQueryable().Where(x => x.Round.Active == true).ToList();
-
-            foreach (var userAndDie in listOfUsersAndDice)
-            {
-                if (string.IsNullOrEmpty(userAndDie)) continue;
-                if (userAndDie.Contains("Total dice left:")) continue;
-
-                var items = userAndDie.Split(" ");
-                var dice = int.Parse(items[0].Trim('`'));
-                var username = userAndDie.Substring(userAndDie.IndexOf(" "));
-
-                // create and save 
-                //var player = players.SingleOrDefault(x => x.Username == username);
-
-                //if (player == null)
-                //{
-                    //var newPlayer = new Player()
-                    //{
-                        
-                    //}
-                //}
-                //if (!players.FirstOrDefault(x => x.Username == username))
-                //{
-
-                //}
-                //_db.Players.Add()
-            }
+            //foreach (var usernameDice in usernameDiceList)
+            //{
+            //    SaveDieCount(usernameDice.Username, usernameDice.DiceCount);
+            //}
         }
 
-        private bool MessageIsCurrentStandings()
-        {
-            var embeds = Context.Message.Embeds;
-            if (embeds == null) return false;
+        //private bool MessageIsForMe()
+        //{
+        //    var userMention = Context.Message.MentionedUsers.FirstOrDefault();
+        //    if (userMention == null) return false;
 
-            var summary = embeds.Where(x => x.Title == "Current standings");
-            if (summary.Count() == 0) return false;
+        //    var perudoPlayerBot = Context.Client.CurrentUser;
+        //    if (userMention.Id != perudoPlayerBot.Id) return false;
 
-            return true;
-        }
-
-        private bool MessageIsMyTurn()
-        {
-            return Context.Message.Content.Contains($"{Context.Client.CurrentUser.Mention} is up");
-        }
-        private bool MessageIsPlayerBid()
-        {
-            var containsTimes = Context.Message.Content.Contains($"ˣ");
-            var containsIsUp = Context.Message.Content.Contains($"is up");
-            return (containsTimes && containsIsUp);
-        }
-        
-
-        private List<int> GetDice()
-        {
-            var startIndex = Context.Message.Content.IndexOf("||")+2;
-            var temp = Context.Message.Content.Substring(startIndex);
-            var cypherText = temp.Substring(0, temp.Length - 2);
-            var dice = SimpleAES.AES256.Decrypt(cypherText, _aesEncryptionKey);
-            return dice.Split().Select(x => int.Parse(x)).ToList();
-        }
-
-        private bool MessageIsNewDice()
-        {
-            return Context.Message.Content.Contains($"{Context.Client.CurrentUser.Mention}'s dice:");
-        }
-
-        private bool MessageIsFromPerudoBot()
-        {
-            if (Context.Message.Author.Username != _perudoBotUsername) return false;
-            return true;
-        }
-
-        private bool MessageIsForMe()
-        {
-            var userMention = Context.Message.MentionedUsers.FirstOrDefault();
-            if (userMention == null) return false;
-
-            var perudoPlayerBot = Context.Client.CurrentUser;
-            if (userMention.Id != perudoPlayerBot.Id) return false;
-
-            return true;
-        }
+        //    return true;
+        //}
     }
 }

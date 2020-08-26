@@ -22,7 +22,8 @@ namespace PerudoPlayerBot.Data
         public DbSet<Game> Games { get; set; }
         public DbSet<Round> Rounds { get; set; }
         public DbSet<Player> Players { get; set; }
-        public DbSet<PlayerRound> PlayerDice { get; set; }
+        public DbSet<PlayerRound> PlayerRound { get; set; }
+        public DbSet<Bid> Bids { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
