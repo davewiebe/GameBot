@@ -5,11 +5,13 @@ using GameBot.Data;
 using GameBot.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace GameBot.Modules
@@ -36,16 +38,18 @@ namespace GameBot.Modules
             _db.Games.Add(new Data.Game
             {
                 State = 0,
-                NumberOfDice = 5
+                NumberOfDice = 5,
+                Penalty = 1
             });
             _db.SaveChanges();
 
             await SendMessage($"New game created. Use the following commands:\n" +
-                $"\"!add @user\" to add players.\n" +
-                $"\"!remove @user\" to remove players.\n" +
-                $"\"!option dice 1\" to set the number of dice.\n" +
-              // $"\"!option enable 1s\" to enable bidding to ones.\n" +
-                $"\"!start\" to start the game.");
+                $"`!add @user` to add players.\n" +
+                $"`!remove @user` to remove players.\n" +
+                $"`!option dice 5` to set the number of dice.\n" +
+                $"`!option penalty 1` to set the number of dice lost for an incorrect bid.\n" +
+                // $"\"!option enable 1s\" to enable bidding to ones.\n" +
+                $"`!start` to start the game.");
         }
 
         private async Task SendMessage(string message)
@@ -73,6 +77,23 @@ namespace GameBot.Modules
 
                     await ReplyAsync($"Each player will start with {numberOfDice} dice");
                 }
+                return;
+            }
+
+            if (stringArray[0] == "penalty")
+            {
+                var numberOfDice = int.Parse(stringArray[1]);
+
+                if (numberOfDice > 0 && numberOfDice <= 100)
+                {
+                    var game = GetGame(SETUP);
+
+                    game.Penalty = numberOfDice;
+                    _db.SaveChanges();
+
+                    await ReplyAsync($"The penalty of an incorrect call will be {numberOfDice} dice");
+                }
+                return;
             }
         }
 
@@ -101,7 +122,8 @@ namespace GameBot.Modules
             _db.Players.Add(new Player
             {
                 GameId = game.Id,
-                Username = userToAdd.Username
+                Username = userToAdd.Username,
+                IsBot = userToAdd.IsBot
             });
 
             _db.SaveChanges();
@@ -261,6 +283,7 @@ namespace GameBot.Modules
             }
             _db.SaveChanges();
 
+            await DisplayCurrentStandingsForBots(game);
             await DisplayCurrentStandings(game);
 
             await SendMessage($"A new round has begun. {GetUser(GetCurrentPlayer(game).Username).Mention} goes first.");
@@ -288,6 +311,23 @@ namespace GameBot.Modules
             await Context.Channel.SendMessageAsync(
                 embed: embed)
                 .ConfigureAwait(false);
+        }
+        private async Task DisplayCurrentStandingsForBots(Data.Game game)
+        {
+            var players = GetPlayers(game);
+            if (!players.Any(x => x.IsBot)) return;
+
+            players = players.Where(x => x.NumberOfDice > 0).ToList();
+            var totalDice = players.Sum(x => x.NumberOfDice);
+
+            var monkey = new
+            {
+                Players = players.Select(x => new { Username = GetUserNickname(x.Username), DiceCount = x.NumberOfDice }),
+                TotalPlayers = players.Count(),
+                TotalDice = totalDice
+            };
+
+            await ReplyAsync($"Current standings for bots: ||{JsonConvert.SerializeObject(monkey)}||");
         }
 
         private SocketGuildUser GetUser(string username)
@@ -377,21 +417,25 @@ namespace GameBot.Modules
 
             await SendMessage($"{GetUserNickname(biddingPlayer.Username)} called **exact** on `{previousBid.Quantity}` ˣ {previousBid.Pips.GetEmoji()}.");
 
+            Thread.Sleep(4000);
 
             if (countOfPips == previousBid.Quantity)
             {
-                await SendMessage("The madman did it! It was exact!");
-               // await SendMessage(GetDiceAsStringForBots(game));
+                Thread.Sleep(3000);
+                await SendMessage(":zany_face: The madman did it! It was exact! :zany_face:");
+
+                await SendDiceAsStringForBots(game);
                 await GetRoundSummary(game);
             }
             else
             {
-                await SendMessage($"There was actually `{countOfPips}` dice. {GetUser(biddingPlayer.Username).Mention} loses a die.");
-               // await SendMessage(GetDiceAsStringForBots(game));
+                await SendMessage($"There was actually `{countOfPips}` dice. :fire: {GetUser(biddingPlayer.Username).Mention} loses {game.Penalty} dice. :fire:");
+                await SendDiceAsStringForBots(game);
                 await GetRoundSummary(game);
                 await DecrementDieFromPlayerAndSetThierTurnAsync(game, biddingPlayer);
             }
 
+            Thread.Sleep(4000);
             await RollDice(game);
         }
 
@@ -432,23 +476,26 @@ namespace GameBot.Modules
 
             await SendMessage($"{GetUserNickname(biddingPlayer.Username)} called **liar** on `{previousBid.Quantity}` ˣ {previousBid.Pips.GetEmoji()}.");
 
+            Thread.Sleep(4000);
+
             if (countOfPips >= previousBid.Quantity)
             {
-                await SendMessage($"There was actually `{countOfPips}` dice. :fire: {GetUser(biddingPlayer.Username).Mention} loses a die. :fire:");
+                await SendMessage($"There was actually `{countOfPips}` dice. :fire: {GetUser(biddingPlayer.Username).Mention} loses {game.Penalty} dice. :fire:");
 
-              //  await SendMessage(GetDiceAsStringForBots(game));
+                await SendDiceAsStringForBots(game);
                 await GetRoundSummary(game);
                 await DecrementDieFromPlayerAndSetThierTurnAsync(game, GetCurrentPlayer(game));
             }
             else
             {
-                await SendMessage($"There was actually `{countOfPips}` dice. :fire: {GetUser(previousBid.Player.Username).Mention} loses a die. :fire:");
+                await SendMessage($"There was actually `{countOfPips}` dice. :fire: {GetUser(previousBid.Player.Username).Mention} loses {game.Penalty} dice. :fire:");
 
-               // await SendMessage(GetDiceAsStringForBots(game));
+                await SendDiceAsStringForBots(game);
                 await GetRoundSummary(game);
                 await DecrementDieFromPlayerAndSetThierTurnAsync(game, previousBid.Player);
             }
 
+            Thread.Sleep(4000);
             await RollDice(game);
         }
 
@@ -498,12 +545,16 @@ namespace GameBot.Modules
 
             await SendMessage($"{GetUserNickname(biddingPlayer.Username)} bids `{quantity}` ˣ {pips.GetEmoji()}. {GetUser(nextPlayer.Username).Mention} is up.");
         }
-        private string GetDiceAsStringForBots(Data.Game game)
+        private async Task SendDiceAsStringForBots(Data.Game game)
         {
-            var players = GetPlayers(game).Where(x => x.NumberOfDice > 0).ToList();
+            var players = GetPlayers(game);
+            if (!players.Any(x => x.IsBot)) return;
 
-            var allDice = players.Select(x => $"{GetUserNickname(x.Username)}: {string.Join(" ", x.Dice.Split(",").Select(x => int.Parse(x).GetEmoji()))}".TrimEnd());
-            return $"Dice: {string.Join(",  ", allDice)}";
+            var playerDice = players.Where(x => x.NumberOfDice > 0).ToList()
+                .Select(x => new { Username = GetUserNickname(x.Username), 
+                    Dice = x.Dice });
+
+            await ReplyAsync($"Round summary for bots: ||{JsonConvert.SerializeObject(playerDice)}||");
         }
 
         private async Task GetRoundSummary(Data.Game game)
@@ -548,9 +599,11 @@ namespace GameBot.Modules
 
         private async Task DecrementDieFromPlayerAndSetThierTurnAsync(Data.Game game, Player currentPlayer)
         {
-            currentPlayer.NumberOfDice -= 1;
+            currentPlayer.NumberOfDice -= game.Penalty;
 
-            if (currentPlayer.NumberOfDice == 0)
+            if (currentPlayer.NumberOfDice < 0) currentPlayer.NumberOfDice = 0;
+
+            if (currentPlayer.NumberOfDice <= 0)
             {
                 await SendMessage($":fire::skull::fire: {GetUserNickname(currentPlayer.Username)} defeated :fire::skull::fire:");
                 SetNextPlayer(game, currentPlayer);

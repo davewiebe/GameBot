@@ -9,6 +9,7 @@ namespace GameBot.Data
         
         public int? PlayerTurnId { get; set; }
         public int NumberOfDice { get; internal set; }
+        public int Penalty { get; internal set; }
     }
     public class Player
     {
@@ -20,6 +21,7 @@ namespace GameBot.Data
         public int NumberOfDice { get; set; }
         public string Dice { get; set; }
         public int TurnOrder { get; internal set; }
+        public bool IsBot { get; internal set; }
     }
 
     public class BotKey
