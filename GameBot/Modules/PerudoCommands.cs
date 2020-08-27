@@ -3,14 +3,10 @@ using Discord.Commands;
 using Discord.WebSocket;
 using GameBot.Data;
 using GameBot.Services;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -28,7 +24,10 @@ namespace GameBot.Modules
         {
             if (_botType != "perudo") return;
 
-            if (_db.Games.SingleOrDefault(x => x.State == IN_PROGRESS || x.State == SETUP) != null)
+            if (_db.Games
+                .AsQueryable()
+                .Where(x => x.ChannelId == Context.Channel.Id)
+                .SingleOrDefault(x => x.State == IN_PROGRESS || x.State == SETUP) != null)
             {
                 string message = $"A game is already in progress.";
                 await SendMessage(message);
@@ -37,6 +36,7 @@ namespace GameBot.Modules
 
             _db.Games.Add(new Data.Game
             {
+                ChannelId = Context.Channel.Id,
                 State = 0,
                 NumberOfDice = 5,
                 Penalty = 1,
@@ -62,12 +62,12 @@ namespace GameBot.Modules
             if (game != null)
             {
                 var randomizeText = "";
-                if (game.RandomizeBetweenRounds) randomizeText = "Player order will be randomized between rounds.";
-                else randomizeText = "Player order will not be randomized between rounds.";
+                if (game.RandomizeBetweenRounds) randomizeText = "Player order will be randomized between rounds";
+                else randomizeText = "Player order will not be randomized between rounds";
 
                 var wildsText = "";
-                if (game.WildsEnabled) wildsText = $"Players can bid on wild dice.";
-                else wildsText = "Players cannot bid on wild dice.";
+                if (game.WildsEnabled) wildsText = $"Players can bid on wild dice";
+                else wildsText = "Players cannot bid on wild dice";
 
                 var players = GetPlayers(game);
                 await ReplyAsync($"*A game is being setup*\n" +
@@ -178,7 +178,7 @@ namespace GameBot.Modules
 
             var userToAdd = Context.Message.MentionedUsers.First();
 
-            var game = _db.Games.SingleOrDefault(x => x.State == SETUP);
+            var game = GetGame(SETUP);
             if (game == null)
             {
                 await SendMessage($"Unable to add players at this time.");
@@ -219,7 +219,7 @@ namespace GameBot.Modules
 
             var userToAdd = Context.Message.MentionedUsers.First();
 
-            var game = _db.Games.SingleOrDefault(x => x.State == SETUP);
+            var game = GetGame(SETUP);
             if (game == null)
             {
                 await SendMessage($"Unable to remove players at this time.");
@@ -250,7 +250,9 @@ namespace GameBot.Modules
 
         private Data.Game GetGame(int stateId)
         {
-            return _db.Games.AsQueryable().SingleOrDefault(x => x.State == stateId);
+            return _db.Games.AsQueryable()
+                .Where(x => x.ChannelId == Context.Channel.Id)
+                .SingleOrDefault(x => x.State == stateId);
         }
 
         [Command("start")]
@@ -658,9 +660,6 @@ namespace GameBot.Modules
 
             var countOfOnes = allDiceGrouped.SingleOrDefault(x => x.Key == 1)?.Count();
 
-            //var allNonOnesGrouped = allDiceGrouped.Where(x => x.Key != 1);
-            //.Select(x => $"{x.Key.GetEmoji()}: {x.Count()}");
-
             var listOfAllDiceCounts = allDiceGrouped.Select(x => $"`{x.Count()}` ˣ {x.Key.GetEmoji()}");
 
             List<string> monkey = new List<string>();
@@ -748,7 +747,7 @@ namespace GameBot.Modules
             var game = GetGame(IN_PROGRESS);
             Bid mostRecentBid = GetMostRecentBid(game);
 
-            if (game.WildsEnabled == false && mostRecentBid.Pips == 1)
+            if (game.WildsEnabled == false && bid.Pips == 1)
             {
                 await SendMessage("Cannot bid on wilds this game.");
                 return false;

@@ -12,6 +12,7 @@ namespace GameBot.Data
         public int Penalty { get; internal set; }
         public bool RandomizeBetweenRounds { get; internal set; }
         public bool WildsEnabled { get; internal set; }
+        public ulong ChannelId { get; internal set; }
     }
     public class Player
     {
