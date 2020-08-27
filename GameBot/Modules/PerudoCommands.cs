@@ -40,7 +40,8 @@ namespace GameBot.Modules
                 State = 0,
                 NumberOfDice = 5,
                 Penalty = 1,
-                RandomizeBetweenRounds = false
+                RandomizeBetweenRounds = false,
+                WildsEnabled = false
             }) ;
             _db.SaveChanges();
 
@@ -50,11 +51,9 @@ namespace GameBot.Modules
                 $"`!option dice 5` to set the number of dice.\n" +
                 $"`!option penalty 1` to set the number of dice lost for an incorrect bid.\n" +
                 $"`!option randomize true` to randomize player order between rounds.\n" +
-                // $"\"!option enable 1s\" to enable bidding to ones.\n" +randomize
+                $"`!option wild true` to enable bidding on wilds.\n" +
                 $"`!start` to start the game.");
         }
-
-
 
         [Command("game")]
         public async Task Game(params string[] bidText)
@@ -66,15 +65,20 @@ namespace GameBot.Modules
                 if (game.RandomizeBetweenRounds) randomizeText = "Player order will be randomized between rounds.";
                 else randomizeText = "Player order will not be randomized between rounds.";
 
+                var wildsText = "";
+                if (game.WildsEnabled) wildsText = $"Players can bid on wild dice.";
+                else wildsText = "Players cannot bid on wild dice.";
+
                 var players = GetPlayers(game);
                 await ReplyAsync($"*A game is being setup*\n" +
                     $"**Players**\n" +
                     $"{string.Join("\n", players.Select(x => GetUserNickname(x.Username)))}\n" +
                     $"\n" +
                     $"**Options**\n" +
-                    $"Each player starts with {game.NumberOfDice} dice.\n" +
-                    $"The penalty for an incorrect bid is {game.Penalty} dice.\n" +
-                    $"{randomizeText}\n");
+                    $"Each player starts with {game.NumberOfDice} dice\n" +
+                    $"The penalty for an incorrect call is {game.Penalty} dice\n" +
+                    $"{randomizeText}\n" +
+                    $"{wildsText}\n");
                 return;
             }
 
@@ -117,9 +121,9 @@ namespace GameBot.Modules
                     game.NumberOfDice = numberOfDice;
                     _db.SaveChanges();
 
-                    await ReplyAsync($"Each player will start with {numberOfDice} dice");
+                    await ReplyAsync($"Each player starts with {numberOfDice} dice");
                 }
-                return;
+                await Options(stringArray.Skip(2).ToArray());
             }
 
             if (stringArray[0] == "penalty")
@@ -133,9 +137,9 @@ namespace GameBot.Modules
                     game.Penalty = numberOfDice;
                     _db.SaveChanges();
 
-                    await ReplyAsync($"The penalty of an incorrect call will be {numberOfDice} dice");
+                    await ReplyAsync($"The penalty for an incorrect call is {numberOfDice} dice");
                 }
-                return;
+                await Options(stringArray.Skip(2).ToArray());
             }
 
             if (stringArray[0] == "randomize")
@@ -148,7 +152,22 @@ namespace GameBot.Modules
                 _db.SaveChanges();
                 if (randomize) await ReplyAsync($"Player order will be randomized between rounds.");
                 else await ReplyAsync("Player order will not be randomized between rounds.");
-                return;
+
+                await Options(stringArray.Skip(2).ToArray());
+            }
+
+            if (stringArray[0] == "wild")
+            {
+                var wildsEnabled = bool.Parse(stringArray[1]);
+
+                var game = GetGame(SETUP);
+
+                game.WildsEnabled = wildsEnabled;
+                _db.SaveChanges();
+                if (wildsEnabled) await ReplyAsync($"Players can bid on wild dice.");
+                else await ReplyAsync("Players cannot bid on wild dice.");
+
+                await Options(stringArray.Skip(2).ToArray());
             }
         }
 
@@ -584,7 +603,7 @@ namespace GameBot.Modules
             }
 
             if (quantity <= 0) return;
-            if (pips < 2 || pips > 6) return;
+            if (pips < 1 || pips > 6) return;
 
 
             var bid = new Bid
@@ -728,7 +747,60 @@ namespace GameBot.Modules
         {
             var game = GetGame(IN_PROGRESS);
             Bid mostRecentBid = GetMostRecentBid(game);
-            if (mostRecentBid == null) return true;
+
+            if (game.WildsEnabled == false && mostRecentBid.Pips == 1)
+            {
+                await SendMessage("Cannot bid on wilds this game.");
+                return false;
+            }
+
+            if (mostRecentBid == null) {
+                if (bid.Pips == 1)
+                {
+                    await SendMessage("Cannot start the round by bidding on wilds.");
+                    return false;
+                }
+                return true; 
+            }
+
+            // If last bid was 1s
+            if (bid.Pips == 1 && mostRecentBid.Pips == 1)
+            {
+                if (bid.Quantity < mostRecentBid.Quantity)
+                {
+                    await SendMessage("Bid has to be higher.");
+                    return false;
+                }
+                return true;
+            }
+
+            if (bid.Pips != 1 && mostRecentBid.Pips == 1)
+            {
+                if (bid.Quantity < mostRecentBid.Quantity * 2)
+                {
+                    await SendMessage("Bid has to be higher.");
+                    return false;
+                }
+                return true;
+            }
+
+            if (bid.Pips == 1 && mostRecentBid.Pips != 1)
+            {
+                var hasGoneToOnesAlready = _db.Bids.AsQueryable().Where(x => x.GameId == game.Id).Where(x => x.Pips == 1).Any();
+                if (hasGoneToOnesAlready)
+                {
+                    await SendMessage("Cannot switch to wilds more than once a round.");
+                    return false;
+                }
+
+
+                if (bid.Quantity*2 <= mostRecentBid.Quantity)
+                {
+                    await SendMessage("Bid has to be higher.");
+                    return false;
+                }
+                return true;
+            }
 
             if (bid.Quantity < mostRecentBid.Quantity)
             {

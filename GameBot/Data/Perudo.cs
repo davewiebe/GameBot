@@ -11,6 +11,7 @@ namespace GameBot.Data
         public int NumberOfDice { get; internal set; }
         public int Penalty { get; internal set; }
         public bool RandomizeBetweenRounds { get; internal set; }
+        public bool WildsEnabled { get; internal set; }
     }
     public class Player
     {
