@@ -18,8 +18,34 @@ namespace GameBot.Modules
         private const int IN_PROGRESS = 1;
         private const int ENDED = 2;
 
+        [Command("test")]
+        public async Task Test()
+        {
+            if (_botType != "perudo") return;
+            await SendMessage("Test1");
+            await SendMessage("Test2");
+            await SendMessage("Test3");
+            await SendMessage("Test4");
+            await SendMessage("Test5");
+            await SendMessage("Test6");
+            await SendMessage("Test7");
+            await SendMessage("Test8");
+            await SendMessage("Test9");
+            await SendMessage("Test10");
+            await SendMessage("Test11");
+            await SendMessage("Test12");
+            await SendMessage("Test13");
+            await SendMessage("Test14");
+            await SendMessage("Test15");
+            await SendMessage("Test16");
+            await SendMessage("Test17");
+            await SendMessage("Test18");
+            await SendMessage("Test19");
+            await SendMessage("Test20");
+        }
 
-        [Command("new")]
+
+            [Command("new")]
         public async Task NewGame()
         {
             if (_botType != "perudo") return;
@@ -50,8 +76,8 @@ namespace GameBot.Modules
                 $"`!remove @user` to remove players.\n" +
                 $"`!option dice 5` to set the number of dice.\n" +
                 $"`!option penalty 1` to set the number of dice lost for an incorrect bid.\n" +
-                $"`!option randomize true` to randomize player order between rounds.\n" +
-                $"`!option wild true` to enable bidding on wilds.\n" +
+                $"`!option randomize` to toggle randomizing player order between rounds.\n" +
+                $"`!option wild` to toggle bidding on wilds.\n" +
                 $"`!start` to start the game.");
         }
 
@@ -70,7 +96,7 @@ namespace GameBot.Modules
                 else wildsText = "Players cannot bid on wild dice";
 
                 var players = GetPlayers(game);
-                await ReplyAsync($"*A game is being setup*\n" +
+                await SendMessage($"*A game is being setup*\n" +
                     $"**Players**\n" +
                     $"{string.Join("\n", players.Select(x => GetUserNickname(x.Username)))}\n" +
                     $"\n" +
@@ -93,10 +119,10 @@ namespace GameBot.Modules
                     recentBidText = $"The most recent bid was for `{ bid.Quantity}` ˣ { bid.Pips.GetEmoji()}\n";
                 }
                 await DisplayCurrentStandings(game);
-                await ReplyAsync($"{recentBidText}It's {GetUserNickname(nextPlayer.Username)}'s turn.");
+                await SendMessage($"{recentBidText}It's {GetUserNickname(nextPlayer.Username)}'s turn.");
                 return;
             }
-            await ReplyAsync("There are no games in progress.");
+            await SendMessage("There are no games in progress.");
         }
         private async Task SendMessage(string message)
         {
@@ -121,7 +147,7 @@ namespace GameBot.Modules
                     game.NumberOfDice = numberOfDice;
                     _db.SaveChanges();
 
-                    await ReplyAsync($"Each player starts with {numberOfDice} dice");
+                    await SendMessage($"Each player starts with {numberOfDice} dice");
                 }
                 await Options(stringArray.Skip(2).ToArray());
             }
@@ -137,37 +163,33 @@ namespace GameBot.Modules
                     game.Penalty = numberOfDice;
                     _db.SaveChanges();
 
-                    await ReplyAsync($"The penalty for an incorrect call is {numberOfDice} dice");
+                    await SendMessage($"The penalty for an incorrect call is {numberOfDice} dice");
                 }
                 await Options(stringArray.Skip(2).ToArray());
             }
 
             if (stringArray[0] == "randomize")
             {
-                var randomize = bool.Parse(stringArray[1]);
-
                 var game = GetGame(SETUP);
 
-                game.RandomizeBetweenRounds = randomize;
+                game.RandomizeBetweenRounds = !game.RandomizeBetweenRounds;
                 _db.SaveChanges();
-                if (randomize) await ReplyAsync($"Player order will be randomized between rounds.");
-                else await ReplyAsync("Player order will not be randomized between rounds.");
+                if (game.RandomizeBetweenRounds) await SendMessage($"Player order will be randomized between rounds.");
+                else await SendMessage("Player order will not be randomized between rounds.");
 
-                await Options(stringArray.Skip(2).ToArray());
+                await Options(stringArray.Skip(1).ToArray());
             }
 
             if (stringArray[0] == "wild")
             {
-                var wildsEnabled = bool.Parse(stringArray[1]);
-
                 var game = GetGame(SETUP);
 
-                game.WildsEnabled = wildsEnabled;
+                game.WildsEnabled = !game.WildsEnabled;
                 _db.SaveChanges();
-                if (wildsEnabled) await ReplyAsync($"Players can bid on wild dice.");
-                else await ReplyAsync("Players cannot bid on wild dice.");
+                if (game.WildsEnabled) await SendMessage($"Players can bid on wild dice.");
+                else await SendMessage("Players cannot bid on wild dice.");
 
-                await Options(stringArray.Skip(2).ToArray());
+                await Options(stringArray.Skip(1).ToArray());
             }
         }
 
@@ -416,7 +438,7 @@ namespace GameBot.Modules
                 TotalDice = totalDice
             };
 
-            await ReplyAsync($"Current standings for bots: ||{JsonConvert.SerializeObject(monkey)}||");
+            await SendMessage($"Current standings for bots: ||{JsonConvert.SerializeObject(monkey)}||");
         }
 
         private SocketGuildUser GetUser(string username)
@@ -633,9 +655,34 @@ namespace GameBot.Modules
             catch 
             {
             }
+            var bidderNickname = GetUserNickname(biddingPlayer.Username);
+            var nextPlayerNickname = GetUserNickname(nextPlayer.Username);
+            var nextPlayerMention = GetUser(nextPlayer.Username).Mention;
 
-            await SendMessage($"{GetUserNickname(biddingPlayer.Username)} bids `{quantity}` ˣ {pips.GetEmoji()}. {GetUser(nextPlayer.Username).Mention} is up.");
+            var userMessage = $"{ bidderNickname } bids `{ quantity}` ˣ { pips.GetEmoji()}. { nextPlayerMention } is up.";
+
+            var botMessage = new
+            {
+                U = bidderNickname,
+                P = pips,
+                Q = quantity
+            };
+
+            if (AreBotsInGame(game))
+            {
+                await SendMessage($"{userMessage} ||{JsonConvert.SerializeObject(botMessage)}||");
+            } else
+            {
+                await SendMessage(userMessage);
+            }
         }
+
+        private bool AreBotsInGame(Data.Game game)
+        {
+            var players = GetPlayers(game);
+            return players.Any(x => x.IsBot);
+        }
+
         private async Task SendDiceAsStringForBots(Data.Game game)
         {
             var players = GetPlayers(game);
@@ -645,7 +692,7 @@ namespace GameBot.Modules
                 .Select(x => new { Username = GetUserNickname(x.Username), 
                     Dice = x.Dice });
 
-            await ReplyAsync($"Round summary for bots: ||{JsonConvert.SerializeObject(playerDice)}||");
+            await SendMessage($"Round summary for bots: ||{JsonConvert.SerializeObject(playerDice)}||");
         }
 
         private async Task GetRoundSummary(Data.Game game)
