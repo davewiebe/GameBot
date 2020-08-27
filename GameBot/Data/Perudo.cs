@@ -10,6 +10,7 @@ namespace GameBot.Data
         public int? PlayerTurnId { get; set; }
         public int NumberOfDice { get; internal set; }
         public int Penalty { get; internal set; }
+        public bool RandomizeBetweenRounds { get; internal set; }
     }
     public class Player
     {

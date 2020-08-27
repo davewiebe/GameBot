@@ -19,7 +19,7 @@ namespace GameBot.Modules
             var words = new List<string>() { "pb&j", "jif", "peanut jam", "peanut jelly", "jif" };
             var word = words.ElementAt(r.Next(0, words.Count()));
 
-            await TenorSearch(word);
+            await TenorSearch($"{word} {string.Join(" ", stringArray)}");
         }
 
 

@@ -93,6 +93,10 @@ namespace GameBot
                 {
                     result = await _commands.ExecuteAsync(context, argPos, _services);
                 }
+                else if (message.HasStringPrefix(context.Client.CurrentUser.Mention, ref argPos))
+                {
+                    result = await _commands.ExecuteAsync(context, argPos+1, _services);
+                }
             }
 
             else if (_botType == "marvin")

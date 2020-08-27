@@ -39,8 +39,9 @@ namespace GameBot.Modules
             {
                 State = 0,
                 NumberOfDice = 5,
-                Penalty = 1
-            });
+                Penalty = 1,
+                RandomizeBetweenRounds = false
+            }) ;
             _db.SaveChanges();
 
             await SendMessage($"New game created. Use the following commands:\n" +
@@ -48,10 +49,51 @@ namespace GameBot.Modules
                 $"`!remove @user` to remove players.\n" +
                 $"`!option dice 5` to set the number of dice.\n" +
                 $"`!option penalty 1` to set the number of dice lost for an incorrect bid.\n" +
-                // $"\"!option enable 1s\" to enable bidding to ones.\n" +
+                $"`!option randomize true` to randomize player order between rounds.\n" +
+                // $"\"!option enable 1s\" to enable bidding to ones.\n" +randomize
                 $"`!start` to start the game.");
         }
 
+
+
+        [Command("game")]
+        public async Task Game(params string[] bidText)
+        {
+            var game = GetGame(SETUP);
+            if (game != null)
+            {
+                var randomizeText = "";
+                if (game.RandomizeBetweenRounds) randomizeText = "Player order will be randomized between rounds.";
+                else randomizeText = "Player order will not be randomized between rounds.";
+
+                var players = GetPlayers(game);
+                await ReplyAsync($"*A game is being setup*\n" +
+                    $"**Players**\n" +
+                    $"{string.Join("\n", players.Select(x => GetUserNickname(x.Username)))}\n" +
+                    $"\n" +
+                    $"**Options**\n" +
+                    $"Each player starts with {game.NumberOfDice} dice.\n" +
+                    $"The penalty for an incorrect bid is {game.Penalty} dice.\n" +
+                    $"{randomizeText}\n");
+                return;
+            }
+
+            game = GetGame(IN_PROGRESS);
+            if (game != null)
+            {
+                var nextPlayer = GetCurrentPlayer(game);
+                var bid = GetMostRecentBid(game);
+                var recentBidText = "";
+                if (bid != null)
+                {
+                    recentBidText = $"The most recent bid was for `{ bid.Quantity}` ˣ { bid.Pips.GetEmoji()}\n";
+                }
+                await DisplayCurrentStandings(game);
+                await ReplyAsync($"{recentBidText}It's {GetUserNickname(nextPlayer.Username)}'s turn.");
+                return;
+            }
+            await ReplyAsync("There are no games in progress.");
+        }
         private async Task SendMessage(string message)
         {
             var requestOptions = new RequestOptions()
@@ -93,6 +135,19 @@ namespace GameBot.Modules
 
                     await ReplyAsync($"The penalty of an incorrect call will be {numberOfDice} dice");
                 }
+                return;
+            }
+
+            if (stringArray[0] == "randomize")
+            {
+                var randomize = bool.Parse(stringArray[1]);
+
+                var game = GetGame(SETUP);
+
+                game.RandomizeBetweenRounds = randomize;
+                _db.SaveChanges();
+                if (randomize) await ReplyAsync($"Player order will be randomized between rounds.");
+                else await ReplyAsync("Player order will not be randomized between rounds.");
                 return;
             }
         }
@@ -186,7 +241,8 @@ namespace GameBot.Modules
 
             var game = GetGame(SETUP);
 
-            ShufflePlayersAndSetDice(game);
+            ShufflePlayers(game);
+            SetDice(game);
 
             var players = GetPlayers(game);
 
@@ -201,7 +257,7 @@ namespace GameBot.Modules
 
         }
 
-        private void ShufflePlayersAndSetDice(Data.Game game)
+        private void ShufflePlayers(Data.Game game)
         {
             var players = GetPlayers(game);
             var r = new Random();
@@ -212,6 +268,16 @@ namespace GameBot.Modules
             {
                 player.TurnOrder = turnOrder;
                 turnOrder += 1;
+            }
+            _db.SaveChanges();
+        }
+
+        private void SetDice(Data.Game game)
+        {
+            var players = GetPlayers(game);
+
+            foreach (var player in players)
+            {
                 player.NumberOfDice = game.NumberOfDice;
             }
             _db.SaveChanges();
@@ -282,6 +348,8 @@ namespace GameBot.Modules
                 }
             }
             _db.SaveChanges();
+
+            if (game.RandomizeBetweenRounds) ShufflePlayers(game);
 
             await DisplayCurrentStandingsForBots(game);
             await DisplayCurrentStandings(game);
@@ -442,6 +510,8 @@ namespace GameBot.Modules
         [Command("liar")]
         public async Task Liar(params string[] bidText)
         {
+            if (bidText.Length != 0) return;
+
             if (await ValidateState(IN_PROGRESS) == false) return;
 
             var game = GetGame(IN_PROGRESS);
@@ -636,6 +706,7 @@ namespace GameBot.Modules
                 .AsQueryable()
                 .Where(x => x.GameId == game.Id)
                 .Where(x => x.NumberOfDice > 0)
+                .OrderBy(x => x.TurnOrder)
                 .Select(x => x.Id)
                 .ToList();
 
