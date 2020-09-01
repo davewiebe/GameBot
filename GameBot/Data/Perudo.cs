@@ -13,6 +13,10 @@ namespace GameBot.Data
         public bool RandomizeBetweenRounds { get; internal set; }
         public bool WildsEnabled { get; internal set; }
         public ulong ChannelId { get; internal set; }
+        public int RoundStartPlayerId { get; internal set; }
+        public int ExactCall { get; internal set; }
+        public bool CanCallExactAnytime { get; internal set; }
+        public bool CanCallLiarAnytime { get; internal set; }
     }
     public class Player
     {

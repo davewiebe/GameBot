@@ -12,6 +12,8 @@ using GameBot.Data;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using GameBot.Services;
+using Serilog;
+using Microsoft.Extensions.Logging;
 
 namespace GameBot
 {
@@ -28,6 +30,31 @@ namespace GameBot
 
         public async Task RunBotASync()
         {
+            //Log.Logger = new LoggerConfiguration()
+            //.MinimumLevel.Debug()
+            //.MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+            //    .Enrich.FromLogContext()
+            //    .WriteTo.Console()
+            //    //.WriteTo.File("serilog.txt", rollingInterval: RollingInterval.Day)
+            //    .CreateLogger();
+
+            //try
+            //{
+            //    Log.Information("Starting host");
+            //    BuildHost().Run();
+            //    //return 0;
+            //}
+            //catch (Exception ex)
+            //{
+            //    Log.Fatal(ex, "Host terminated unexpectedly");
+            //    //return 1;
+            //}
+            //finally
+            //{
+            //    Log.CloseAndFlush();
+            //}
+
+
             _configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json", false)
@@ -41,6 +68,7 @@ namespace GameBot
                 .AddSingleton(_commands)
                 .AddSingleton(_configuration)
                 .AddSingleton(new AudioService())
+                .AddLogging(builder => builder.AddSerilog(dispose: true))
                 .AddEntityFrameworkSqlServer()
                 .AddDbContext<GameBotDbContext>(options =>
                     options.UseSqlServer(_configuration.GetConnectionString("GameBotDb")))
@@ -63,6 +91,7 @@ namespace GameBot
         private Task _client_Log(LogMessage arg)
         {
             Console.WriteLine(arg);
+            //Log.Error(arg.Exception, arg.Exception?.Message);
             return Task.CompletedTask;
         }
 
@@ -104,6 +133,13 @@ namespace GameBot
                 if (message.MentionedUsers.FirstOrDefault()?.Id == context.Client.CurrentUser.Id)
                 {
                     result = await _commands.ExecuteAsync(context, "deepxyz", _services);
+                }
+            }
+            else if (_botType == "til")
+            {
+                if (message.MentionedUsers.FirstOrDefault()?.Id == context.Client.CurrentUser.Id)
+                {
+                    result = await _commands.ExecuteAsync(context, "tilxyz", _services);
                 }
             }
 

@@ -6,8 +6,9 @@ namespace PerudoPlayerBot.Services
 {
     class MessageData
     {
-        public bool IsStartGame { get; internal set; }
         public MessageTypes MessageType { get; internal set; }
+        public List<int> MyDice { get; internal set; }
+        public List<MessageParserService.Player> CurrentStandings { get; internal set; }
     }
 
     public enum MessageTypes

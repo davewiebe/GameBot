@@ -15,6 +15,7 @@ namespace GameBot.Modules
         private KarmaService _karmaService;
         private UserService _userService;
         private PhraseService _phraseService;
+        private PerudoMessageParserService _perudoMessageParserService;
         private readonly AudioService _audioService;
         private string _tenorToken;
         private string _botType;
@@ -31,6 +32,7 @@ namespace GameBot.Modules
 
             _db = new GameBotDbContext();
             _phraseService = new PhraseService(_db);
+            _perudoMessageParserService = new PerudoMessageParserService(_db);
 
             _audioService = service;
         }

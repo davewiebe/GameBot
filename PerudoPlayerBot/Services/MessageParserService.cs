@@ -1,28 +1,52 @@
 ﻿using Discord.Commands;
 using Discord.WebSocket;
+using Newtonsoft.Json;
 using PerudoPlayerBot.Data;
 using System.Collections.Generic;
 using System.Linq;
+using System.Transactions;
 
 namespace PerudoPlayerBot.Services
 {
     public class MessageParserService
     {
-        private string _perudoBotUsername;
         private string _aesEncryptionKey;
 
-        public MessageParserService(string perudoBotUsername, string aesEncryptionKey)
+        public MessageParserService(string aesEncryptionKey)
         {
-            _perudoBotUsername = perudoBotUsername;
             _aesEncryptionKey = aesEncryptionKey;
         }
 
         internal MessageData Parse(SocketUserMessage message)
         {
-            return new MessageData()
+            var messageData = new MessageData()
             {
                 MessageType = GetMessageType(message)
             };
+
+            switch (messageData.MessageType)
+            {
+                case MessageTypes.StartGame:
+                    break;
+                case MessageTypes.RoundSummary:
+                    break;
+                case MessageTypes.PlayerBid:
+                    break;
+                case MessageTypes.NewDice:
+                    messageData.MyDice = GetDice(message);
+                    break;
+                case MessageTypes.Unknown:
+                    break;
+                case MessageTypes.PlayerCall:
+                    break;
+                case MessageTypes.CurrentStandings:
+                    messageData.CurrentStandings = GetUsernamesAndDiceInGame(message);
+                    break;
+                default:
+                    break;
+            }
+
+            return messageData;
         }
 
         public MessageTypes GetMessageType(SocketUserMessage message)
@@ -44,28 +68,12 @@ namespace PerudoPlayerBot.Services
 
         private bool MessageIsRoundSummary(SocketUserMessage message)
         {
-            return message.Content.StartsWith("Dice: ");
+            return message.Content.StartsWith("Round summary for bots:");
         }
 
-        public List<int> GetDiceFromEmojiList(string[] diceEmojis)
-        {
-            var dice = new List<int>();
-            foreach (var dieEmoji in diceEmojis)
-            {
-                if (dieEmoji == ":one:") dice.Add(1);
-                if (dieEmoji == ":two:") dice.Add(2);
-                if (dieEmoji == ":three:") dice.Add(3);
-                if (dieEmoji == ":four:") dice.Add(4);
-                if (dieEmoji == ":five:") dice.Add(5);
-            }
-
-            return dice;
-        }
         public List<int> GetDice(SocketUserMessage message)
         {
-            var startIndex = message.Content.IndexOf("||") + 2;
-            var temp = message.Content.Substring(startIndex);
-            var cypherText = temp.Substring(0, temp.Length - 2);
+            var cypherText = message.Content.Split("||")[1];
             var dice = SimpleAES.AES256.Decrypt(cypherText, _aesEncryptionKey);
             return dice.Split().Select(x => int.Parse(x)).ToList();
         }
@@ -90,54 +98,30 @@ namespace PerudoPlayerBot.Services
             return (liarCall || exactCall);
         }
 
-        private bool MessageIsNewDice(SocketUserMessage message)
-        {
-            //TODO: does this even work???
-            return message.Content.Contains($"'s dice:");
-        }
-
-        public bool MessageIsFromPerudoBot(SocketUserMessage message)
-        {
-            if (message.Author.Username != _perudoBotUsername) return false;
-            return true;
-        }
         private bool MessageIsCurrentStandings(SocketUserMessage message)
         {
-            var embeds = message.Embeds;
-            if (embeds == null) return false;
-
-            var summary = embeds.Where(x => x.Title == "Current standings");
-            if (summary.Count() == 0) return false;
-
-            return true;
+            return message.Content.StartsWith("Current standings for bots:");
         }
-        public class UsernameDice
+
+
+        public class Player
         {
             public string Username { get; set; }
             public int DiceCount { get; set; }
         }
 
-        public List<UsernameDice> GetUsernamesAndDiceInGame(SocketUserMessage message)
+        public class CurrentStandingsDto
         {
-            var summary = message.Embeds.Where(x => x.Title == "Current standings");
-            var stuff = summary.First().Fields.First().Value;
-            var listOfUsersAndDice = stuff.Split("\n");
+            public List<Player> Players { get; set; }
+            public int TotalPlayers { get; set; }
+            public int TotalDice { get; set; }
+        }
 
-            var usernameDiceList = new List<UsernameDice>();
-
-            foreach (var userAndDie in listOfUsersAndDice)
-            {
-                if (string.IsNullOrEmpty(userAndDie)) continue;
-                if (userAndDie.Contains("Total dice left:")) continue;
-
-                var items = userAndDie.Split(" ");
-                var dice = int.Parse(items[0].Trim('`'));
-                var username = userAndDie.Substring(userAndDie.IndexOf(" "));
-
-                usernameDiceList.Add(new UsernameDice() { Username = username, DiceCount = dice });
-            }
-
-            return usernameDiceList;
+        public List<Player> GetUsernamesAndDiceInGame(SocketUserMessage message)
+        {
+            var jsonMessage = message.Content.Split("||")[1];
+            var currentStandings = JsonConvert.DeserializeObject<CurrentStandingsDto>(jsonMessage);
+            return currentStandings.Players;
         }
     }
 }

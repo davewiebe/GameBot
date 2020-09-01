@@ -30,7 +30,7 @@ namespace PerudoPlayerBot.Modules
             _db = new PerudoPlayerBotDbContext();
             _playerService = new PlayerService(Context, _db);
             _gameService = new GameService(Context, _db);
-            _messageParser = new MessageParserService(_perudoBotUsername, _aesEncryptionKey);
+            _messageParser = new MessageParserService(_aesEncryptionKey);
         }
     }
 }
