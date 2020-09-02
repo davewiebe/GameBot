@@ -610,34 +610,17 @@ namespace GameBot.Modules
             var game = GetGame(IN_PROGRESS);
 
 
-            if (game.CanBidAnytime)
-            {
-                var currentPlayer = GetPlayers(game)
-                    .Where(x => x.NumberOfDice > 0)
-                    .SingleOrDefault(x => x.Username == Context.User.Username);
-                if (currentPlayer == null) return;
-                game.PlayerTurnId = currentPlayer.Id;
-
-                // reset turn order
-                currentPlayer.TurnOrder = 0;
-                var players = _db.Players.AsQueryable().Where(x => x.GameId == game.Id).OrderBy(x => x.TurnOrder).Where(x => x.NumberOfDice > 0);
-                var order = 1;
-                foreach (var player in players)
-                {
-                    player.TurnOrder = order;
-                    order += 1;
-                }
-
-                _db.SaveChanges();
-            }
 
 
-            var biddingPlayer = GetCurrentPlayer(game);
 
-            if (biddingPlayer.Username != Context.User.Username)
+            var currentPlayer = GetCurrentPlayer(game);
+
+            if (!game.CanBidAnytime && currentPlayer.Username != Context.User.Username)
             {
                 return;
             }
+
+            var biddingPlayer = GetPlayers(game).Where(x => x.NumberOfDice > 0).Single(x => x.Username == Context.User.Username);
 
             await HandlePipBid(bidText, game, biddingPlayer);
         }
@@ -845,6 +828,36 @@ namespace GameBot.Modules
 
             if (await VerifyBid(bid) == false) return;
 
+
+            if (game.CanBidAnytime && GetCurrentPlayer(game).Username != Context.User.Username)
+            {
+                var prevCurrentPlayer = GetCurrentPlayer(game);
+
+                var currentPlayer = GetPlayers(game)
+                    .Where(x => x.NumberOfDice > 0)
+                    .SingleOrDefault(x => x.Username == Context.User.Username);
+                if (currentPlayer == null) return;
+                game.PlayerTurnId = currentPlayer.Id;
+
+                // reset turn order
+                var players = GetPlayers(game).Where(x => x.NumberOfDice > 0).Where(x => x.Id != currentPlayer.Id).ToList();
+
+                var insertIndex = players.FindIndex(x => x.Id == prevCurrentPlayer.Id);
+
+                players.Insert(insertIndex, currentPlayer);
+                var order = 0;
+                foreach (var player in players)
+                {
+                    player.TurnOrder = order;
+                    order += 1;
+                }
+
+                _db.SaveChanges();
+            }
+
+
+
+
             _db.Bids.Add(bid);
             _db.SaveChanges();
 
@@ -1022,6 +1035,16 @@ namespace GameBot.Modules
                     return false;
                 }
                 return true; 
+            }
+
+            if (mostRecentBid.Call != "")
+            {
+                if (bid.Pips == 1)
+                {
+                    await SendMessage("Cannot start the round by bidding on wilds.");
+                    return false;
+                }
+                return true;
             }
 
             // If last bid was 1s
