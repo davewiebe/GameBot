@@ -620,7 +620,7 @@ namespace GameBot.Modules
 
                 // reset turn order
                 currentPlayer.TurnOrder = 0;
-                var players = GetPlayers(game).Where(x => x.NumberOfDice > 0);
+                var players = _db.Players.AsQueryable().Where(x => x.GameId == game.Id).OrderBy(x => x.TurnOrder).Where(x => x.NumberOfDice > 0);
                 var order = 1;
                 foreach (var player in players)
                 {
@@ -652,7 +652,7 @@ namespace GameBot.Modules
 
             if (game.CanCallExactAnytime)
             {
-                var player = GetPlayers(game)
+                var player = _db.Players.AsQueryable().Where(x => x.GameId == game.Id).OrderBy(x => x.TurnOrder)
                     .Where(x => x.NumberOfDice > 0)
                     .SingleOrDefault(x => x.Username == Context.User.Username);
                 if (player == null) return;
@@ -754,7 +754,7 @@ namespace GameBot.Modules
 
             if (game.CanCallLiarAnytime)
             {
-                var player = GetPlayers(game)
+                var player = _db.Players.AsQueryable().Where(x => x.GameId == game.Id).OrderBy(x => x.TurnOrder)
                     .Where(x => x.NumberOfDice > 0)
                     .SingleOrDefault(x => x.Username == Context.User.Username);
                 if (player == null) return;
