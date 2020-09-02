@@ -30,8 +30,13 @@ namespace GameBot.Modules
         {
             if (_botType == "perudo")
             {
-                await ReplyAsync("`PerudoBot version 3.Blue.4`\n" +
+                await ReplyAsync("`PerudoBot version 1.5.1`\n" +
                     "\n" +
+                    "**1.5.1**\n" +
+                    "*01-Sept/2020*\n" +
+                    "- Added exactanytime, liaranytime\n" +
+                    "- Fixed some bugs\n" +
+                    "\n" + 
                     "**3.Blue.4**\n" +
                     "*26-Aug-20*\n" +
                     "- added variable numbas o'dice\n" +

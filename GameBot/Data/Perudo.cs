@@ -14,9 +14,11 @@ namespace GameBot.Data
         public bool WildsEnabled { get; internal set; }
         public ulong ChannelId { get; internal set; }
         public int RoundStartPlayerId { get; internal set; }
-        public int ExactCall { get; internal set; }
+        public int ExactCallBonus { get; internal set; }
         public bool CanCallExactAnytime { get; internal set; }
         public bool CanCallLiarAnytime { get; internal set; }
+        public int ExactCallPenalty { get; internal set; }
+        public bool CanBidAnytime { get; internal set; }
     }
     public class Player
     {

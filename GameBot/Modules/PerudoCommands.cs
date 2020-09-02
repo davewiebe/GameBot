@@ -47,21 +47,54 @@ namespace GameBot.Modules
                 NumberOfDice = 5,
                 Penalty = 1,
                 RandomizeBetweenRounds = false,
-                WildsEnabled = false,
-                ExactCall = 0,
+                WildsEnabled = true,
+                ExactCallBonus = 0,
+                ExactCallPenalty = 0,
                 CanCallExactAnytime = false,
-                CanCallLiarAnytime = false
+                CanCallLiarAnytime = false,
+                CanBidAnytime = false
             });
             _db.SaveChanges();
 
-            await SendMessage($"New game created. Use the following commands:\n" +
+
+            var commands = 
                 $"`!add @user` to add players.\n" +
                 $"`!remove @user` to remove players.\n" +
-                $"`!option dice 5 penalty 1 randomize wild exact -1 exactanytime liaranytime` to set round options.\n" +
+                $"`!option xyz` to set round options.\n" +
                 $"`!status` to view current status.\n" +
-                $"`!start` to start the game.");
+                $"`!start` to start the game.";
 
-            await AddUserToGame(stringArray);
+
+            var builder = new EmbedBuilder()
+                            .WithTitle("New game created")
+                            .AddField("Commands", commands, inline: false);
+            var embed = builder.Build();
+            await Context.Channel.SendMessageAsync(embed: embed).ConfigureAwait(false);
+
+
+            var game = GetGame(SETUP);
+            AddUsers(game, Context.Message);
+            SetOptions(stringArray);
+
+            await Status();
+        }
+
+        public List<string> GetOptions(Data.Game game)
+        {
+            var options = new List<string>();
+
+            options.Add($"Each player starts with `{game.NumberOfDice}` dice");
+            options.Add($"The penalty for an incorrect call is `{game.Penalty}` dice");
+
+            if (game.RandomizeBetweenRounds) options.Add("Player order will be **randomized** between rounds");
+            if (game.WildsEnabled) options.Add("Players can bid on **wild** dice.");
+            if (game.ExactCallBonus > 0) options.Add($"Players that call **exact** with more than 2 players in the game will win `{game.ExactCallBonus}` dice.");
+            if (game.ExactCallPenalty > 0) options.Add($"Players that call **exact** with more than 2 players in the game will cause everyone else to lose `{game.ExactCallPenalty}` dice.");
+            if (game.CanCallLiarAnytime) options.Add("Players can call **liar** out of turn.");
+            if (game.CanCallExactAnytime) options.Add("Players can call **exact** out of turn.");
+            if (game.CanBidAnytime) options.Add("Players can **bid** out of turn.");
+
+            return options;
         }
 
         [Command("status")]
@@ -70,24 +103,18 @@ namespace GameBot.Modules
             var game = GetGame(SETUP);
             if (game != null)
             {
-                var randomizeText = "";
-                if (game.RandomizeBetweenRounds) randomizeText = "Player order will be randomized between rounds";
-                else randomizeText = "Player order will not be randomized between rounds";
-
-                var wildsText = "";
-                if (game.WildsEnabled) wildsText = $"Players can bid on wild dice";
-                else wildsText = "Players cannot bid on wild dice";
-
                 var players = GetPlayers(game);
-                await SendMessage($"*A game is being set up*\n" +
-                    $"**Players**\n" +
-                    $"{string.Join("\n", players.Select(x => GetUserNickname(x.Username)))}\n" +
-                    $"\n" +
-                    $"**Options**\n" +
-                    $"Each player starts with {game.NumberOfDice} dice\n" +
-                    $"The penalty for an incorrect call is {game.Penalty} dice\n" +
-                    $"{randomizeText}\n" +
-                    $"{wildsText}\n");
+                var options = GetOptions(game);
+
+                var builder = new EmbedBuilder()
+                                .WithTitle($"Game set up")
+                                .AddField($"Players ({players.Count()})", $"{string.Join("\n", players.Select(x => GetUserNickname(x.Username)))}", inline: false)
+                                .AddField("Options", $"{string.Join("\n", options)}", inline: false);
+                var embed = builder.Build();
+
+                await Context.Channel.SendMessageAsync(
+                    embed: embed)
+                    .ConfigureAwait(false);
                 return;
             }
 
@@ -96,12 +123,22 @@ namespace GameBot.Modules
             {
                 var nextPlayer = GetCurrentPlayer(game);
                 var bid = GetMostRecentBid(game);
+                await DisplayCurrentStandings(game);
+
+
+                var options = GetOptions(game);
+                var builder = new EmbedBuilder()
+                                .WithTitle("Game options")
+                                .AddField("Options", $"{string.Join("\n", options)}", inline: false);
+                var embed = builder.Build();
+                await Context.Channel.SendMessageAsync(embed: embed).ConfigureAwait(false);
+
+
                 var recentBidText = "";
                 if (bid != null)
                 {
                     recentBidText = $"The most recent bid was for `{ bid.Quantity}` ˣ { bid.Pips.GetEmoji()}\n";
                 }
-                await DisplayCurrentStandings(game);
                 await SendMessage($"{recentBidText}It's {GetUserNickname(nextPlayer.Username)}'s turn.");
                 return;
             }
@@ -125,6 +162,35 @@ namespace GameBot.Modules
         {
             if (_botType != "perudo") return;
 
+            if (stringArray.Length == 0)
+            {
+                var options =
+                $"`!option dice x` to start the game with `x` dice\n" +
+                $"`!option penalty x` to set the penalty for an incorrect bid/call to `x`\n" +
+                $"`!option randomize` to toggle **randomizing** player order\n" +
+                $"`!option nowild` to disable bidding on **wilds**\n" +
+                $"`!option exact x y` a correct exact bid wins the caller `x` dice and/or causes other players to lose `y` dice\n" +
+                $"`!option exactanytime` to toggle allowing **exact** calls at any time\n" +
+                $"`!option liaranytime` to toggle allowing **liar** calls at any time\n" +
+                $"`!option bidanytime` to toggle allowing **bids** at any time";
+
+
+                var builder = new EmbedBuilder()
+                                .WithTitle("Game options")
+                                .AddField("Commands", options, inline: false);
+                var embed = builder.Build();
+                await Context.Channel.SendMessageAsync(embed: embed).ConfigureAwait(false);
+                return;
+            }
+
+            SetOptions(stringArray);
+
+            await Status();
+        }
+
+        private void SetOptions(string[] stringArray)
+        {
+            if (stringArray.Length == 0) return;
             if (stringArray[0] == "dice")
             {
                 var numberOfDice = int.Parse(stringArray[1]);
@@ -136,9 +202,9 @@ namespace GameBot.Modules
                     game.NumberOfDice = numberOfDice;
                     _db.SaveChanges();
 
-                    await SendMessage($"Each player starts with {numberOfDice} dice");
+                    //await SendMessage($"Each player starts with `{numberOfDice}` dice");
                 }
-                await Options(stringArray.Skip(2).ToArray());
+                SetOptions(stringArray.Skip(2).ToArray());
             }
 
             else if (stringArray[0] == "penalty")
@@ -152,9 +218,9 @@ namespace GameBot.Modules
                     game.Penalty = numberOfDice;
                     _db.SaveChanges();
 
-                    await SendMessage($"The penalty for an incorrect call is {numberOfDice} dice");
+                    //await SendMessage($"The penalty for an incorrect call is `{numberOfDice}` dice");
                 }
-                await Options(stringArray.Skip(2).ToArray());
+                SetOptions(stringArray.Skip(2).ToArray());
             }
 
             else if (stringArray[0] == "randomize")
@@ -163,34 +229,43 @@ namespace GameBot.Modules
 
                 game.RandomizeBetweenRounds = !game.RandomizeBetweenRounds;
                 _db.SaveChanges();
-                if (game.RandomizeBetweenRounds) await SendMessage($"Player order will be randomized between rounds.");
-                else await SendMessage("Player order will not be randomized between rounds.");
+                //if (game.RandomizeBetweenRounds) await SendMessage($"Player order will be **randomized** between rounds.");
+                //else await SendMessage("Player order will not be **randomized** between rounds.");
 
-                await Options(stringArray.Skip(1).ToArray());
+                SetOptions(stringArray.Skip(1).ToArray());
             }
 
-            else if (stringArray[0] == "wild")
+            else if (stringArray[0] == "nowild")
             {
                 var game = GetGame(SETUP);
 
                 game.WildsEnabled = !game.WildsEnabled;
                 _db.SaveChanges();
-                if (game.WildsEnabled) await SendMessage($"Players can bid on wild dice.");
-                else await SendMessage("Players cannot bid on wild dice.");
+                //if (game.WildsEnabled) await SendMessage($"Players can bid on **wild** dice.");
+                //else await SendMessage("Players cannot bid on **wild** dice.");
 
-                await Options(stringArray.Skip(1).ToArray());
+                SetOptions(stringArray.Skip(1).ToArray());
             }
 
+            else if (stringArray[0] == "bidanytime")
+            {
+                var game = GetGame(SETUP);
+
+                game.CanBidAnytime = !game.CanBidAnytime;
+                _db.SaveChanges();
+
+                SetOptions(stringArray.Skip(1).ToArray());
+            }
             else if (stringArray[0] == "exactanytime")
             {
                 var game = GetGame(SETUP);
 
                 game.CanCallExactAnytime = !game.CanCallExactAnytime;
                 _db.SaveChanges();
-                if (game.CanCallExactAnytime) await SendMessage($"Players can call `exact` out of turn.");
-                else await SendMessage("Players cannot call `exact` out of turn.");
+                //if (game.CanCallExactAnytime) await SendMessage($"Players can call **exact** out of turn.");
+                //else await SendMessage("Players cannot call **exact** out of turn.");
 
-                await Options(stringArray.Skip(1).ToArray());
+                SetOptions(stringArray.Skip(1).ToArray());
             }
 
             else if (stringArray[0] == "liaranytime")
@@ -199,32 +274,40 @@ namespace GameBot.Modules
 
                 game.CanCallLiarAnytime = !game.CanCallLiarAnytime;
                 _db.SaveChanges();
-                if (game.CanCallLiarAnytime) await SendMessage($"Players can call `liar` out of turn.");
-                else await SendMessage("Players cannot call `liar` out of turn.");
+                //if (game.CanCallLiarAnytime) await SendMessage($"Players can call **liar** out of turn.");
+                //else await SendMessage("Players cannot call **liar** out of turn.");
 
-                await Options(stringArray.Skip(1).ToArray());
+                SetOptions(stringArray.Skip(1).ToArray());
             }
 
             else if (stringArray[0] == "exact")
             {
                 var game = GetGame(SETUP);
 
-                var numberOfDice = int.Parse(stringArray[1]);
+                var exactCallerBonus = int.Parse(stringArray[1]);
+                var exactOthersPenalty = int.Parse(stringArray[2]);
 
-                if (numberOfDice > -101 && numberOfDice <= 100)
+                if (exactCallerBonus >= 0 && exactCallerBonus <= 100 && exactOthersPenalty >= 0 && exactOthersPenalty <= 100)
                 {
-                    game.ExactCall = numberOfDice;
+
+                    game.ExactCallBonus = exactCallerBonus;
+                    game.ExactCallPenalty = exactOthersPenalty;
                     _db.SaveChanges();
-                    if (game.ExactCall > 0) await SendMessage($"Players that call `exact` with more than 2 players in the game will win {numberOfDice} dice.");
-                    if (game.ExactCall == 0) await SendMessage($"Players that call `exact` will not receive a bonus.");
-                    if (game.ExactCall < 0) await SendMessage($"Players that call `exact` will cause everyone else to lose {numberOfDice} dice.");
+
+                    var summary = "";
+
+                    //if (game.ExactCallBonus > 0) summary += $"Players that call **exact** with more than 2 players in the game will win `{exactCallerBonus}` dice.";
+                    //if (game.ExactCallPenalty > 0) summary += $"\nPlayers that call **exact** with more than 2 players in the game will cause everyone else to lose `{exactOthersPenalty}` dice.";
+                    //if (summary == "") summary = $"Calling **exact** resets the round only.";
+
+                    //await SendMessage(summary);
                 }
 
-                await Options(stringArray.Skip(1).ToArray());
+                SetOptions(stringArray.Skip(3).ToArray());
             }
             else
             {
-                await Options(stringArray.Skip(1).ToArray());
+                SetOptions(stringArray.Skip(1).ToArray());
             }
         }
 
@@ -233,7 +316,6 @@ namespace GameBot.Modules
         {
             if (_botType != "perudo") return;
 
-
             var game = GetGame(SETUP);
             if (game == null)
             {
@@ -241,14 +323,21 @@ namespace GameBot.Modules
                 return;
             }
 
-            foreach (var userToAdd in Context.Message.MentionedUsers)
+            AddUsers(game, Context.Message);
+
+            await Status();
+        }
+
+        private void AddUsers(Data.Game game, SocketUserMessage message)
+        {
+            foreach (var userToAdd in message.MentionedUsers)
             {
                 // add check for adding same player twice.
                 bool userAlreadyExistsInGame = UserAlreadyExistsInGame(userToAdd, game);
                 if (userAlreadyExistsInGame)
                 {
-                    await SendMessage($"{GetUserNickname(userToAdd.Username)} is already in the game.");
-                    return;
+                    //await SendMessage($"{GetUserNickname(userToAdd.Username)} is already in the game.");
+                    continue;
                 }
 
                 _db.Players.Add(new Player
@@ -260,9 +349,8 @@ namespace GameBot.Modules
 
                 _db.SaveChanges();
 
-                await SendMessage($"{GetUserNickname(userToAdd.Username)} added to game.");
+                //await SendMessage($"{GetUserNickname(userToAdd.Username)} added to game.");
             }
-            await Option(stringArray);
         }
 
         private bool UserAlreadyExistsInGame(SocketUser userToAdd, Data.Game game)
@@ -331,7 +419,7 @@ namespace GameBot.Modules
             game.PlayerTurnId = players.First().Id;
             game.RoundStartPlayerId = players.First().Id;
 
-            await SendMessage($"Starting the game!\nUse \"!bid 2 2s\" or \"!exact\" or \"!liar\" to play.");
+            await SendMessage($"Starting the game!\nUse `!bid 2 2s` or `!exact` or `!liar` to play.");
 
             await RollDice(game);
 
@@ -372,6 +460,7 @@ namespace GameBot.Modules
 
         private async Task RollDice(Data.Game game)
         {
+            _db.SaveChanges();
             // IF THERE IS ONLY ONE PLAYER LEFT, ANNOUNCE THAT THEY WIN
             var players = GetPlayers(game);
 
@@ -436,6 +525,10 @@ namespace GameBot.Modules
             await DisplayCurrentStandingsForBots(game);
             await DisplayCurrentStandings(game);
 
+            _db.SaveChanges();
+            game.RoundStartPlayerId = GetCurrentPlayer(game).Id;
+            _db.SaveChanges();
+
             await SendMessage($"A new round has begun. {GetUser(GetCurrentPlayer(game).Username).Mention} goes first.");
         }
 
@@ -455,7 +548,7 @@ namespace GameBot.Modules
 
             var builder = new EmbedBuilder()
                 .WithTitle("Current standings")
-                .AddField("Users", $"{playerList}\n\nTotal dice left: `{totalDice}`", inline: false);
+                .AddField("Users", $"{playerList}\n\nTotal dice left: `{totalDice}`\nQuick maths: {totalDice}/3 = `{totalDice / 3.0:F2}`", inline: false);
             var embed = builder.Build();
 
             await Context.Channel.SendMessageAsync(
@@ -470,14 +563,14 @@ namespace GameBot.Modules
             players = players.Where(x => x.NumberOfDice > 0).ToList();
             var totalDice = players.Sum(x => x.NumberOfDice);
 
-            var monkey = new
+            var currentStandings = new
             {
                 Players = players.Select(x => new { Username = GetUserNickname(x.Username), DiceCount = x.NumberOfDice }),
                 TotalPlayers = players.Count(),
                 TotalDice = totalDice
             };
 
-            await SendMessage($"Current standings for bots: ||{JsonConvert.SerializeObject(monkey)}||");
+            await SendMessage($"Current standings for bots: ||{JsonConvert.SerializeObject(currentStandings)}||");
         }
 
         private SocketGuildUser GetUser(string username)
@@ -515,6 +608,29 @@ namespace GameBot.Modules
             if (await ValidateState(IN_PROGRESS) == false) return;
 
             var game = GetGame(IN_PROGRESS);
+
+
+            if (game.CanBidAnytime)
+            {
+                var currentPlayer = GetPlayers(game)
+                    .Where(x => x.NumberOfDice > 0)
+                    .SingleOrDefault(x => x.Username == Context.User.Username);
+                if (currentPlayer == null) return;
+                game.PlayerTurnId = currentPlayer.Id;
+
+                // reset turn order
+                currentPlayer.TurnOrder = 0;
+                var players = GetPlayers(game).Where(x => x.NumberOfDice > 0);
+                var order = 1;
+                foreach (var player in players)
+                {
+                    player.TurnOrder = order;
+                    order += 1;
+                }
+
+                _db.SaveChanges();
+            }
+
 
             var biddingPlayer = GetCurrentPlayer(game);
 
@@ -583,32 +699,33 @@ namespace GameBot.Modules
             if (countOfPips == previousBid.Quantity)
             {
                 Thread.Sleep(3000);
-                var diceGained = "";
+
+                await SendMessage($":zany_face: The madman did it! It was exact! :zany_face:");
+
                 var numPlayersLeft = GetPlayers(game).Where(x => x.NumberOfDice > 0).Count();
-                if (game.ExactCall > 0 && numPlayersLeft >= 3)
+                if (game.ExactCallBonus > 0 && numPlayersLeft >= 3)
                 {
-                    biddingPlayer.NumberOfDice += game.ExactCall;
+                    biddingPlayer.NumberOfDice += game.ExactCallBonus;
                     _db.SaveChanges();
-                    diceGained = $"\n:crossed_swords: As a bonus, they gain `{game.ExactCall}` dice :crossed_swords:";
+                    await SendMessage($"\n:crossed_swords: As a bonus, they gain `{game.ExactCallBonus}` dice :crossed_swords:");
                 }
 
-                if (game.ExactCall < 0 && numPlayersLeft >= 3)
+                if (game.ExactCallPenalty > 0 && numPlayersLeft >= 3)
                 {
-                    diceGained = $"\n:crossed_swords: As a bonus, everyone else loses `{game.ExactCall}` dice :crossed_swords:";
+                    await SendMessage($":crossed_swords: As a bonus, everyone else loses `{game.ExactCallPenalty}` dice :crossed_swords:");
 
                     var otherplayers = GetPlayers(game).Where(x => x.NumberOfDice > 0).Where(x => x.Id != biddingPlayer.Id);
                     foreach (var player in otherplayers)
                     {
-                        await DecrementDieFromPlayer(player, game.ExactCall);
+                        await DecrementDieFromPlayer(player, game.ExactCallPenalty);
                     }
                 }
 
-                await SendMessage($":zany_face: The madman did it! It was exact! :zany_face:{diceGained}");
 
                 await SendRoundSummaryForBots(game);
                 await GetRoundSummary(game);
 
-                SetNextPlayerToStartingPlayer(game);
+                SetTurnPlayerToRoundStartPlayer(game);
             }
             else
             {
@@ -622,7 +739,7 @@ namespace GameBot.Modules
             await RollDice(game);
         }
 
-        private void SetNextPlayerToStartingPlayer(Data.Game game)
+        private void SetTurnPlayerToRoundStartPlayer(Data.Game game)
         {
             game.PlayerTurnId = game.RoundStartPlayerId;
             _db.SaveChanges();
@@ -659,7 +776,7 @@ namespace GameBot.Modules
 
             _db.Bids.Add(new Bid
             {
-                PlayerId = game.PlayerTurnId.Value,
+                PlayerId = biddingPlayer.Id,
                 Call = "liar",
                 GameId = game.Id
             });
@@ -683,7 +800,7 @@ namespace GameBot.Modules
 
                 await SendRoundSummaryForBots(game);
                 await GetRoundSummary(game);
-                await DecrementDieFromPlayerAndSetThierTurnAsync(game, GetCurrentPlayer(game));
+                await DecrementDieFromPlayerAndSetThierTurnAsync(game, biddingPlayer);
             }
             else
             {
@@ -795,20 +912,20 @@ namespace GameBot.Modules
 
             var listOfAllDiceCounts = allDiceGrouped.Select(x => $"`{x.Count()}` ˣ {x.Key.GetEmoji()}");
 
-            List<string> monkey = new List<string>();
+            List<string> totals = new List<string>();
             for (int i = 2; i <= 6; i++)
             {
                 var countOfX = allDiceGrouped.SingleOrDefault(x => x.Key == i)?.Count();
                 var count1 = countOfOnes ?? 0;
                 var countX = countOfX ?? 0;
-                monkey.Add($"`{count1 + countX }` ˣ {i.GetEmoji()}");
+                totals.Add($"`{count1 + countX }` ˣ {i.GetEmoji()}");
             }
 
             var builder = new EmbedBuilder()
                 .WithTitle("Round Summary")
                 .AddField("Users", $"{string.Join("\n", playerDice)}", inline: true)
                 .AddField("Dice", $"{string.Join("\n", listOfAllDiceCounts)}", inline: true)
-                .AddField("Totals", $"{string.Join("\n", monkey)}", inline: true);
+                .AddField("Totals", $"{string.Join("\n", totals)}", inline: true);
             var embed = builder.Build();
 
             await Context.Channel.SendMessageAsync(
@@ -830,20 +947,20 @@ namespace GameBot.Modules
             _db.SaveChanges();
         }
 
-        private async Task DecrementDieFromPlayerAndSetThierTurnAsync(Data.Game game, Player currentPlayer)
+        private async Task DecrementDieFromPlayerAndSetThierTurnAsync(Data.Game game, Player player)
         {
-            currentPlayer.NumberOfDice -= game.Penalty;
+            player.NumberOfDice -= game.Penalty;
 
-            if (currentPlayer.NumberOfDice < 0) currentPlayer.NumberOfDice = 0;
+            if (player.NumberOfDice < 0) player.NumberOfDice = 0;
 
-            if (currentPlayer.NumberOfDice <= 0)
+            if (player.NumberOfDice <= 0)
             {
-                await SendMessage($":fire::skull::fire: {GetUserNickname(currentPlayer.Username)} defeated :fire::skull::fire:");
-                SetNextPlayer(game, currentPlayer);
+                await SendMessage($":fire::skull::fire: {GetUserNickname(player.Username)} defeated :fire::skull::fire:");
+                SetNextPlayer(game, player);
             }
             else
             {
-                game.PlayerTurnId = currentPlayer.Id;
+                game.PlayerTurnId = player.Id;
                 _db.SaveChanges();
             }
         }
@@ -931,7 +1048,8 @@ namespace GameBot.Modules
             if (bid.Pips == 1 && mostRecentBid.Pips != 1)
             {
                 var prevRoundId = 0;
-                var prevRound = _db.Bids.AsQueryable().Where(x => x.Call != "").LastOrDefault();
+                var prevRound = _db.Bids.AsQueryable().Where(x => x.Call != "").ToList().LastOrDefault();
+
                 if (prevRound != null) prevRoundId = prevRound.Id;
 
                 var hasGoneToOnesAlready = _db.Bids.AsQueryable()
@@ -944,7 +1062,7 @@ namespace GameBot.Modules
                 }
 
 
-                if (bid.Quantity*2 <= mostRecentBid.Quantity)
+                if (bid.Quantity * 2 <= mostRecentBid.Quantity)
                 {
                     await SendMessage("Bid has to be higher.");
                     return false;
