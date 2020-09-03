@@ -88,8 +88,7 @@ namespace GameBot.Modules
 
             if (game.RandomizeBetweenRounds) options.Add("Player order will be **randomized** between rounds");
             if (game.WildsEnabled) options.Add("Players can bid on **wild** dice.");
-            if (game.ExactCallBonus > 0) options.Add($"Players that call **exact** with more than 2 players in the game will win `{game.ExactCallBonus}` dice.");
-            if (game.ExactCallPenalty > 0) options.Add($"Players that call **exact** with more than 2 players in the game will cause everyone else to lose `{game.ExactCallPenalty}` dice.");
+            if (game.ExactCallBonus > 0 || game.ExactCallPenalty > 0) options.Add($"Correct **exact** calls win `{game.ExactCallBonus}` dice and everyone else loses `{game.ExactCallPenalty}` dice (3+ players).");
             if (game.CanCallLiarAnytime) options.Add("Players can call **liar** out of turn.");
             if (game.CanCallExactAnytime) options.Add("Players can call **exact** out of turn.");
             if (game.CanBidAnytime) options.Add("Players can **bid** out of turn.");
@@ -601,6 +600,11 @@ namespace GameBot.Modules
             await SendMessage("I'll be back.");
         }
 
+        [Command("b")]
+        public async Task B(params string[] bidText)
+        {
+            await Bid(bidText);
+        }
 
         [Command("bid")]
         public async Task Bid(params string[] bidText)
@@ -608,9 +612,6 @@ namespace GameBot.Modules
             if (await ValidateState(IN_PROGRESS) == false) return;
 
             var game = GetGame(IN_PROGRESS);
-
-
-
 
 
             var currentPlayer = GetCurrentPlayer(game);
@@ -1075,14 +1076,15 @@ namespace GameBot.Modules
 
                 if (prevRound != null) prevRoundId = prevRound.Id;
 
-                var hasGoneToOnesAlready = _db.Bids.AsQueryable()
-                    .Where(x => x.Id > prevRoundId)
-                    .Where(x => x.GameId == game.Id).Where(x => x.Pips == 1).Any();
-                if (hasGoneToOnesAlready)
-                {
-                    await SendMessage("Cannot switch to wilds more than once a round.");
-                    return false;
-                }
+                // Removed this. Apparently not in the rules
+                //var hasGoneToOnesAlready = _db.Bids.AsQueryable()
+                //    .Where(x => x.Id > prevRoundId)
+                //    .Where(x => x.GameId == game.Id).Where(x => x.Pips == 1).Any();
+                //if (hasGoneToOnesAlready)
+                //{
+                //    await SendMessage("Cannot switch to wilds more than once a round.");
+                //    return false;
+                //}
 
 
                 if (bid.Quantity * 2 <= mostRecentBid.Quantity)
