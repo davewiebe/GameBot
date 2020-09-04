@@ -84,7 +84,14 @@ namespace GameBot.Modules
             var options = new List<string>();
 
             options.Add($"Each player starts with `{game.NumberOfDice}` dice");
-            options.Add($"The penalty for an incorrect call is `{game.Penalty}` dice");
+            if (game.Penalty == 0)
+            {
+                options.Add($"The penalty for an incorrect call is *the number of dice they were off by*.");
+            }
+            else
+            {
+                options.Add($"The penalty for an incorrect call is `{game.Penalty}` dice");
+            }
 
             if (game.RandomizeBetweenRounds) options.Add("Player order will be **randomized** between rounds");
             if (game.WildsEnabled) options.Add("Players can bid on **wild** dice.");
@@ -104,10 +111,12 @@ namespace GameBot.Modules
             {
                 var players = GetPlayers(game);
                 var options = GetOptions(game);
+                var playersListString = string.Join("\n", players.Select(x => GetUserNickname(x.Username)));
+                if (players.Count() == 0) playersListString = "none";
 
                 var builder = new EmbedBuilder()
                                 .WithTitle($"Game set up")
-                                .AddField($"Players ({players.Count()})", $"{string.Join("\n", players.Select(x => GetUserNickname(x.Username)))}", inline: false)
+                                .AddField($"Players ({players.Count()})", $"{playersListString}", inline: false)
                                 .AddField("Options", $"{string.Join("\n", options)}", inline: false);
                 var embed = builder.Build();
 
@@ -183,8 +192,15 @@ namespace GameBot.Modules
             }
 
             SetOptions(stringArray);
+            try
+                {
 
-            await Status();
+                await Status();
+            }
+            catch (Exception e)
+            {
+                var monkey = 1;
+            }
         }
 
         private void SetOptions(string[] stringArray)
@@ -208,6 +224,14 @@ namespace GameBot.Modules
 
             else if (stringArray[0] == "penalty")
             {
+                if (stringArray[1].ToLower() == "variable")
+                {
+
+                    var game = GetGame(SETUP);
+
+                    game.Penalty = 0;
+                    _db.SaveChanges();
+                }
                 var numberOfDice = int.Parse(stringArray[1]);
 
                 if (numberOfDice > 0 && numberOfDice <= 100)
@@ -713,10 +737,13 @@ namespace GameBot.Modules
             }
             else
             {
-                await SendMessage($"There was actually `{countOfPips}` dice. :fire: {GetUser(biddingPlayer.Username).Mention} loses {game.Penalty} dice. :fire:");
+                var penalty = Math.Abs(countOfPips - previousBid.Quantity);
+                if (game.Penalty != 0) penalty = game.Penalty;
+
+                await SendMessage($"There was actually `{countOfPips}` dice. :fire: {GetUser(biddingPlayer.Username).Mention} loses {penalty} dice. :fire:");
                 await SendRoundSummaryForBots(game);
                 await GetRoundSummary(game);
-                await DecrementDieFromPlayerAndSetThierTurnAsync(game, biddingPlayer);
+                await DecrementDieFromPlayerAndSetThierTurnAsync(game, biddingPlayer, penalty);
             }
 
             Thread.Sleep(4000);
@@ -780,19 +807,26 @@ namespace GameBot.Modules
 
             if (countOfPips >= previousBid.Quantity)
             {
-                await SendMessage($"There was actually `{countOfPips}` dice. :fire: {GetUser(biddingPlayer.Username).Mention} loses {game.Penalty} dice. :fire:");
+                var penalty = (countOfPips - previousBid.Quantity) + 1;
+                if (game.Penalty != 0) penalty = game.Penalty;
+
+                await SendMessage($"There was actually `{countOfPips}` dice. :fire: {GetUser(biddingPlayer.Username).Mention} loses {penalty} dice. :fire:");
 
                 await SendRoundSummaryForBots(game);
                 await GetRoundSummary(game);
-                await DecrementDieFromPlayerAndSetThierTurnAsync(game, biddingPlayer);
+                await DecrementDieFromPlayerAndSetThierTurnAsync(game, biddingPlayer, penalty);
             }
             else
             {
-                await SendMessage($"There was actually `{countOfPips}` dice. :fire: {GetUser(previousBid.Player.Username).Mention} loses {game.Penalty} dice. :fire:");
+                var penalty = previousBid.Quantity - countOfPips;
+                if (game.Penalty != 0) penalty = game.Penalty;
+
+                await SendMessage($"There was actually `{countOfPips}` dice. :fire: {GetUser(previousBid.Player.Username).Mention} loses {penalty} dice. :fire:");
+
 
                 await SendRoundSummaryForBots(game);
                 await GetRoundSummary(game);
-                await DecrementDieFromPlayerAndSetThierTurnAsync(game, previousBid.Player);
+                await DecrementDieFromPlayerAndSetThierTurnAsync(game, previousBid.Player, penalty);
             }
 
             Thread.Sleep(4000);
@@ -961,9 +995,9 @@ namespace GameBot.Modules
             _db.SaveChanges();
         }
 
-        private async Task DecrementDieFromPlayerAndSetThierTurnAsync(Data.Game game, Player player)
+        private async Task DecrementDieFromPlayerAndSetThierTurnAsync(Data.Game game, Player player, int penalty)
         {
-            player.NumberOfDice -= game.Penalty;
+            player.NumberOfDice -= penalty;
 
             if (player.NumberOfDice < 0) player.NumberOfDice = 0;
 
