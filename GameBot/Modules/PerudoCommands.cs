@@ -3,6 +3,7 @@ using Discord.Commands;
 using Discord.WebSocket;
 using GameBot.Data;
 using GameBot.Services;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -17,7 +18,8 @@ namespace GameBot.Modules
     {
         private const int SETUP = 0;
         private const int IN_PROGRESS = 1;
-        private const int ENDED = 2;
+        private const int TERMINATED = 2;
+        private const int FINISHED = 3;
 
         [Command("error")]
         public async Task Error()
@@ -44,22 +46,26 @@ namespace GameBot.Modules
             {
                 ChannelId = Context.Channel.Id,
                 State = 0,
+                DateCreated = DateTime.Now,
                 NumberOfDice = 5,
                 Penalty = 1,
+                NextRoundIsPalifico = false,
                 RandomizeBetweenRounds = false,
                 WildsEnabled = true,
                 ExactCallBonus = 0,
                 ExactCallPenalty = 0,
                 CanCallExactAnytime = false,
                 CanCallLiarAnytime = false,
-                CanBidAnytime = false
+                CanBidAnytime = false,
+                Palifico = true,
+                IsRanked = true,
+                GuildId = Context.Guild.Id
             });
             _db.SaveChanges();
 
 
             var commands = 
-                $"`!add @user` to add players.\n" +
-                $"`!remove @user` to remove players.\n" +
+                $"`!add/remove @user` to add/remove players.\n" +
                 $"`!option xyz` to set round options.\n" +
                 $"`!status` to view current status.\n" +
                 $"`!start` to start the game.";
@@ -74,7 +80,14 @@ namespace GameBot.Modules
 
             var game = GetGame(SETUP);
             AddUsers(game, Context.Message);
-            SetOptions(stringArray);
+            try {
+
+                SetOptions(stringArray);
+            }
+            catch (Exception e)
+            {
+                var a = "monkey";
+            }
 
             await Status();
         }
@@ -95,10 +108,12 @@ namespace GameBot.Modules
 
             if (game.RandomizeBetweenRounds) options.Add("Player order will be **randomized** between rounds");
             if (game.WildsEnabled) options.Add("Players can bid on **wild** dice.");
+            if (game.Palifico) options.Add("Reaching one die triggers a **Palifico** round.");
             if (game.ExactCallBonus > 0 || game.ExactCallPenalty > 0) options.Add($"Correct **exact** calls win `{game.ExactCallBonus}` dice and everyone else loses `{game.ExactCallPenalty}` dice (3+ players).");
             if (game.CanCallLiarAnytime) options.Add("Players can call **liar** out of turn.");
             if (game.CanCallExactAnytime) options.Add("Players can call **exact** out of turn.");
             if (game.CanBidAnytime) options.Add("Players can **bid** out of turn.");
+            if (game.IsRanked) options.Add("Game is ranked and saved to highscore board.");
 
             return options;
         }
@@ -159,6 +174,56 @@ namespace GameBot.Modules
             await base.ReplyAsync(message, options: requestOptions);
         }
 
+        [Command("scoreboard")]
+        public async Task Scoreboard(params string[] stringArray)
+        {
+            var guildId = Context.Guild.Id;
+            var players1 = _db.Players.AsQueryable()
+                .Where(x => x.Game.IsRanked)
+                .Where(x => x.Game.GuildId == guildId)
+                .Where(x => x.Game.State == FINISHED)
+                .Include(x => x.Game)
+                .OrderBy(x => x.Game.DateCreated)
+                .ToList();
+
+            var players = players1
+                .GroupBy(x => x.Game);
+
+            var monkey = players.Select(x => $"{x.Key.DateCreated:yyyy-MM-dd} - {string.Join(", ", x.Select(x => x.Username))} - :trophy: {x.Key.Winner} :trophy:");
+
+            var builder = new EmbedBuilder()
+                                .WithTitle("Leaderboard")
+                                .AddField("Games", string.Join("\n", monkey), inline: false);
+            var embed = builder.Build();
+            await Context.Channel.SendMessageAsync(embed: embed).ConfigureAwait(false);
+            return;
+        }
+
+        [Command("highscores")]
+        public async Task Highscores(params string[] stringArray)
+        {
+            try
+            {
+                await Scoreboard(stringArray);
+
+            }
+            catch (Exception e)
+            {
+                var a = 3;
+            }
+        }
+        [Command("leaderboard")]
+        public async Task Leaderboard(params string[] stringArray)
+        {
+            await Scoreboard(stringArray);
+        }
+
+        [Command("highscore")]
+        public async Task Highscore(params string[] stringArray)
+        {
+            await Scoreboard(stringArray);
+        }
+
         [Command("options")]
         public async Task Options(params string[] stringArray)
         {
@@ -175,17 +240,24 @@ namespace GameBot.Modules
                 var options =
                 $"`!option dice x` to start the game with `x` dice\n" +
                 $"`!option penalty x` to set the penalty for an incorrect bid/call to `x`\n" +
-                $"`!option randomize` to toggle **randomizing** player order\n" +
-                $"`!option nowild` to disable bidding on **wilds**\n" +
+                $"`!option penalty variable` the penalty will be the difference in dice\n" +
+                $"`!option randomized/ordered` to change **randomizing** player order\n" +
+                $"`!option wild/nowild` to change bidding on **wilds**\n" +
                 $"`!option exact x y` a correct exact bid wins the caller `x` dice and/or causes other players to lose `y` dice\n" +
-                $"`!option exactanytime` to toggle allowing **exact** calls at any time\n" +
-                $"`!option liaranytime` to toggle allowing **liar** calls at any time\n" +
-                $"`!option bidanytime` to toggle allowing **bids** at any time";
+                $"`!option exactanytime/noexactanytime` to change allowing **exact** calls at any time\n" +
+                $"`!option liaranytime/noliaranytime` to change allowing **liar** calls at any time\n" +
+                $"`!option bidanytime/nobidanytime` to change allowing **bids** at any time";
 
+                var modes =
+                $"`simple` Simple rules. Good for bots\n" +
+                $"`standard` The standard set of rules\n" +
+                $"`chaos` Anything goes anytime\n" +
+                $"`suddendeath` For a sudden death match";
 
                 var builder = new EmbedBuilder()
                                 .WithTitle("Game options")
-                                .AddField("Commands", options, inline: false);
+                                .AddField("Modes", modes, inline: false)
+                                .AddField("Granular options", options, inline: false);
                 var embed = builder.Build();
                 await Context.Channel.SendMessageAsync(embed: embed).ConfigureAwait(false);
                 return;
@@ -206,6 +278,17 @@ namespace GameBot.Modules
         private void SetOptions(string[] stringArray)
         {
             if (stringArray.Length == 0) return;
+
+            var allText = string.Join(" ", stringArray).ToLower();
+            allText = allText.Replace("simple", "nowild dice 5 penalty 1 noexactanytime noliaranytime nobidanytime exact 0 0 ordered nopalifico ranked");
+            if (allText.Contains("suddendeath"))
+            {
+                allText = allText.Replace("suddendeath", "") + " penalty 100";
+            }
+            allText = allText.Replace("chaos", "exactanytime liaranytime bidanytime");
+            allText = allText.Replace("standard", "wild dice 5 penalty 1 noexactanytime noliaranytime nobidanytime exact 0 0 ordered palifico ranked");
+
+            stringArray = allText.Split(" ");
             if (stringArray[0] == "dice")
             {
                 var numberOfDice = int.Parse(stringArray[1]);
@@ -216,8 +299,6 @@ namespace GameBot.Modules
 
                     game.NumberOfDice = numberOfDice;
                     _db.SaveChanges();
-
-                    //await SendMessage($"Each player starts with `{numberOfDice}` dice");
                 }
                 SetOptions(stringArray.Skip(2).ToArray());
             }
@@ -231,41 +312,92 @@ namespace GameBot.Modules
 
                     game.Penalty = 0;
                     _db.SaveChanges();
+
                 }
-                var numberOfDice = int.Parse(stringArray[1]);
-
-                if (numberOfDice > 0 && numberOfDice <= 100)
+                else
                 {
-                    var game = GetGame(SETUP);
+                    var numberOfDice = int.Parse(stringArray[1]);
 
-                    game.Penalty = numberOfDice;
-                    _db.SaveChanges();
+                    if (numberOfDice > 0 && numberOfDice <= 100)
+                    {
+                        var game = GetGame(SETUP);
 
-                    //await SendMessage($"The penalty for an incorrect call is `{numberOfDice}` dice");
+                        game.Penalty = numberOfDice;
+                        _db.SaveChanges();
+                    }
                 }
                 SetOptions(stringArray.Skip(2).ToArray());
             }
 
-            else if (stringArray[0] == "randomize")
+            else if (stringArray[0] == "randomized")
             {
                 var game = GetGame(SETUP);
 
-                game.RandomizeBetweenRounds = !game.RandomizeBetweenRounds;
+                game.RandomizeBetweenRounds = true;
                 _db.SaveChanges();
-                //if (game.RandomizeBetweenRounds) await SendMessage($"Player order will be **randomized** between rounds.");
-                //else await SendMessage("Player order will not be **randomized** between rounds.");
 
                 SetOptions(stringArray.Skip(1).ToArray());
             }
-
-            else if (stringArray[0] == "nowild")
+            else if (stringArray[0] == "ordered")
             {
                 var game = GetGame(SETUP);
 
-                game.WildsEnabled = !game.WildsEnabled;
+                game.RandomizeBetweenRounds = false;
                 _db.SaveChanges();
-                //if (game.WildsEnabled) await SendMessage($"Players can bid on **wild** dice.");
-                //else await SendMessage("Players cannot bid on **wild** dice.");
+
+                SetOptions(stringArray.Skip(1).ToArray());
+            }
+            else if (stringArray[0] == "ranked")
+            {
+                var game = GetGame(SETUP);
+
+                game.IsRanked = true;
+                _db.SaveChanges();
+
+                SetOptions(stringArray.Skip(1).ToArray());
+            }
+            else if (stringArray[0] == "unranked")
+            {
+                var game = GetGame(SETUP);
+
+                game.IsRanked = false;
+                _db.SaveChanges();
+
+                SetOptions(stringArray.Skip(1).ToArray());
+            }
+            else if (stringArray[0] == "palifico")
+            {
+                var game = GetGame(SETUP);
+
+                game.Palifico = true;
+                _db.SaveChanges();
+
+                SetOptions(stringArray.Skip(1).ToArray());
+            }
+            else if (stringArray[0] == "nopalifico")
+            {
+                var game = GetGame(SETUP);
+
+                game.Palifico = false;
+                _db.SaveChanges();
+
+                SetOptions(stringArray.Skip(1).ToArray());
+            }
+            else if (stringArray[0] == "nowild" || stringArray[0] == "nowilds")
+            {
+                var game = GetGame(SETUP);
+
+                game.WildsEnabled = false;
+                _db.SaveChanges();
+
+                SetOptions(stringArray.Skip(1).ToArray());
+            }
+            else if (stringArray[0] == "wild" || stringArray[0] == "wilds")
+            {
+                var game = GetGame(SETUP);
+
+                game.WildsEnabled = true;
+                _db.SaveChanges();
 
                 SetOptions(stringArray.Skip(1).ToArray());
             }
@@ -274,7 +406,16 @@ namespace GameBot.Modules
             {
                 var game = GetGame(SETUP);
 
-                game.CanBidAnytime = !game.CanBidAnytime;
+                game.CanBidAnytime = true;
+                _db.SaveChanges();
+
+                SetOptions(stringArray.Skip(1).ToArray());
+            }
+            else if (stringArray[0] == "nobidanytime")
+            {
+                var game = GetGame(SETUP);
+
+                game.CanBidAnytime = false;
                 _db.SaveChanges();
 
                 SetOptions(stringArray.Skip(1).ToArray());
@@ -283,10 +424,17 @@ namespace GameBot.Modules
             {
                 var game = GetGame(SETUP);
 
-                game.CanCallExactAnytime = !game.CanCallExactAnytime;
+                game.CanCallExactAnytime = true;
                 _db.SaveChanges();
-                //if (game.CanCallExactAnytime) await SendMessage($"Players can call **exact** out of turn.");
-                //else await SendMessage("Players cannot call **exact** out of turn.");
+
+                SetOptions(stringArray.Skip(1).ToArray());
+            }
+            else if (stringArray[0] == "noexactanytime")
+            {
+                var game = GetGame(SETUP);
+
+                game.CanCallExactAnytime = false;
+                _db.SaveChanges();
 
                 SetOptions(stringArray.Skip(1).ToArray());
             }
@@ -295,10 +443,17 @@ namespace GameBot.Modules
             {
                 var game = GetGame(SETUP);
 
-                game.CanCallLiarAnytime = !game.CanCallLiarAnytime;
+                game.CanCallLiarAnytime = true;
                 _db.SaveChanges();
-                //if (game.CanCallLiarAnytime) await SendMessage($"Players can call **liar** out of turn.");
-                //else await SendMessage("Players cannot call **liar** out of turn.");
+
+                SetOptions(stringArray.Skip(1).ToArray());
+            }
+            else if (stringArray[0] == "noliaranytime")
+            {
+                var game = GetGame(SETUP);
+
+                game.CanCallLiarAnytime = false;
+                _db.SaveChanges();
 
                 SetOptions(stringArray.Skip(1).ToArray());
             }
@@ -316,14 +471,6 @@ namespace GameBot.Modules
                     game.ExactCallBonus = exactCallerBonus;
                     game.ExactCallPenalty = exactOthersPenalty;
                     _db.SaveChanges();
-
-                    var summary = "";
-
-                    //if (game.ExactCallBonus > 0) summary += $"Players that call **exact** with more than 2 players in the game will win `{exactCallerBonus}` dice.";
-                    //if (game.ExactCallPenalty > 0) summary += $"\nPlayers that call **exact** with more than 2 players in the game will cause everyone else to lose `{exactOthersPenalty}` dice.";
-                    //if (summary == "") summary = $"Calling **exact** resets the round only.";
-
-                    //await SendMessage(summary);
                 }
 
                 SetOptions(stringArray.Skip(3).ToArray());
@@ -493,7 +640,8 @@ namespace GameBot.Modules
             {
                 await SendMessage($":trophy: {GetUser(activePlayers.Single().Username).Mention} is the winner with `{activePlayers.Single().NumberOfDice}` dice remaining! :trophy:");
 
-                game.State = ENDED;
+                game.State = FINISHED;
+                game.Winner = activePlayers.Single().Username;
                 _db.SaveChanges();
                 return;
             }
@@ -552,7 +700,14 @@ namespace GameBot.Modules
             game.RoundStartPlayerId = GetCurrentPlayer(game).Id;
             _db.SaveChanges();
 
-            await SendMessage($"A new round has begun. {GetUser(GetCurrentPlayer(game).Username).Mention} goes first.");
+            if (game.NextRoundIsPalifico)
+            {
+                await SendMessage($":game_die: Palifico Round :game_die: {GetUser(GetCurrentPlayer(game).Username).Mention} goes first.");
+            } 
+            else
+            {
+                await SendMessage($"A new round has begun. {GetUser(GetCurrentPlayer(game).Username).Mention} goes first.");
+            }
         }
 
         private async Task SendEncryptedDice(Player player, SocketGuildUser user, string botKey)
@@ -614,10 +769,10 @@ namespace GameBot.Modules
             if (_botType != "perudo") return;
 
             var game = GetGame(IN_PROGRESS);
-            if (game != null) game.State = ENDED;
+            if (game != null) game.State = TERMINATED;
 
             game = GetGame(SETUP);
-            if (game != null) game.State = ENDED;
+            if (game != null) game.State = TERMINATED;
 
             _db.SaveChanges();
 
@@ -992,6 +1147,14 @@ namespace GameBot.Modules
             {
                 await SendMessage($":fire::skull::fire: {GetUserNickname(player.Username)} defeated :fire::skull::fire:");
             }
+
+            var game = GetGame(IN_PROGRESS);
+            if (player.NumberOfDice == 1 && game.Palifico)
+            {
+                game.NextRoundIsPalifico = true;
+            } else {
+                game.NextRoundIsPalifico = false;
+            }
             _db.SaveChanges();
         }
 
@@ -1000,6 +1163,15 @@ namespace GameBot.Modules
             player.NumberOfDice -= penalty;
 
             if (player.NumberOfDice < 0) player.NumberOfDice = 0;
+
+            if (player.NumberOfDice == 1 && game.Palifico)
+            {
+                game.NextRoundIsPalifico = true;
+            }
+            else
+            {
+                game.NextRoundIsPalifico = false;
+            }
 
             if (player.NumberOfDice <= 0)
             {
@@ -1018,6 +1190,11 @@ namespace GameBot.Modules
             var players = GetPlayers(game).Where(x => x.NumberOfDice > 0).ToList();
 
             var allDice = players.SelectMany(x => x.Dice.Split(",").Select(x => int.Parse(x)));
+
+            if (game.NextRoundIsPalifico)
+            {
+                return allDice.Count(x => x == pips);
+            }
             return allDice.Count(x => x == pips || x == 1);
         }
 
@@ -1056,6 +1233,27 @@ namespace GameBot.Modules
         {
             var game = GetGame(IN_PROGRESS);
             Bid mostRecentBid = GetMostRecentBid(game);
+
+            if (game.NextRoundIsPalifico)
+            {
+                if (bid.Player.NumberOfDice != 1 && bid.Pips != mostRecentBid.Pips)
+                {
+                    await SendMessage("Only players at 1 die can change pips in Palifico round.");
+                    return false;
+                }
+
+                if (bid.Quantity < mostRecentBid.Quantity)
+                {
+                    await SendMessage("Bid has to be higher.");
+                    return false;
+                }
+                if (bid.Quantity == mostRecentBid.Quantity && bid.Pips <= mostRecentBid.Pips)
+                {
+                    await SendMessage("Bid has to be higher.");
+                    return false;
+                }
+                return true;
+            }
 
             if (game.WildsEnabled == false && bid.Pips == 1)
             {

@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace GameBot.Data
 {
@@ -19,6 +20,12 @@ namespace GameBot.Data
         public bool CanCallLiarAnytime { get; internal set; }
         public int ExactCallPenalty { get; internal set; }
         public bool CanBidAnytime { get; internal set; }
+        public bool Palifico { get; internal set; }
+        public bool NextRoundIsPalifico { get; internal set; }
+        public bool IsRanked { get; internal set; }
+        public DateTime DateCreated { get; internal set; }
+        public ulong GuildId { get; internal set; }
+        public string Winner { get; internal set; }
     }
     public class Player
     {
