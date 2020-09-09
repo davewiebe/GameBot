@@ -27,6 +27,144 @@ namespace GameBot.Modules
             throw new Exception("Test error. Do not panic!");
         }
 
+        [Command("same")]
+        public async Task Same(params string[] stringArray)
+        {
+            await Redo(stringArray);
+        }
+
+        [Command("anotherround")]
+        public async Task AnotherRound(params string[] stringArray)
+        {
+            await Redo(stringArray);
+        }
+
+        [Command("again")]
+        public async Task Again(params string[] stringArray)
+        {
+            await Redo(stringArray);
+        }
+
+        [Command("replay")]
+        public async Task Replay(params string[] stringArray)
+        {
+            await Redo(stringArray);
+        }
+
+        [Command("redo")]
+        public async Task Redo(params string[] stringArray)
+        {
+            if (_botType != "perudo") return;
+
+            if (_db.Games
+                .AsQueryable()
+                .Where(x => x.ChannelId == Context.Channel.Id)
+                .SingleOrDefault(x => x.State == IN_PROGRESS || x.State == SETUP) != null)
+            {
+                string message = $"A game is already in progress.";
+                await SendMessage(message);
+                return;
+            }
+
+            var lastGame = _db.Games
+                .AsQueryable()
+                .Where(x => x.ChannelId == Context.Channel.Id)
+                .OrderByDescending(x => x.Id)
+                .First();
+
+
+            _db.Games.Add(new Data.Game
+            {
+                ChannelId = Context.Channel.Id,
+                State = 0,
+                DateCreated = DateTime.Now,
+                NumberOfDice = lastGame.NumberOfDice,
+                Penalty = lastGame.Penalty,
+                NextRoundIsPalifico = false,
+                RandomizeBetweenRounds = lastGame.RandomizeBetweenRounds,
+                WildsEnabled = lastGame.WildsEnabled,
+                ExactCallBonus = lastGame.ExactCallBonus,
+                ExactCallPenalty = lastGame.ExactCallPenalty,
+                CanCallExactAnytime = lastGame.CanCallExactAnytime,
+                CanCallLiarAnytime = lastGame.CanCallLiarAnytime,
+                CanBidAnytime = lastGame.CanBidAnytime,
+                Palifico = lastGame.Palifico,
+                IsRanked = lastGame.IsRanked,
+                GuildId = Context.Guild.Id
+            });
+            _db.SaveChanges();
+
+
+            var commands =
+                $"`!add/remove @user` to add/remove players.\n" +
+                $"`!option xyz` to set round options.\n" +
+                $"`!status` to view current status.\n" +
+                $"`!start` to start the game.";
+
+
+            var builder = new EmbedBuilder()
+                            .WithTitle("New game created")
+                            .AddField("Commands", commands, inline: false);
+            var embed = builder.Build();
+            await Context.Channel.SendMessageAsync(embed: embed).ConfigureAwait(false);
+
+
+            var game = GetGame(SETUP);
+            AddUsers(game, Context.Message);
+            try
+            {
+
+                SetOptions(stringArray);
+            }
+            catch (Exception e)
+            {
+                var a = "monkey";
+            }
+
+            await Status();
+        }
+
+        [Command("log")]
+        public async Task Log(params string[] stringArray)
+        {
+            await Notes(stringArray);
+        }
+
+        [Command("note")]
+        public async Task Note(params string[] stringArray)
+        {
+            await Notes(stringArray);
+        }
+        [Command("notes")]
+        public async Task Notes(params string[] stringArray)
+        {
+            if (_botType != "perudo") return;
+            var game = GetGame(IN_PROGRESS);
+
+            if (game == null)
+            {
+                var now = DateTime.Now.AddMinutes(-5);
+                game = _db.Games.AsQueryable()
+                    .Where(x => x.ChannelId == Context.Channel.Id)
+                    .Where(x => x.State == FINISHED)
+                    .Where(x => x.DateFinished > now)
+                    .OrderByDescending(x => x.Id)
+                    
+                    .First();
+            }
+
+            _db.Notes.Add(new Note
+            {
+                Game = game,
+                Username = Context.User.Username,
+                Text = string.Join(" ", stringArray)
+            });
+
+            _db.SaveChanges();
+
+            await SendMessage("Noted");
+        }
+
         [Command("new")]
         public async Task NewGame(params string[] stringArray)
         {
@@ -182,14 +320,15 @@ namespace GameBot.Modules
                 .Where(x => x.Game.IsRanked)
                 .Where(x => x.Game.GuildId == guildId)
                 .Where(x => x.Game.State == FINISHED)
-                .Include(x => x.Game)
+                .Include(x => x.Game.Notes)
                 .OrderBy(x => x.Game.DateCreated)
                 .ToList();
 
             var players = players1
                 .GroupBy(x => x.Game);
 
-            var monkey = players.Select(x => $"{x.Key.DateCreated:yyyy-MM-dd} - {string.Join(", ", x.Select(x => x.Username))} - :trophy: {x.Key.Winner} :trophy:");
+            var monkey = players.Select(x => $"{x.Key.DateCreated:yyyy-MM-dd} - {string.Join(", ", x.Select(x => x.Username))} - :trophy: {x.Key.Winner} :trophy:\n" +
+            $"{string.Join("", x.Key.Notes.Select(x => $"{x.Username}: {x.Text}\n"))}");
 
             var builder = new EmbedBuilder()
                                 .WithTitle("Leaderboard")
@@ -641,6 +780,7 @@ namespace GameBot.Modules
                 await SendMessage($":trophy: {GetUser(activePlayers.Single().Username).Mention} is the winner with `{activePlayers.Single().NumberOfDice}` dice remaining! :trophy:");
 
                 game.State = FINISHED;
+                game.DateFinished = DateTime.Now;
                 game.Winner = activePlayers.Single().Username;
                 _db.SaveChanges();
                 return;
@@ -699,6 +839,12 @@ namespace GameBot.Modules
             _db.SaveChanges();
             game.RoundStartPlayerId = GetCurrentPlayer(game).Id;
             _db.SaveChanges();
+
+            if (activePlayers.Sum(x => x.NumberOfDice) == 2 && game.FaceoffEnabled)
+            {
+                await SendMessage("!gif faceoff");
+                await SendMessage($":face_with_monocle: Faceoff Round :face_with_monocle: {GetUser(GetCurrentPlayer(game).Username).Mention} goes first.");
+            }
 
             if (game.NextRoundIsPalifico)
             {
@@ -801,6 +947,13 @@ namespace GameBot.Modules
             }
 
             var biddingPlayer = GetPlayers(game).Where(x => x.NumberOfDice > 0).Single(x => x.Username == Context.User.Username);
+
+            var numberOfDiceLeft = GetPlayers(game).Sum(x => x.NumberOfDice);
+            if (game.FaceoffEnabled && numberOfDiceLeft == 2)
+            {
+                await HandleFaceoffBid(bidText, game, biddingPlayer);
+                return;
+            }
 
             await HandlePipBid(bidText, game, biddingPlayer);
         }
@@ -988,6 +1141,37 @@ namespace GameBot.Modules
             await RollDice(game);
         }
 
+        private async Task HandleFaceoffBid(string[] bidText, Data.Game game, Player biddingPlayer)
+        {
+            int quantity = 0;
+            try
+            {
+                quantity = int.Parse(bidText[0]);
+            }
+            catch
+            {
+                return;
+            }
+
+            if (quantity < 2 || quantity > 12) return;
+
+
+            var bid = new Bid
+            {
+                Call = "",
+                Pips = 1,
+                Quantity = quantity,
+                PlayerId = biddingPlayer.Id,
+                GameId = game.Id
+            };
+
+            if (await VerifyBid(bid) == false) return;
+            /// MONKEY... working here.
+            /// TODO: Add Exact bid too
+            /// TODO: Add Liar bid too
+        }
+
+
         private async Task HandlePipBid(string[] bidText, Data.Game game, Player biddingPlayer)
         {
 
@@ -1012,7 +1196,7 @@ namespace GameBot.Modules
                 Call = "",
                 Pips = pips,
                 Quantity = quantity,
-                PlayerId = biddingPlayer.Id,
+                Player = biddingPlayer,
                 GameId = game.Id
             };
 

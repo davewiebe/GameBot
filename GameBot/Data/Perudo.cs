@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace GameBot.Data
@@ -26,7 +27,21 @@ namespace GameBot.Data
         public DateTime DateCreated { get; internal set; }
         public ulong GuildId { get; internal set; }
         public string Winner { get; internal set; }
+        public bool FaceoffEnabled { get; internal set; }
+
+        public virtual List<Note> Notes { get; set; }
+        public DateTime DateFinished { get; internal set; }
     }
+
+    public class Note
+    {
+        public int Id { get; set; }
+        public int GameId { get; set; }
+        public virtual Game Game { get; set; }
+        public string Text { get; set; }
+        public string Username { get; internal set; }
+    }
+
     public class Player
     {
         public int Id { get; set; }

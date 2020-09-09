@@ -4,14 +4,16 @@ using GameBot.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace GameBot.Migrations
 {
     [DbContext(typeof(GameBotDbContext))]
-    partial class GameBotDbContextModelSnapshot : ModelSnapshot
+    [Migration("20200909053215_faceoff")]
+    partial class faceoff
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -101,9 +103,6 @@ namespace GameBot.Migrations
                         .HasColumnType("decimal(20,0)");
 
                     b.Property<DateTime>("DateCreated")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("DateFinished")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("ExactCallBonus")
@@ -198,29 +197,6 @@ namespace GameBot.Migrations
                     b.ToTable("KeyPhrase");
                 });
 
-            modelBuilder.Entity("GameBot.Data.Note", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<int>("GameId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Text")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Username")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("GameId");
-
-                    b.ToTable("Notes");
-                });
-
             modelBuilder.Entity("GameBot.Data.Phrase", b =>
                 {
                     b.Property<int>("Id")
@@ -296,15 +272,6 @@ namespace GameBot.Migrations
                     b.HasOne("GameBot.Data.Player", "Player")
                         .WithMany()
                         .HasForeignKey("PlayerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("GameBot.Data.Note", b =>
-                {
-                    b.HasOne("GameBot.Data.Game", "Game")
-                        .WithMany("Notes")
-                        .HasForeignKey("GameId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
