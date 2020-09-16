@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
@@ -27,7 +28,38 @@ namespace GameBot.Modules
             throw new Exception("Test error. Do not panic!");
         }
 
-        [Command("same")]
+        [Command("deathrattle")]
+        public async Task Deathrattle(params string[] stringArray)
+        {
+            var username = Context.Message.Author.Username;
+            try
+            {
+
+                _ = Context.Message.DeleteAsync();
+            }
+            catch { }
+
+            // get current deathrattle
+            var currentDr = _db.Deathrattles.SingleOrDefault(x => x.Username == username);
+
+            if (currentDr == null)
+            {
+                _db.Deathrattles.Add(new Deathrattle
+                {
+                    Username = username,
+                    Gif = string.Join(" ", stringArray)
+                });
+                _db.SaveChanges();
+                await SendMessage("Deathrattle updated.");
+            } else
+            {
+                currentDr.Gif = string.Join(" ", stringArray);
+                _db.SaveChanges();
+                await SendMessage("Deathrattle saved.");
+            }
+
+        }
+            [Command("same")]
         public async Task Same(params string[] stringArray)
         {
             await Redo(stringArray);
@@ -90,7 +122,8 @@ namespace GameBot.Modules
                 CanBidAnytime = lastGame.CanBidAnytime,
                 Palifico = lastGame.Palifico,
                 IsRanked = lastGame.IsRanked,
-                GuildId = Context.Guild.Id
+                GuildId = Context.Guild.Id,
+                FaceoffEnabled = lastGame.FaceoffEnabled
             });
             _db.SaveChanges();
 
@@ -197,7 +230,8 @@ namespace GameBot.Modules
                 CanBidAnytime = false,
                 Palifico = true,
                 IsRanked = true,
-                GuildId = Context.Guild.Id
+                GuildId = Context.Guild.Id,
+                FaceoffEnabled = true
             });
             _db.SaveChanges();
 
@@ -247,6 +281,7 @@ namespace GameBot.Modules
             if (game.RandomizeBetweenRounds) options.Add("Player order will be **randomized** between rounds");
             if (game.WildsEnabled) options.Add("Players can bid on **wild** dice.");
             if (game.Palifico) options.Add("Reaching one die triggers a **Palifico** round.");
+            if (game.FaceoffEnabled) options.Add("Reaching 2 dice total triggers **Faceoff** round.");
             if (game.ExactCallBonus > 0 || game.ExactCallPenalty > 0) options.Add($"Correct **exact** calls win `{game.ExactCallBonus}` dice and everyone else loses `{game.ExactCallPenalty}` dice (3+ players).");
             if (game.CanCallLiarAnytime) options.Add("Players can call **liar** out of turn.");
             if (game.CanCallExactAnytime) options.Add("Players can call **exact** out of turn.");
@@ -311,6 +346,18 @@ namespace GameBot.Modules
             { RetryMode = RetryMode.RetryRatelimit };
             await base.ReplyAsync(message, options: requestOptions);
         }
+        private async Task SendTempMessage(string message)
+        {
+            var requestOptions = new RequestOptions()
+            { RetryMode = RetryMode.RetryRatelimit };
+            var sentMessage = await base.ReplyAsync(message, options: requestOptions);
+            try
+            {
+                _ = sentMessage.DeleteAsync();
+            }
+            catch
+            { }
+        }
 
         [Command("scoreboard")]
         public async Task Scoreboard(params string[] stringArray)
@@ -327,9 +374,39 @@ namespace GameBot.Modules
             var players = players1
                 .GroupBy(x => x.Game);
 
-            var monkey = players.Select(x => $"{x.Key.DateCreated:yyyy-MM-dd} - {string.Join(", ", x.Select(x => x.Username))} - :trophy: {x.Key.Winner} :trophy:\n" +
-            $"{string.Join("", x.Key.Notes.Select(x => $"{x.Username}: {x.Text}\n"))}");
+            var i = -1;
+            if (stringArray.Length == 1)
+            {
+                i = int.Parse(stringArray[0]);
+            }
 
+            var monk = new List<string>();
+            var index = 1;
+            foreach (var item in players)
+            {
+                if (i > -1)
+                {
+                    if (index != i)
+                    {
+                        index += 1;
+                        continue;
+                    }
+                }
+                var nonWinnerList = string.Join(", ", item.Where(x => x.Username != item.Key.Winner).Select(x => GetUserNickname(x.Username)));
+                monk.Add($"{index}: *{item.Key.DateCreated:yyyy-MM-dd}*  :trophy:**{GetUserNickname(item.Key.Winner)}**, {nonWinnerList}");
+                index += 1;
+
+                if (i > -1)
+                {
+                    monk.AddRange(item.Key.Notes.Select(x => $"**{GetUserNickname(x.Username)}**: {x.Text}"));
+                } 
+            }
+
+            var monkey = string.Join("\n", monk);
+            if (i == -1)
+            {
+                monk.Add("\nType `!leaderboard 1` to get notes on a specific game");
+            }
             var builder = new EmbedBuilder()
                                 .WithTitle("Leaderboard")
                                 .AddField("Games", string.Join("\n", monkey), inline: false);
@@ -385,7 +462,10 @@ namespace GameBot.Modules
                 $"`!option exact x y` a correct exact bid wins the caller `x` dice and/or causes other players to lose `y` dice\n" +
                 $"`!option exactanytime/noexactanytime` to change allowing **exact** calls at any time\n" +
                 $"`!option liaranytime/noliaranytime` to change allowing **liar** calls at any time\n" +
-                $"`!option bidanytime/nobidanytime` to change allowing **bids** at any time";
+                $"`!option bidanytime/nobidanytime` to change allowing **bids** at any time\n" +
+                $"`!option palifico/nopalifico` to toggle **Palifico** rounds\n" +
+                $"`!option faceoff/nofaceoff` to toggle **Faceoff** rounds\n" +
+                $"`!option ranked/unranked` to change if a game is ranked";
 
                 var modes =
                 $"`simple` Simple rules. Good for bots\n" +
@@ -422,7 +502,7 @@ namespace GameBot.Modules
             allText = allText.Replace("simple", "nowild dice 5 penalty 1 noexactanytime noliaranytime nobidanytime exact 0 0 ordered nopalifico ranked");
             if (allText.Contains("suddendeath"))
             {
-                allText = allText.Replace("suddendeath", "") + " penalty 100";
+                allText = allText.Replace("suddendeath", "") + "nopalifico nofaceoff penalty 100";
             }
             allText = allText.Replace("chaos", "exactanytime liaranytime bidanytime");
             allText = allText.Replace("standard", "wild dice 5 penalty 1 noexactanytime noliaranytime nobidanytime exact 0 0 ordered palifico ranked");
@@ -522,6 +602,24 @@ namespace GameBot.Modules
 
                 SetOptions(stringArray.Skip(1).ToArray());
             }
+            else if (stringArray[0] == "faceoff")
+            {
+                var game = GetGame(SETUP);
+
+                game.FaceoffEnabled = true;
+                _db.SaveChanges();
+
+                SetOptions(stringArray.Skip(1).ToArray());
+            }
+            else if (stringArray[0] == "nofaceoff")
+            {
+                var game = GetGame(SETUP);
+
+                game.FaceoffEnabled = false;
+                _db.SaveChanges();
+
+                SetOptions(stringArray.Skip(1).ToArray());
+            }
             else if (stringArray[0] == "nowild" || stringArray[0] == "nowilds")
             {
                 var game = GetGame(SETUP);
@@ -612,6 +710,7 @@ namespace GameBot.Modules
                     _db.SaveChanges();
                 }
 
+
                 SetOptions(stringArray.Skip(3).ToArray());
             }
             else
@@ -639,33 +738,38 @@ namespace GameBot.Modules
 
         private void AddUsers(Data.Game game, SocketUserMessage message)
         {
+            if (message.MentionedUsers.Count == 0)
+            {
+                AddUserToGame(game, message.Author.Username);
+            }
             foreach (var userToAdd in message.MentionedUsers)
             {
-                // add check for adding same player twice.
-                bool userAlreadyExistsInGame = UserAlreadyExistsInGame(userToAdd, game);
-                if (userAlreadyExistsInGame)
-                {
-                    //await SendMessage($"{GetUserNickname(userToAdd.Username)} is already in the game.");
-                    continue;
-                }
-
-                _db.Players.Add(new Player
-                {
-                    GameId = game.Id,
-                    Username = userToAdd.Username,
-                    IsBot = userToAdd.IsBot
-                });
-
-                _db.SaveChanges();
-
-                //await SendMessage($"{GetUserNickname(userToAdd.Username)} added to game.");
+                AddUserToGame(game, userToAdd.Username);
             }
         }
 
-        private bool UserAlreadyExistsInGame(SocketUser userToAdd, Data.Game game)
+        private void AddUserToGame(Data.Game game, string username)
+        {
+            bool userAlreadyExistsInGame = UserAlreadyExistsInGame(username, game);
+            if (userAlreadyExistsInGame)
+            {
+                return;
+            }
+
+            _db.Players.Add(new Player
+            {
+                GameId = game.Id,
+                Username = username,
+                IsBot = GetUser(username).IsBot
+            });
+
+            _db.SaveChanges();
+        }
+
+        private bool UserAlreadyExistsInGame(string username, Data.Game game)
         {
             var players = GetPlayers(game);
-            bool userAlreadyExistsInGame = players.FirstOrDefault(x => x.Username == userToAdd.Username) != null;
+            bool userAlreadyExistsInGame = players.FirstOrDefault(x => x.Username == username) != null;
             return userAlreadyExistsInGame;
         }
 
@@ -818,7 +922,9 @@ namespace GameBot.Modules
                 {
                     try
                     {
-                        await user.SendMessageAsync(message);
+                        var requestOptions = new RequestOptions()
+                        { RetryMode = RetryMode.RetryRatelimit };
+                        await user.SendMessageAsync(message, options: requestOptions);
                     }
                     catch (Exception e)
                     {
@@ -842,11 +948,11 @@ namespace GameBot.Modules
 
             if (activePlayers.Sum(x => x.NumberOfDice) == 2 && game.FaceoffEnabled)
             {
-                await SendMessage("!gif faceoff");
-                await SendMessage($":face_with_monocle: Faceoff Round :face_with_monocle: {GetUser(GetCurrentPlayer(game).Username).Mention} goes first.");
+                await SendTempMessage("!gif fight");
+                await SendMessage($":face_with_monocle: Faceoff Round :face_with_monocle: {GetUser(GetCurrentPlayer(game).Username).Mention} goes first. Bid on total pips only (eg. `!bid 4`)");
             }
 
-            if (game.NextRoundIsPalifico)
+            else if (game.NextRoundIsPalifico)
             {
                 await SendMessage($":game_die: Palifico Round :game_die: {GetUser(GetCurrentPlayer(game).Username).Mention} goes first.");
             } 
@@ -966,6 +1072,7 @@ namespace GameBot.Modules
 
             var game = GetGame(IN_PROGRESS);
 
+            var originalBiddingPlayer = GetCurrentPlayer(game);
             if (game.CanCallExactAnytime)
             {
                 var player = _db.Players.AsQueryable().Where(x => x.GameId == game.Id).OrderBy(x => x.TurnOrder)
@@ -1008,7 +1115,14 @@ namespace GameBot.Modules
             {
             }
 
-            await SendMessage($"{GetUserNickname(biddingPlayer.Username)} called **exact** on `{previousBid.Quantity}` ˣ {previousBid.Pips.GetEmoji()}.");
+            var bidObject = previousBid.Pips.GetEmoji();
+            var bidName = "dice";
+            if (game.FaceoffEnabled && GetPlayers(game).Sum(x => x.NumberOfDice) == 2)
+            {
+                bidObject = ":record_button:";
+                bidName = "pips";
+            }
+            await SendMessage($"{GetUserNickname(biddingPlayer.Username)} called **exact** on `{previousBid.Quantity}` ˣ {bidObject}.");
 
             Thread.Sleep(4000);
 
@@ -1019,14 +1133,15 @@ namespace GameBot.Modules
                 await SendMessage($":zany_face: The madman did it! It was exact! :zany_face:");
 
                 var numPlayersLeft = GetPlayers(game).Where(x => x.NumberOfDice > 0).Count();
-                if (game.ExactCallBonus > 0 && numPlayersLeft >= 3)
+                if (game.ExactCallBonus > 0 && numPlayersLeft >= 3 && !game.NextRoundIsPalifico && originalBiddingPlayer.Id != biddingPlayer.Id)
                 {
                     biddingPlayer.NumberOfDice += game.ExactCallBonus;
+                    if (biddingPlayer.NumberOfDice > game.NumberOfDice) biddingPlayer.NumberOfDice = game.NumberOfDice;
                     _db.SaveChanges();
                     await SendMessage($"\n:crossed_swords: As a bonus, they gain `{game.ExactCallBonus}` dice :crossed_swords:");
                 }
 
-                if (game.ExactCallPenalty > 0 && numPlayersLeft >= 3)
+                if (game.ExactCallPenalty > 0 && numPlayersLeft >= 3 && !game.NextRoundIsPalifico && originalBiddingPlayer.Id != biddingPlayer.Id)
                 {
                     await SendMessage($":crossed_swords: As a bonus, everyone else loses `{game.ExactCallPenalty}` dice :crossed_swords:");
 
@@ -1048,7 +1163,7 @@ namespace GameBot.Modules
                 var penalty = Math.Abs(countOfPips - previousBid.Quantity);
                 if (game.Penalty != 0) penalty = game.Penalty;
 
-                await SendMessage($"There was actually `{countOfPips}` dice. :fire: {GetUser(biddingPlayer.Username).Mention} loses {penalty} dice. :fire:");
+                await SendMessage($"There was actually `{countOfPips}` {bidName}. :fire: {GetUser(biddingPlayer.Username).Mention} loses {penalty} dice. :fire:");
                 await SendRoundSummaryForBots(game);
                 await GetRoundSummary(game);
                 await DecrementDieFromPlayerAndSetThierTurnAsync(game, biddingPlayer, penalty);
@@ -1061,6 +1176,13 @@ namespace GameBot.Modules
         private void SetTurnPlayerToRoundStartPlayer(Data.Game game)
         {
             game.PlayerTurnId = game.RoundStartPlayerId;
+
+            var thatUser = GetPlayers(game).Single(x => x.Id == game.PlayerTurnId);
+            if (thatUser.NumberOfDice == 0)
+            {
+                SetNextPlayer(game, thatUser);
+            }
+
             _db.SaveChanges();
         }
 
@@ -1091,7 +1213,6 @@ namespace GameBot.Modules
             var previousBid = GetMostRecentBid(game);
             if (previousBid == null) return;
             if (previousBid.Quantity == 0) return;
-            int countOfPips = GetNumberOfDiceMatchingBid(game, previousBid.Pips);
 
             _db.Bids.Add(new Bid
             {
@@ -1108,17 +1229,25 @@ namespace GameBot.Modules
             catch
             {
             }
-
-            await SendMessage($"{GetUserNickname(biddingPlayer.Username)} called **liar** on `{previousBid.Quantity}` ˣ {previousBid.Pips.GetEmoji()}.");
+            
+            var biddingObject = previousBid.Pips.GetEmoji();
+            var biddingName = "dice";
+            if (GetPlayers(game).Sum(x => x.NumberOfDice) == 2 && game.FaceoffEnabled)
+            {
+                biddingObject = ":record_button:";
+                biddingName = "pips";
+            }
+            await SendMessage($"{GetUserNickname(biddingPlayer.Username)} called **liar** on `{previousBid.Quantity}` ˣ {biddingObject}.");
 
             Thread.Sleep(4000);
 
+            int countOfPips = GetNumberOfDiceMatchingBid(game, previousBid.Pips);
             if (countOfPips >= previousBid.Quantity)
             {
                 var penalty = (countOfPips - previousBid.Quantity) + 1;
                 if (game.Penalty != 0) penalty = game.Penalty;
 
-                await SendMessage($"There was actually `{countOfPips}` dice. :fire: {GetUser(biddingPlayer.Username).Mention} loses {penalty} dice. :fire:");
+                await SendMessage($"There was actually `{countOfPips}` {biddingName}. :fire: {GetUser(biddingPlayer.Username).Mention} loses {penalty} dice. :fire:");
 
                 await SendRoundSummaryForBots(game);
                 await GetRoundSummary(game);
@@ -1129,7 +1258,7 @@ namespace GameBot.Modules
                 var penalty = previousBid.Quantity - countOfPips;
                 if (game.Penalty != 0) penalty = game.Penalty;
 
-                await SendMessage($"There was actually `{countOfPips}` dice. :fire: {GetUser(previousBid.Player.Username).Mention} loses {penalty} dice. :fire:");
+                await SendMessage($"There was actually `{countOfPips}` {biddingName}. :fire: {GetUser(previousBid.Player.Username).Mention} loses {penalty} dice. :fire:");
 
 
                 await SendRoundSummaryForBots(game);
@@ -1159,7 +1288,7 @@ namespace GameBot.Modules
             var bid = new Bid
             {
                 Call = "",
-                Pips = 1,
+                Pips = 0,
                 Quantity = quantity,
                 PlayerId = biddingPlayer.Id,
                 GameId = game.Id
@@ -1169,6 +1298,27 @@ namespace GameBot.Modules
             /// MONKEY... working here.
             /// TODO: Add Exact bid too
             /// TODO: Add Liar bid too
+            /// 
+            _db.Bids.Add(bid);
+            _db.SaveChanges();
+
+            SetNextPlayer(game, biddingPlayer);
+
+            var nextPlayer = GetCurrentPlayer(game);
+
+            try
+            {
+                _ = Context.Message.DeleteAsync();
+            }
+            catch
+            {
+            }
+            var bidderNickname = GetUserNickname(biddingPlayer.Username);
+            var nextPlayerMention = GetUser(nextPlayer.Username).Mention;
+
+            var userMessage = $"{ bidderNickname } bids `{ quantity}` ˣ :record_button:. { nextPlayerMention } is up.";
+
+            await SendMessage(userMessage);
         }
 
 
@@ -1330,6 +1480,11 @@ namespace GameBot.Modules
             if (player.NumberOfDice <= 0)
             {
                 await SendMessage($":fire::skull::fire: {GetUserNickname(player.Username)} defeated :fire::skull::fire:");
+                var deathrattle = _db.Deathrattles.SingleOrDefault(x => x.Username == player.Username);
+                if (deathrattle != null)
+                {
+                    await SendMessage(deathrattle.Gif);
+                }
             }
 
             var game = GetGame(IN_PROGRESS);
@@ -1360,6 +1515,11 @@ namespace GameBot.Modules
             if (player.NumberOfDice <= 0)
             {
                 await SendMessage($":fire::skull::fire: {GetUserNickname(player.Username)} defeated :fire::skull::fire:");
+                var deathrattle = _db.Deathrattles.SingleOrDefault(x => x.Username == player.Username);
+                if (deathrattle != null)
+                {
+                    await SendMessage(deathrattle.Gif);
+                }
                 SetNextPlayer(game, player);
             }
             else
@@ -1372,6 +1532,12 @@ namespace GameBot.Modules
         private int GetNumberOfDiceMatchingBid(Data.Game game, int pips)
         {
             var players = GetPlayers(game).Where(x => x.NumberOfDice > 0).ToList();
+
+            if (game.FaceoffEnabled && players.Sum(x => x.NumberOfDice) == 2)
+            {
+                var allDice2 = players.SelectMany(x => x.Dice.Split(",").Select(x => int.Parse(x)));
+                return allDice2.Sum();
+            }
 
             var allDice = players.SelectMany(x => x.Dice.Split(",").Select(x => int.Parse(x)));
 
@@ -1417,6 +1583,27 @@ namespace GameBot.Modules
         {
             var game = GetGame(IN_PROGRESS);
             Bid mostRecentBid = GetMostRecentBid(game);
+
+            var players = GetPlayers(game);
+
+            if (game.FaceoffEnabled && players.Sum(x => x.NumberOfDice) == 2)
+            {
+                if (mostRecentBid == null) return true;
+                if (bid.Quantity < mostRecentBid.Quantity)
+                {
+                    await SendMessage("Bid has to be higher.");
+                    return false;
+                }
+                return true;
+            }
+
+
+            if (bid.Quantity > players.Sum(x => x.NumberOfDice))
+            {
+                await SendMessage($"Really? {bid.Quantity} dice?");
+                await SendMessage($"I'm gonna let you think this one through a little bit first.");
+                return false;
+            }
 
             if (game.NextRoundIsPalifico)
             {

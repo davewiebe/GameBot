@@ -25,6 +25,7 @@ namespace GameBot.Data
         public DbSet<KeyPhrase> KeyPhrase { get; set; }
         public DbSet<DeepThought> DeepThoughts { get; set; }
         public DbSet<Game> Games { get; set; }
+        public DbSet<Deathrattle> Deathrattles { get; set; }
         public DbSet<Note> Notes { get; set; }
         public DbSet<Player> Players { get; set; }
         public DbSet<Bid> Bids { get; set; }

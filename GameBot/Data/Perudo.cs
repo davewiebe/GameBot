@@ -62,6 +62,13 @@ namespace GameBot.Data
         public string BotAesKey { get; set; }
     }
 
+    public class Deathrattle
+    {
+        public int Id { get; set; }
+        public string Username { get; set; }
+        public string Gif { get; set; }
+    }
+
     public class Bid
     {
         public int Id { get; set; }
