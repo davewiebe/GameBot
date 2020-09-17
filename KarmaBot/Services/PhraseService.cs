@@ -1,10 +1,10 @@
-﻿using GameBot.Data;
+﻿using PerudoBot.Data;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace GameBot.Services
+namespace PerudoBot.Services
 {
     public class PhraseService
     {

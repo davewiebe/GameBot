@@ -8,7 +8,7 @@ using System.Data.Common;
 using System.IO;
 using System.Text;
 
-namespace GameBot.Data
+namespace PerudoBot.Data
 {
     public class GameBotDbContext : DbContext
     {
@@ -19,13 +19,8 @@ namespace GameBot.Data
         public GameBotDbContext(DbContextOptions<GameBotDbContext> options) : base(options)
         { }
 
-        public DbSet<Score> Scores { get; set; }
-        public DbSet<Karma> Karma { get; set; }
-        public DbSet<Phrase> Phrase { get; set; }
-        public DbSet<KeyPhrase> KeyPhrase { get; set; }
-        public DbSet<DeepThought> DeepThoughts { get; set; }
         public DbSet<Game> Games { get; set; }
-        public DbSet<Deathrattle> Deathrattles { get; set; }
+        public DbSet<Rattle> Rattles { get; set; }
         public DbSet<Note> Notes { get; set; }
         public DbSet<Player> Players { get; set; }
         public DbSet<Bid> Bids { get; set; }
@@ -41,7 +36,7 @@ namespace GameBot.Data
                     .Build();
 
                 var connectionString = configuration.GetConnectionString("GameBotDb");
-                optionsBuilder.UseNpgsql(connectionString);
+                optionsBuilder.UseSqlServer(connectionString);
             }
         }
     }

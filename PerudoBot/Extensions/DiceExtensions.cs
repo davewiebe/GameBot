@@ -1,10 +1,4 @@
-﻿using Discord.Commands;
-using Discord.WebSocket;
-using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace GameBot.Services
+﻿namespace PerudoBot.Extensions
 {
     public static class DiceExtensions
     {

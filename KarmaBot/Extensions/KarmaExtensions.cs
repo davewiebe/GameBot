@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace GameBot.Services
+namespace PerudoBot.Services
 {
     public static class KarmaExtensions
     {

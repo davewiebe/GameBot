@@ -7,7 +7,7 @@ using Discord;
 using Discord.Audio;
 using NAudio.Wave;
 
-namespace GameBot.Services
+namespace PerudoBot.Services
 {
     public class AudioService
     {

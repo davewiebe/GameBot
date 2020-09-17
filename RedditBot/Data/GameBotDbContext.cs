@@ -4,7 +4,7 @@ using Microsoft.Extensions.Configuration;
 using System.IO;
 using System.Text;
 
-namespace GameBot.Data
+namespace PerudoBot.Data
 {
     public class GameBotDbContext : DbContext
     {

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace GameBot.Data
+namespace PerudoBot.Data
 {
     public class Score
     {

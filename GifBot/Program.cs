@@ -11,7 +11,7 @@ using Microsoft.Extensions.Configuration;
 using Serilog;
 using Microsoft.Extensions.Logging;
 
-namespace GameBot
+namespace PerudoBot
 {
     partial class Program
     {

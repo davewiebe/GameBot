@@ -1,9 +1,9 @@
 ﻿using Discord.Commands;
-using GameBot.Data;
+using PerudoBot.Data;
 using Microsoft.Extensions.Configuration;
 using System.IO;
 
-namespace GameBot.Modules
+namespace PerudoBot.Modules
 {
     public partial class Commands : ModuleBase<SocketCommandContext>
     {

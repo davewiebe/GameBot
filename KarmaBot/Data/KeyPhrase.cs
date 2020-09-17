@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace GameBot.Data
+namespace PerudoBot.Data
 {
     public class KeyPhrase
     {

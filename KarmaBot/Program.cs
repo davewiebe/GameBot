@@ -8,14 +8,14 @@ using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
-using GameBot.Data;
+using PerudoBot.Data;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
-using GameBot.Services;
+using PerudoBot.Services;
 using Serilog;
 using Microsoft.Extensions.Logging;
 
-namespace GameBot
+namespace PerudoBot
 {
     partial class Program
     {

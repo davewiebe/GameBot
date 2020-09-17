@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace GameBot.Enums
+namespace PerudoBot.Enums
 {
     public static class KeyPhrases
     {

@@ -1,9 +1,9 @@
 ﻿using Discord.Commands;
-using GameBot.Data;
+using PerudoBot.Data;
 using System;
 using System.Linq;
 
-namespace GameBot.Services
+namespace PerudoBot.Services
 {
     public class KarmaService
     {

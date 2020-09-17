@@ -1,13 +1,13 @@
 ﻿using Discord.Commands;
-using GameBot.Data;
-using GameBot.Services;
+using PerudoBot.Data;
+using PerudoBot.Services;
 using Microsoft.Extensions.Configuration;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace GameBot.Modules
+namespace PerudoBot.Modules
 {
     public partial class Commands : ModuleBase<SocketCommandContext>
     {

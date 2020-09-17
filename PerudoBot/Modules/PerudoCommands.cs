@@ -1,19 +1,17 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using GameBot.Data;
-using GameBot.Services;
+using PerudoBot.Data;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
+using PerudoBot.Extensions;
 
-namespace GameBot.Modules
+namespace PerudoBot.Modules
 {
     public partial class Commands : ModuleBase<SocketCommandContext>
     {
@@ -40,20 +38,20 @@ namespace GameBot.Modules
             catch { }
 
             // get current deathrattle
-            var currentDr = _db.Deathrattles.SingleOrDefault(x => x.Username == username);
+            var currentDr = _db.Rattles.SingleOrDefault(x => x.Username == username);
 
             if (currentDr == null)
             {
-                _db.Deathrattles.Add(new Deathrattle
+                _db.Rattles.Add(new Rattle
                 {
                     Username = username,
-                    Gif = string.Join(" ", stringArray)
+                    Deathrattle = string.Join(" ", stringArray)
                 });
                 _db.SaveChanges();
                 await SendMessage("Deathrattle updated.");
             } else
             {
-                currentDr.Gif = string.Join(" ", stringArray);
+                currentDr.Deathrattle = string.Join(" ", stringArray);
                 _db.SaveChanges();
                 await SendMessage("Deathrattle saved.");
             }
@@ -86,8 +84,6 @@ namespace GameBot.Modules
         [Command("redo")]
         public async Task Redo(params string[] stringArray)
         {
-            if (_botType != "perudo") return;
-
             if (_db.Games
                 .AsQueryable()
                 .Where(x => x.ChannelId == Context.Channel.Id)
@@ -171,7 +167,6 @@ namespace GameBot.Modules
         [Command("notes")]
         public async Task Notes(params string[] stringArray)
         {
-            if (_botType != "perudo") return;
             var game = GetGame(IN_PROGRESS);
 
             if (game == null)
@@ -185,12 +180,19 @@ namespace GameBot.Modules
                     
                     .First();
             }
+            var text = string.Join(" ", stringArray)
+                .StripSpecialCharacters();
 
+            if (text.Length > 256)
+            {
+                await SendMessage("Note is too long.");
+                return;
+            }
             _db.Notes.Add(new Note
             {
                 Game = game,
                 Username = Context.User.Username,
-                Text = string.Join(" ", stringArray)
+                Text = text
             });
 
             _db.SaveChanges();
@@ -201,8 +203,6 @@ namespace GameBot.Modules
         [Command("new")]
         public async Task NewGame(params string[] stringArray)
         {
-            if (_botType != "perudo") return;
-
             if (_db.Games
                 .AsQueryable()
                 .Where(x => x.ChannelId == Context.Channel.Id)
@@ -374,7 +374,9 @@ namespace GameBot.Modules
                 .ToList();
 
             var players = players1
-                .GroupBy(x => x.Game);
+                .GroupBy(x => x.Game)
+                .Where(x => x.Count() > 1);
+
 
             var i = -1;
             if (stringArray.Length == 1)
@@ -395,7 +397,7 @@ namespace GameBot.Modules
                     }
                 }
                 var nonWinnerList = string.Join(", ", item.Where(x => x.Username != item.Key.Winner).Select(x => GetUserNickname(x.Username)));
-                monk.Add($"{index}: *{item.Key.DateCreated:yyyy-MM-dd}*  :trophy:**{GetUserNickname(item.Key.Winner)}**, {nonWinnerList}");
+                monk.Add($"`{index.ToString("D2")}. {item.Key.DateCreated:yyyy-MM-dd}` :trophy: **{GetUserNickname(item.Key.Winner)}**, {nonWinnerList}");
                 index += 1;
 
                 if (i > -1)
@@ -404,7 +406,12 @@ namespace GameBot.Modules
                 } 
             }
 
-            var monkey = string.Join("\n", monk);
+            if (i == -1)
+            {
+                monk = monk.OrderByDescending(x => x).ToList();
+            }
+
+            var monkey = string.Join("\n", monk.Take(10));
             if (i == -1)
             {
                 monk.Add("\nType `!leaderboard 1` to get notes on a specific game");
@@ -451,8 +458,6 @@ namespace GameBot.Modules
         [Command("option")]
         public async Task Option(params string[] stringArray)
         {
-            if (_botType != "perudo") return;
-
             if (stringArray.Length == 0)
             {
                 var options =
@@ -725,8 +730,6 @@ namespace GameBot.Modules
         [Command("add")]
         public async Task AddUserToGame(params string[] stringArray)
         {
-            if (_botType != "perudo") return;
-
             var game = GetGame(SETUP);
             if (game == null)
             {
@@ -779,8 +782,6 @@ namespace GameBot.Modules
         [Command("remove")]
         public async Task RemoveUserFromGame(string user)
         {
-            if (_botType != "perudo") return;
-
             var userToAdd = Context.Message.MentionedUsers.First();
 
             var game = GetGame(SETUP);
@@ -801,7 +802,6 @@ namespace GameBot.Modules
 
         private async Task<bool> ValidateState(int stateId)
         {
-            if (_botType != "perudo") return false;
             var game = GetGame(stateId);
 
             if (game == null)
@@ -1016,14 +1016,13 @@ namespace GameBot.Modules
         {
             var nickname = GetUser(username).Nickname;
             if (string.IsNullOrEmpty(nickname)) return username;
-            return nickname;
+            if (nickname.StripSpecialCharacters().Trim() == "") return "NULL";
+            return nickname.StripSpecialCharacters();
         }
 
         [Command("terminate")]
         public async Task Terminate(params string[] bidText)
         {
-            if (_botType != "perudo") return;
-
             var game = GetGame(IN_PROGRESS);
             if (game != null) game.State = TERMINATED;
 
@@ -1484,10 +1483,10 @@ namespace GameBot.Modules
             if (player.NumberOfDice <= 0)
             {
                 await SendMessage($":fire::skull::fire: {GetUserNickname(player.Username)} defeated :fire::skull::fire:");
-                var deathrattle = _db.Deathrattles.SingleOrDefault(x => x.Username == player.Username);
+                var deathrattle = _db.Rattles.SingleOrDefault(x => x.Username == player.Username);
                 if (deathrattle != null)
                 {
-                    await SendMessage(deathrattle.Gif);
+                    await SendMessage(deathrattle.Deathrattle);
                 }
             }
 
@@ -1519,10 +1518,10 @@ namespace GameBot.Modules
             if (player.NumberOfDice <= 0)
             {
                 await SendMessage($":fire::skull::fire: {GetUserNickname(player.Username)} defeated :fire::skull::fire:");
-                var deathrattle = _db.Deathrattles.SingleOrDefault(x => x.Username == player.Username);
+                var deathrattle = _db.Rattles.SingleOrDefault(x => x.Username == player.Username);
                 if (deathrattle != null)
                 {
-                    await SendMessage(deathrattle.Gif);
+                    await SendMessage(deathrattle.Deathrattle);
                 }
                 SetNextPlayer(game, player);
             }

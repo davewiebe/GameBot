@@ -1,4 +1,4 @@
-﻿namespace GameBot.Data
+﻿namespace PerudoBot.Data
 {
     public class Phrase
     {

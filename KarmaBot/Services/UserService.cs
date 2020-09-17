@@ -1,7 +1,7 @@
 ﻿using Discord.Commands;
 using Discord.WebSocket;
 
-namespace GameBot.Services
+namespace PerudoBot.Services
 {
     public class UserService
     {

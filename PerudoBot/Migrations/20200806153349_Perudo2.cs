@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace GameBot.Migrations
+namespace PerudoBot.Migrations
 {
     public partial class Perudo2 : Migration
     {

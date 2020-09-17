@@ -1,20 +1,7 @@
-﻿using Discord;
-using Discord.Commands;
-using Discord.WebSocket;
-using GameBot.Data;
-using GameBot.Enums;
-using GameBot.Services;
-using RedditSharp;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text.RegularExpressions;
-using System.Threading;
+﻿using Discord.Commands;
 using System.Threading.Tasks;
-using TenorSharp;
-using TenorSharp.ResponseObjects;
 
-namespace GameBot.Modules
+namespace PerudoBot.Modules
 {
     public partial class Commands : ModuleBase<SocketCommandContext>
     {
@@ -28,7 +15,6 @@ namespace GameBot.Modules
         [Command("version")]
         public async Task version(params string[] stringArray)
         {
-            if (_botType == "perudo")
             {
                 await ReplyAsync("`PerudoBot version 1.5.1`\n" +
                     "\n" +

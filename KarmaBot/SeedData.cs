@@ -8,11 +8,11 @@ using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
-using GameBot.Data;
+using PerudoBot.Data;
 using System.Linq;
 using System.Collections.Generic;
 
-namespace GameBot
+namespace PerudoBot
 {
     partial class Program
     {

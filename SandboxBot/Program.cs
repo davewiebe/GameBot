@@ -7,10 +7,10 @@ using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
-using GameBot.Services;
+using PerudoBot.Services;
 using Serilog;
 
-namespace GameBot
+namespace PerudoBot
 {
     partial class Program
     {

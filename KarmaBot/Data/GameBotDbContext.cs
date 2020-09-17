@@ -8,7 +8,7 @@ using System.Data.Common;
 using System.IO;
 using System.Text;
 
-namespace GameBot.Data
+namespace PerudoBot.Data
 {
     public class GameBotDbContext : DbContext
     {

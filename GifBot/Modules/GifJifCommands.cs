@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using TenorSharp;
 using TenorSharp.ResponseObjects;
 
-namespace GameBot.Modules
+namespace PerudoBot.Modules
 {
     public partial class Commands : ModuleBase<SocketCommandContext>
     {
