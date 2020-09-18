@@ -36,7 +36,7 @@ namespace PerudoBot.Data
                     .Build();
 
                 var connectionString = configuration.GetConnectionString("GameBotDb");
-                optionsBuilder.UseSqlServer(connectionString);
+                optionsBuilder.UseNpgsql(connectionString);
             }
         }
     }

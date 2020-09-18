@@ -39,7 +39,7 @@ namespace PerudoBot
                 .AddLogging(builder => builder.AddSerilog(dispose: true))
                 .AddEntityFrameworkSqlServer()
                 .AddDbContext<GameBotDbContext>(options =>
-                    options.UseSqlServer(_configuration.GetConnectionString("GameBotDb")))
+                    options.UseNpgsql(_configuration.GetConnectionString("GameBotDb")))
                 .BuildServiceProvider();
 
             var token = _configuration.GetSection("DiscordToken").Value;

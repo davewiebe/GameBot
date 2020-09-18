@@ -75,7 +75,7 @@ namespace PerudoBot.Modules
                 currentDr.Deathrattle = string.Join(" ", stringArray);
                 _db.SaveChanges();
             }
-            await SendMessage($"{GetUserNickname(username)}'s deathrattle updated.");
+            await SendMessage($"{username}'s deathrattle updated.");
         }
 
         [Command("winrattle")]
@@ -103,7 +103,7 @@ namespace PerudoBot.Modules
                 currentDr.Winrattle = string.Join(" ", stringArray);
                 _db.SaveChanges();
             }
-            await SendMessage($"{GetUserNickname(username)}'s winrattle updated.");
+            await SendMessage($"{(username)}'s winrattle updated.");
         }
 
         [Command("tauntrattle")]
@@ -131,7 +131,7 @@ namespace PerudoBot.Modules
                 currentDr.Tauntrattle = string.Join(" ", stringArray);
                 _db.SaveChanges();
             }
-            await SendMessage($"{GetUserNickname(username)}'s tauntrattle updated.");
+            await SendMessage($"{(username)}'s tauntrattle updated.");
         }
 
         [Command("same")]
