@@ -10,6 +10,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using PerudoBot.Extensions;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Npgsql;
 
 namespace PerudoBot.Modules
 {
@@ -26,13 +28,33 @@ namespace PerudoBot.Modules
             throw new Exception("Test error. Do not panic!");
         }
 
+        [Command("rattles")]
+        public async Task Rattles()
+        {
+            await SendMessage("Set your rattles with `!deathrattle`, `!winrattle`, and `!tauntrattle`.\nI've PM'd you your rattles.");
+
+            var user = Context.Message.Author;
+
+            var rattles = _db.Rattles.SingleOrDefault(x => x.Username == user.Username);
+            if (rattles != null)
+            {
+                var message = $"deathrattle: {rattles.Deathrattle}\n" +
+                    $"winrattle: {rattles.Winrattle}\n" +
+                    $"tauntrattle: {rattles.Tauntrattle}";
+
+                var requestOptions = new RequestOptions()
+                { RetryMode = RetryMode.RetryRatelimit };
+                await user.SendMessageAsync(message, options: requestOptions);
+            }
+
+        }
+
         [Command("deathrattle")]
         public async Task Deathrattle(params string[] stringArray)
         {
             var username = Context.Message.Author.Username;
             try
             {
-
                 _ = Context.Message.DeleteAsync();
             }
             catch { }
@@ -48,16 +70,71 @@ namespace PerudoBot.Modules
                     Deathrattle = string.Join(" ", stringArray)
                 });
                 _db.SaveChanges();
-                await SendMessage("Deathrattle updated.");
             } else
             {
                 currentDr.Deathrattle = string.Join(" ", stringArray);
                 _db.SaveChanges();
-                await SendMessage("Deathrattle saved.");
             }
-
+            await SendMessage($"{GetUserNickname(username)}'s deathrattle updated.");
         }
-            [Command("same")]
+
+        [Command("winrattle")]
+        public async Task Winrattle(params string[] stringArray)
+        {
+            var username = Context.Message.Author.Username;
+            try
+            {
+                _ = Context.Message.DeleteAsync();
+            }
+            catch { }
+
+            var currentDr = _db.Rattles.SingleOrDefault(x => x.Username == username);
+            if (currentDr == null)
+            {
+                _db.Rattles.Add(new Rattle
+                {
+                    Username = username,
+                    Winrattle = string.Join(" ", stringArray)
+                });
+                _db.SaveChanges();
+            }
+            else
+            {
+                currentDr.Winrattle = string.Join(" ", stringArray);
+                _db.SaveChanges();
+            }
+            await SendMessage($"{GetUserNickname(username)}'s winrattle updated.");
+        }
+
+        [Command("tauntrattle")]
+        public async Task Tauntrattle(params string[] stringArray)
+        {
+            var username = Context.Message.Author.Username;
+            try
+            {
+                _ = Context.Message.DeleteAsync();
+            }
+            catch { }
+
+            var currentDr = _db.Rattles.SingleOrDefault(x => x.Username == username);
+            if (currentDr == null)
+            {
+                _db.Rattles.Add(new Rattle
+                {
+                    Username = username,
+                    Tauntrattle = string.Join(" ", stringArray)
+                });
+                _db.SaveChanges();
+            }
+            else
+            {
+                currentDr.Tauntrattle = string.Join(" ", stringArray);
+                _db.SaveChanges();
+            }
+            await SendMessage($"{GetUserNickname(username)}'s tauntrattle updated.");
+        }
+
+        [Command("same")]
         public async Task Same(params string[] stringArray)
         {
             await Redo(stringArray);
@@ -342,17 +419,19 @@ namespace PerudoBot.Modules
             }
             await SendMessage("There are no games in progress.");
         }
-        private async Task SendMessage(string message)
+        private async Task SendMessage(string message, bool isTTS = false)
         {
+            if (string.IsNullOrEmpty(message)) return;
+
             var requestOptions = new RequestOptions()
             { RetryMode = RetryMode.RetryRatelimit };
-            await base.ReplyAsync(message, options: requestOptions);
+            await base.ReplyAsync(message, options: requestOptions, isTTS: isTTS);
         }
-        private async Task SendTempMessage(string message)
+        private async Task SendTempMessage(string message, bool isTTS = false)
         {
             var requestOptions = new RequestOptions()
             { RetryMode = RetryMode.RetryRatelimit };
-            var sentMessage = await base.ReplyAsync(message, options: requestOptions);
+            var sentMessage = await base.ReplyAsync(message, options: requestOptions, isTTS: isTTS);
             try
             {
                 _ = sentMessage.DeleteAsync();
@@ -885,6 +964,12 @@ namespace PerudoBot.Modules
             if (onlyOnePlayerLeft)
             {
                 await SendMessage($":trophy: {GetUser(activePlayers.Single().Username).Mention} is the winner with `{activePlayers.Single().NumberOfDice}` dice remaining! :trophy:");
+                
+                var rattles = _db.Rattles.SingleOrDefault(x => x.Username == activePlayers.Single().Username);
+                if (rattles != null)
+                {
+                    await SendMessage(rattles.Winrattle);
+                }
 
                 game.State = FINISHED;
                 game.DateFinished = DateTime.Now;
@@ -1252,6 +1337,15 @@ namespace PerudoBot.Modules
 
                 await SendMessage($"There was actually `{countOfPips}` {biddingName}. :fire: {GetUser(biddingPlayer.Username).Mention} loses {penalty} dice. :fire:");
 
+                if (countOfPips == previousBid.Quantity)
+                {
+                    var rattles = _db.Rattles.SingleOrDefault(x => x.Username == previousBid.Player.Username);
+                    if (rattles != null)
+                    {
+                        await SendMessage(rattles.Tauntrattle);
+                    }
+                }
+
                 await SendRoundSummaryForBots(game);
                 await GetRoundSummary(game);
                 await DecrementDieFromPlayerAndSetThierTurnAsync(game, biddingPlayer, penalty);
@@ -1523,6 +1617,7 @@ namespace PerudoBot.Modules
                 {
                     await SendMessage(deathrattle.Deathrattle);
                 }
+
                 SetNextPlayer(game, player);
             }
             else
