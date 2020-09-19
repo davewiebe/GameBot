@@ -42,6 +42,12 @@ namespace PerudoBot.Modules
                 return;
             }
 
+            if (fromUser.IsBot)
+            {
+                await ReplyAsync("Nice try");
+                return;
+            }
+
             var user = _userService.TryGetUserFromText(text);
             if (user != null)
             {
