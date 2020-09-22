@@ -19,7 +19,7 @@ namespace PerudoBot.Modules
 
             var quickmaths = $"Quick maths: {totalDice}/3 = `{totalDice / 3.0:F2}`";
             if (game.NextRoundIsPalifico) quickmaths = $"Quick maths: {totalDice}/6 = `{totalDice / 3.0:F2}`";
-            if (players.Count() == 2 && game.FaceoffEnabled)
+            if (players.Sum(x => x.NumberOfDice) == 2 && game.FaceoffEnabled)
             {
                 quickmaths = $"Quick maths:\n" +
                     $"2 = `{3600 / 36.0:F2}%`\n" +
