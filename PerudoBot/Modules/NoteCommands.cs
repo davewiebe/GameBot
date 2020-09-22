@@ -63,7 +63,7 @@ namespace PerudoBot.Modules
 
             _db.SaveChanges();
 
-            await SendMessage($"{Context.User.Username} notes: {text}");
+            await SendMessage($"{GetUserNickname(Context.User.Username)} notes: {text}");
         }
     }
 }

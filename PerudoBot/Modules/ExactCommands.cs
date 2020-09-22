@@ -111,12 +111,10 @@ namespace PerudoBot.Modules
 
                 await SendMessage($"There was actually `{countOfPips}` {bidName}. :fire: {GetUser(biddingPlayer.Username).Mention} loses {penalty} dice. :fire:");
 
-                await DecrementDieFromPlayer(biddingPlayer, penalty); 
-                
                 await SendRoundSummaryForBots(game);
                 await GetRoundSummary(game);
 
-                SetTurnPlayerToRoundStartPlayer(game);
+                await DecrementDieFromPlayerAndSetThierTurnAsync(game, biddingPlayer, penalty);
             }
 
             Thread.Sleep(4000);

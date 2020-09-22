@@ -45,7 +45,7 @@ namespace PerudoBot.Modules
             await SendMessage($"LOL JK.");
             Thread.Sleep(2000);
 
-            await SendMessage($"But if you do want to kick them, send `!kick {game.Id + player.Id} @{player.Username}`");
+            await SendMessage($"But if you do want to kick them, send `!kick {game.Id + player.Id} @{GetUserNickname(player.Username)}`");
         }
     }
 }

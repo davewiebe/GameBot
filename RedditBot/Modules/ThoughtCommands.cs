@@ -4,6 +4,7 @@ using Discord.WebSocket;
 using PerudoBot.Data;
 using RedditSharp;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -30,7 +31,11 @@ namespace PerudoBot.Modules
         {
             if (_botType != "til") return;
 
-            var monkey = GetSubredditPost("todayilearned").Trim();
+            var r = new Random();
+            var subreddits = new List<string>() { "todayilearned", "facts", "tilwtf", "tilwtf", "facts" };
+            var subreddit = subreddits.ElementAt(r.Next(0, subreddits.Count()));
+
+            var monkey = GetSubredditPost(subreddit).Trim();
             //strip
             monkey = StripPrefix(monkey, "TIL that").Trim();
             monkey = StripPrefix(monkey, "TIL of").Trim();
