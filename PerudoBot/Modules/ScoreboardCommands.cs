@@ -11,9 +11,10 @@ namespace PerudoBot.Modules
     public partial class Commands : ModuleBase<SocketCommandContext>
     {
 
-        [Command("scoreboard")]
-        public async Task Scoreboard(params string[] stringArray)
+        [Command("gamelog")]
+        public async Task Gamelogs(params string[] stringArray)
         {
+            
             var guildId = Context.Guild.Id;
             var players1 = _db.Players.AsQueryable()
                 .Where(x => x.Game.IsRanked)
@@ -24,14 +25,22 @@ namespace PerudoBot.Modules
                 .ToList();
 
             var players = players1
-                .GroupBy(x => x.Game)
-                .Where(x => x.Count() > 1);
+                .GroupBy(x => x.Game);
+               // .Where(x => x.Count() > 1);
 
-
+            var skipNumber = 0;
+            var page = 1;
             var i = -1;
             if (stringArray.Length == 1)
             {
-                i = int.Parse(stringArray[0]);
+                if (stringArray[0].ToLower().StartsWith("pg"))
+                {
+                    page = int.Parse(stringArray[0].Substring(2));
+                    skipNumber = (page - 1) * 10;
+                }else
+                {
+                    i = int.Parse(stringArray[0]);
+                }
             }
 
             var monk = new List<string>();
@@ -60,35 +69,34 @@ namespace PerudoBot.Modules
             {
                 monk = monk.OrderByDescending(x => x).ToList();
             }
+            var monkey = string.Join("\n", monk.Skip(skipNumber).Take(10));
 
-            var monkey = string.Join("\n", monk.Take(10));
             if (i == -1)
             {
-                monk.Add("\nType `!leaderboard 1` to get notes on a specific game");
+                monkey += ("\n\nType `!gamelog 1` to get notes on a specific game");
+                monkey += ("\nor `!gamelog pg2` to turn the page");
             }
+
+            var pageText = "";
+            if (page > 1) pageText = $"(pg{page})";
+
             var builder = new EmbedBuilder()
-                                .WithTitle("Leaderboard")
+                                .WithTitle($"Game logs {pageText}")
                                 .AddField("Games", string.Join("\n", monkey), inline: false);
             var embed = builder.Build();
             await Context.Channel.SendMessageAsync(embed: embed).ConfigureAwait(false);
             return;
         }
 
-        [Command("highscores")]
-        public async Task Highscores(params string[] stringArray)
+        [Command("gamelogs")]
+        public async Task Gamelog(params string[] stringArray)
         {
-            await Scoreboard(stringArray);
+            await Gamelogs(stringArray);
         }
         [Command("leaderboard")]
         public async Task Leaderboard(params string[] stringArray)
         {
-            await Scoreboard(stringArray);
-        }
-
-        [Command("highscore")]
-        public async Task Highscore(params string[] stringArray)
-        {
-            await Scoreboard(stringArray);
+            await SendMessage("`!leaderboard` has been depricated. Try `!gamelogs`");
         }
     }
 }
