@@ -45,6 +45,15 @@ namespace PerudoBot.Modules
                 await SendMessage("Note is too long.");
                 return;
             }
+
+            try
+            {
+                _ = Context.Message.DeleteAsync();
+            }
+            catch
+            {
+            }
+
             _db.Notes.Add(new Note
             {
                 Game = game,
@@ -54,7 +63,7 @@ namespace PerudoBot.Modules
 
             _db.SaveChanges();
 
-            await SendMessage("Noted");
+            await SendMessage($"{Context.User.Username} notes: {text}");
         }
     }
 }
