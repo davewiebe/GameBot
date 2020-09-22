@@ -17,9 +17,27 @@ namespace PerudoBot.Modules
 
             var playerList = string.Join("\n", players.Select(x => $"`{x.NumberOfDice}` {GetUserNickname(x.Username)}"));
 
+            var quickmaths = $"Quick maths: {totalDice}/3 = `{totalDice / 3.0:F2}`";
+            if (game.NextRoundIsPalifico) quickmaths = $"Quick maths: {totalDice}/6 = `{totalDice / 3.0:F2}`";
+            if (players.Count() == 2 && game.FaceoffEnabled)
+            {
+                quickmaths = $"Quick maths:\n" +
+                    $"2 = `{3600 / 36.0:F2}%`\n" +
+                    $"3 = `{3500 / 36.0:F2}%`\n" +
+                    $"4 = `{3300 / 36.0:F2}%`\n" +
+                    $"5 = `{3000 / 36.0:F2}%`\n" +
+                    $"6 = `{2600 / 36.0:F2}%`\n" +
+                    $"7 = `{2100 / 36.0:F2}%`\n" +
+                    $"8 = `{1500 / 36.0:F2}%`\n" +
+                    $"9 = `{1000 / 36.0:F2}%`\n" +
+                    $"10 = `{600 / 36.0:F2}%`\n" +
+                    $"11 = `{300 / 36.0:F2}%`\n" +
+                    $"12 = `{100 / 36.0:F2}%`";
+            }
+
             var builder = new EmbedBuilder()
                 .WithTitle("Current standings")
-                .AddField("Users", $"{playerList}\n\nTotal dice left: `{totalDice}`\nQuick maths: {totalDice}/3 = `{totalDice / 3.0:F2}`", inline: false);
+                .AddField("Users", $"{playerList}\n\nTotal dice left: `{totalDice}`\n{quickmaths}", inline: false);
             var embed = builder.Build();
 
             await Context.Channel.SendMessageAsync(
