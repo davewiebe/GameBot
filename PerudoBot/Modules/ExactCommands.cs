@@ -110,9 +110,13 @@ namespace PerudoBot.Modules
                 if (game.Penalty != 0) penalty = game.Penalty;
 
                 await SendMessage($"There was actually `{countOfPips}` {bidName}. :fire: {GetUser(biddingPlayer.Username).Mention} loses {penalty} dice. :fire:");
+
+                await DecrementDieFromPlayer(biddingPlayer, penalty); 
+                
                 await SendRoundSummaryForBots(game);
                 await GetRoundSummary(game);
-                await DecrementDieFromPlayerAndSetThierTurnAsync(game, biddingPlayer, penalty);
+
+                SetTurnPlayerToRoundStartPlayer(game);
             }
 
             Thread.Sleep(4000);
