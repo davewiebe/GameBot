@@ -27,9 +27,22 @@ namespace PerudoBot.Modules
                                 .AddField("Options", $"{string.Join("\n", options)}", inline: false);
                 var embed = builder.Build();
 
-                await Context.Channel.SendMessageAsync(
+                if (game.StatusMessage > 0)
+                {
+                    try
+                    {
+                        var lastMessage = await Context.Channel.GetMessageAsync(game.StatusMessage);
+                        _ = lastMessage.DeleteAsync();
+                    } catch
+                    { }
+                }
+
+                var monkey = await Context.Channel.SendMessageAsync(
                     embed: embed)
                     .ConfigureAwait(false);
+
+                game.StatusMessage = monkey.Id;
+                _db.SaveChanges();
                 return;
             }
 

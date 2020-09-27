@@ -3,6 +3,7 @@ using PerudoBot.Data;
 using PerudoBot.Extensions;
 using System;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -17,6 +18,15 @@ namespace PerudoBot.Modules
             if (await ValidateState(IN_PROGRESS) == false) return;
 
             var game = GetGame(IN_PROGRESS);
+
+            //TODO: ghost player rejoin
+            var ghosts = GetPlayers(game).Where(x => x.NumberOfDice == 0);
+            if (ghosts.Any(x => x.Username == Context.User.Username))
+            {
+
+            }
+
+
 
             var originalBiddingPlayer = GetCurrentPlayer(game);
             if (game.CanCallExactAnytime)

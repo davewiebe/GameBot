@@ -41,7 +41,9 @@ namespace PerudoBot.Modules
                 Palifico = true,
                 IsRanked = true,
                 GuildId = Context.Guild.Id,
-                FaceoffEnabled = true
+                FaceoffEnabled = true,
+                CanCallExactToJoinAgain = false,
+                StatusMessage = 0
             });
             _db.SaveChanges();
 

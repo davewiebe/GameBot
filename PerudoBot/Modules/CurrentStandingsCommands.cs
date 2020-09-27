@@ -18,7 +18,7 @@ namespace PerudoBot.Modules
             var playerList = string.Join("\n", players.Select(x => $"`{x.NumberOfDice}` {GetUserNickname(x.Username)}"));
 
             var quickmaths = $"Quick maths: {totalDice}/3 = `{totalDice / 3.0:F2}`";
-            if (game.NextRoundIsPalifico) quickmaths = $"Quick maths: {totalDice}/6 = `{totalDice / 3.0:F2}`";
+            if (game.NextRoundIsPalifico) quickmaths = $"Quick maths: {totalDice}/6 = `{totalDice / 6.0:F2}`";
             if (players.Sum(x => x.NumberOfDice) == 2 && game.FaceoffEnabled)
             {
                 quickmaths = $"Quick maths:\n" +
