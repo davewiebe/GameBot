@@ -62,6 +62,15 @@ namespace PerudoBot.Modules
                 {
                     await SendMessage(deathrattle.Deathrattle);
                 }
+                if (GetGame(IN_PROGRESS).CanCallExactToJoinAgain)
+                {
+                    if (player.GhostAttemptsLeft != -1)
+                    {
+                        player.GhostAttemptsLeft = 1;
+                        _db.SaveChanges();
+                        await SendMessage($"{GetUserNickname(player.Username)} you have 1 attempt at an `!exact` call to win your way back into the game while there's more than 2 players left.");
+                    }
+                }
             }
 
             var game = GetGame(GameState.InProgress);
@@ -98,6 +107,16 @@ namespace PerudoBot.Modules
                 if (deathrattle != null)
                 {
                     await SendMessage(deathrattle.Deathrattle);
+                }
+
+                if (game.CanCallExactToJoinAgain)
+                {
+                    if (player.GhostAttemptsLeft != -1)
+                    {
+                        player.GhostAttemptsLeft = 1;
+                        _db.SaveChanges();
+                        await SendMessage($"{GetUserNickname(player.Username)} you have 1 attempt at an `!exact` call to win your way back into the game while there's more than 2 players left.");
+                    }
                 }
 
                 SetNextPlayer(game, player);

@@ -30,5 +30,7 @@ namespace PerudoBot.Data
 
         public virtual List<Note> Notes { get; set; }
         public DateTime DateFinished { get; internal set; }
+        public bool CanCallExactToJoinAgain { get; internal set; }
+        public ulong StatusMessage { get; internal set; }
     }
 }

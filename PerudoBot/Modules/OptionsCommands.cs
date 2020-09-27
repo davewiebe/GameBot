@@ -32,6 +32,7 @@ namespace PerudoBot.Modules
                 $"`!option bidanytime/nobidanytime` to change allowing **bids** at any time\n" +
                 $"`!option palifico/nopalifico` to toggle **Palifico** rounds\n" +
                 $"`!option faceoff/nofaceoff` to toggle **Faceoff** rounds\n" +
+                $"`!option ghostexact/noghostexact` to allow ghosts to rejoin with 1 die if they make a successful exact call\n" +
                 $"`!option ranked/unranked` to change if a game is ranked";
 
                 var modes =
@@ -112,6 +113,25 @@ namespace PerudoBot.Modules
 
                 SetOptions(stringArray.Skip(1).ToArray());
             }
+            else if (stringArray[0] == "ghostexact")
+            {
+                var game = GetGame(SETUP);
+
+                game.CanCallExactToJoinAgain = true;
+                _db.SaveChanges();
+
+                SetOptions(stringArray.Skip(1).ToArray());
+            }
+            else if (stringArray[0] == "noghostexact")
+            {
+                var game = GetGame(SETUP);
+
+                game.CanCallExactToJoinAgain = false;
+                _db.SaveChanges();
+
+                SetOptions(stringArray.Skip(1).ToArray());
+            }
+
             else if (stringArray[0] == "ordered")
             {
                 var game = GetGame(GameState.Setup);
@@ -295,6 +315,7 @@ namespace PerudoBot.Modules
             if (game.CanCallLiarAnytime) options.Add("Players can call **liar** out of turn.");
             if (game.CanCallExactAnytime) options.Add("Players can call **exact** out of turn.");
             if (game.CanBidAnytime) options.Add("Players can **bid** out of turn.");
+            if (game.CanCallExactToJoinAgain) options.Add("Defeated players have 1 chance to call exact to rejoin with 1 die (3+ players).");
             if (game.IsRanked) options.Add("Game is ranked and saved to highscore board.");
 
             return options;

@@ -7,13 +7,13 @@ namespace PerudoBot.Modules
 {
     public partial class Commands : ModuleBase<SocketCommandContext>
     {
-        [Command("kick")]
+        [Command("kick", RunMode = RunMode.Async)]
         public async Task KickUserFromGame(params string[] stringArray)
         {
             var game = GetGame(GameState.InProgress);
 
             var userToKick = Context.Message.MentionedUsers.Single();
-            var player = GetPlayers(game).Where(x => x.Username == userToKick.Username).Single();
+            var player = GetPlayers(game).Where(x => x.NumberOfDice > 0).Where(x => x.Username == userToKick.Username).Single();
 
             int monkey = 0;
             if (int.TryParse(stringArray[0], out monkey))
