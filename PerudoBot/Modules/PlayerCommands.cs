@@ -13,7 +13,10 @@ namespace PerudoBot.Modules
     {
         private List<Player> GetPlayers(Game game)
         {
-            return _db.Players.AsQueryable().Where(x => x.GameId == game.Id).OrderBy(x => x.TurnOrder).ToList();
+            return _db.Players.AsQueryable()
+                .Where(x => x.GameId == game.Id)
+                .OrderBy(x => x.TurnOrder)
+                .ToList();
         }
 
         private SocketGuildUser GetUser(string username)
@@ -62,7 +65,7 @@ namespace PerudoBot.Modules
                 {
                     await SendMessage(deathrattle.Deathrattle);
                 }
-                if (GetGame(IN_PROGRESS).CanCallExactToJoinAgain)
+                if (GetGame(GameState.InProgress).CanCallExactToJoinAgain)
                 {
                     if (player.GhostAttemptsLeft != -1)
                     {

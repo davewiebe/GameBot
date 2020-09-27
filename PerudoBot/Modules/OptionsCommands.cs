@@ -115,7 +115,7 @@ namespace PerudoBot.Modules
             }
             else if (stringArray[0] == "ghostexact")
             {
-                var game = GetGame(SETUP);
+                var game = GetGame(GameState.Setup);
 
                 game.CanCallExactToJoinAgain = true;
                 _db.SaveChanges();
@@ -124,7 +124,7 @@ namespace PerudoBot.Modules
             }
             else if (stringArray[0] == "noghostexact")
             {
-                var game = GetGame(SETUP);
+                var game = GetGame(GameState.Setup);
 
                 game.CanCallExactToJoinAgain = false;
                 _db.SaveChanges();
