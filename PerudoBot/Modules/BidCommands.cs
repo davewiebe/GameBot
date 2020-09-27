@@ -9,20 +9,13 @@ namespace PerudoBot.Modules
 {
     public partial class Commands : ModuleBase<SocketCommandContext>
     {
-
-        [Command("b")]
-        public async Task B(params string[] bidText)
-        {
-            await Bid(bidText);
-        }
-
         [Command("bid")]
+        [Alias("b")]
         public async Task Bid(params string[] bidText)
         {
-            if (await ValidateState(IN_PROGRESS) == false) return;
+            if (await ValidateState(GameState.InProgress) == false) return;
 
-            var game = GetGame(IN_PROGRESS);
-
+            var game = GetGame(GameState.InProgress);
 
             var currentPlayer = GetCurrentPlayer(game);
 
@@ -43,8 +36,7 @@ namespace PerudoBot.Modules
             await HandlePipBid(bidText, game, biddingPlayer);
         }
 
-
-        private async Task HandleFaceoffBid(string[] bidText, Data.Game game, Player biddingPlayer)
+        private async Task HandleFaceoffBid(string[] bidText, Game game, Player biddingPlayer)
         {
             int quantity = 0;
             try
@@ -57,7 +49,6 @@ namespace PerudoBot.Modules
             }
 
             if (quantity < 2 || quantity > 12) return;
-
 
             var bid = new Bid
             {
@@ -72,7 +63,7 @@ namespace PerudoBot.Modules
             /// MONKEY... working here.
             /// TODO: Add Exact bid too
             /// TODO: Add Liar bid too
-            /// 
+            ///
             _db.Bids.Add(bid);
             _db.SaveChanges();
 
@@ -95,10 +86,8 @@ namespace PerudoBot.Modules
             await SendMessage(userMessage);
         }
 
-
-        private async Task HandlePipBid(string[] bidText, Data.Game game, Player biddingPlayer)
+        private async Task HandlePipBid(string[] bidText, Game game, Player biddingPlayer)
         {
-
             int quantity = 0;
             int pips = 0;
             try
@@ -114,7 +103,6 @@ namespace PerudoBot.Modules
             if (quantity <= 0) return;
             if (pips < 1 || pips > 6) return;
 
-
             var bid = new Bid
             {
                 Call = "",
@@ -125,7 +113,6 @@ namespace PerudoBot.Modules
             };
 
             if (await VerifyBid(bid) == false) return;
-
 
             if (game.CanBidAnytime && GetCurrentPlayer(game).Username != Context.User.Username)
             {
@@ -152,9 +139,6 @@ namespace PerudoBot.Modules
 
                 _db.SaveChanges();
             }
-
-
-
 
             _db.Bids.Add(bid);
             _db.SaveChanges();
@@ -194,7 +178,7 @@ namespace PerudoBot.Modules
 
         private async Task<bool> VerifyBid(Bid bid)
         {
-            var game = GetGame(IN_PROGRESS);
+            var game = GetGame(GameState.InProgress);
             Bid mostRecentBid = GetMostRecentBid(game);
 
             var players = GetPlayers(game);
@@ -209,7 +193,6 @@ namespace PerudoBot.Modules
                 }
                 return true;
             }
-
 
             if (bid.Quantity > players.Sum(x => x.NumberOfDice))
             {
@@ -303,7 +286,6 @@ namespace PerudoBot.Modules
                 //    return false;
                 //}
 
-
                 if (bid.Quantity * 2 <= mostRecentBid.Quantity)
                 {
                     await SendMessage("Bid has to be higher.");
@@ -325,7 +307,7 @@ namespace PerudoBot.Modules
             return true;
         }
 
-        private Bid GetMostRecentBid(Data.Game game)
+        private Bid GetMostRecentBid(Game game)
         {
             return _db.Bids.AsQueryable().Where(x => x.GameId == game.Id).ToList().LastOrDefault();
         }

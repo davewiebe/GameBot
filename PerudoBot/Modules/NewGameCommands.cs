@@ -1,29 +1,30 @@
 ﻿using Discord;
 using Discord.Commands;
-using PerudoBot.Data;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Game = PerudoBot.Data.Game;
 
 namespace PerudoBot.Modules
 {
     public partial class Commands : ModuleBase<SocketCommandContext>
     {
-
         [Command("new")]
         public async Task NewGame(params string[] stringArray)
         {
             if (_db.Games
                 .AsQueryable()
                 .Where(x => x.ChannelId == Context.Channel.Id)
-                .SingleOrDefault(x => x.State == IN_PROGRESS || x.State == SETUP) != null)
+                .Where(x => x.State == (int)(object)GameState.InProgress
+                        || x.State == (int)(object)GameState.Setup)
+               .Any())
             {
-                string message = $"A game is already in progress.";
+                string message = $"A game already being set up or is in progress.";
                 await SendMessage(message);
                 return;
             }
 
-            _db.Games.Add(new Data.Game
+            _db.Games.Add(new Game
             {
                 ChannelId = Context.Channel.Id,
                 State = 0,
@@ -45,13 +46,11 @@ namespace PerudoBot.Modules
             });
             _db.SaveChanges();
 
-
             var commands =
                 $"`!add/remove @user` to add/remove players.\n" +
                 $"`!option xyz` to set round options.\n" +
                 $"`!status` to view current status.\n" +
                 $"`!start` to start the game.";
-
 
             var builder = new EmbedBuilder()
                             .WithTitle("New game created")
@@ -59,12 +58,10 @@ namespace PerudoBot.Modules
             var embed = builder.Build();
             await Context.Channel.SendMessageAsync(embed: embed).ConfigureAwait(false);
 
-
-            var game = GetGame(SETUP);
+            var game = GetGame(GameState.Setup);
             AddUsers(game, Context.Message);
             try
             {
-
                 SetOptions(stringArray);
             }
             catch (Exception e)
@@ -74,6 +71,5 @@ namespace PerudoBot.Modules
 
             await Status();
         }
-
     }
 }

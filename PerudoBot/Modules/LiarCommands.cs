@@ -9,13 +9,12 @@ namespace PerudoBot.Modules
 {
     public partial class Commands : ModuleBase<SocketCommandContext>
     {
-
         [Command("liar")]
         public async Task Liar()
         {
-            if (await ValidateState(IN_PROGRESS) == false) return;
+            if (await ValidateState(GameState.InProgress) == false) return;
 
-            var game = GetGame(IN_PROGRESS);
+            var game = GetGame(GameState.InProgress);
 
             if (game.CanCallLiarAnytime)
             {
@@ -92,7 +91,6 @@ namespace PerudoBot.Modules
                 if (game.Penalty != 0) penalty = game.Penalty;
 
                 await SendMessage($"There was actually `{countOfPips}` {biddingName}. :fire: {GetUser(previousBid.Player.Username).Mention} loses {penalty} dice. :fire:");
-
 
                 await SendRoundSummaryForBots(game);
                 await GetRoundSummary(game);

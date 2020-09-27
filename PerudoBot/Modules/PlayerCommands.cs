@@ -1,26 +1,17 @@
-﻿using Discord;
-using Discord.Commands;
+﻿using Discord.Commands;
 using Discord.WebSocket;
 using PerudoBot.Data;
-using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
-using System;
+using PerudoBot.Extensions;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
-using PerudoBot.Extensions;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Npgsql;
+using Game = PerudoBot.Data.Game;
 
 namespace PerudoBot.Modules
 {
     public partial class Commands : ModuleBase<SocketCommandContext>
     {
-
-
-
-        private List<Player> GetPlayers(Data.Game game)
+        private List<Player> GetPlayers(Game game)
         {
             return _db.Players.AsQueryable().Where(x => x.GameId == game.Id).OrderBy(x => x.TurnOrder).ToList();
         }
@@ -38,8 +29,7 @@ namespace PerudoBot.Modules
             return nickname.StripSpecialCharacters();
         }
 
-
-        private void SetTurnPlayerToRoundStartPlayer(Data.Game game)
+        private void SetTurnPlayerToRoundStartPlayer(Game game)
         {
             game.PlayerTurnId = game.RoundStartPlayerId;
 
@@ -52,12 +42,11 @@ namespace PerudoBot.Modules
             _db.SaveChanges();
         }
 
-        private bool AreBotsInGame(Data.Game game)
+        private bool AreBotsInGame(Game game)
         {
             var players = GetPlayers(game);
             return players.Any(x => x.IsBot);
         }
-
 
         private async Task DecrementDieFromPlayer(Player player, int penalty)
         {
@@ -75,17 +64,19 @@ namespace PerudoBot.Modules
                 }
             }
 
-            var game = GetGame(IN_PROGRESS);
+            var game = GetGame(GameState.InProgress);
             if (player.NumberOfDice == 1 && game.Palifico)
             {
                 game.NextRoundIsPalifico = true;
-            } else {
+            }
+            else
+            {
                 game.NextRoundIsPalifico = false;
             }
             _db.SaveChanges();
         }
 
-        private async Task DecrementDieFromPlayerAndSetThierTurnAsync(Data.Game game, Player player, int penalty)
+        private async Task DecrementDieFromPlayerAndSetThierTurnAsync(Game game, Player player, int penalty)
         {
             player.NumberOfDice -= penalty;
 
@@ -118,7 +109,7 @@ namespace PerudoBot.Modules
             }
         }
 
-        private int GetNumberOfDiceMatchingBid(Data.Game game, int pips)
+        private int GetNumberOfDiceMatchingBid(Game game, int pips)
         {
             var players = GetPlayers(game).Where(x => x.NumberOfDice > 0).ToList();
 
@@ -137,14 +128,14 @@ namespace PerudoBot.Modules
             return allDice.Count(x => x == pips || x == 1);
         }
 
-        private Player GetCurrentPlayer(Data.Game game)
+        private Player GetCurrentPlayer(Game game)
         {
             return _db.Players
                 .AsQueryable()
                 .Single(x => x.Id == game.PlayerTurnId);
         }
 
-        private void SetNextPlayer(Data.Game game, Player currentPlayer)
+        private void SetNextPlayer(Game game, Player currentPlayer)
         {
             var playerIds = _db.Players
                 .AsQueryable()
@@ -167,6 +158,5 @@ namespace PerudoBot.Modules
 
             _db.SaveChanges();
         }
-
     }
 }

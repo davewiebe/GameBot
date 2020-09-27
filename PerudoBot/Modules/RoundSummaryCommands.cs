@@ -1,24 +1,24 @@
 ﻿using Discord;
 using Discord.Commands;
 using Newtonsoft.Json;
-using PerudoBot.Data;
 using PerudoBot.Extensions;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Game = PerudoBot.Data.Game;
 
 namespace PerudoBot.Modules
 {
     public partial class Commands : ModuleBase<SocketCommandContext>
     {
-
-        private async Task SendRoundSummaryForBots(Data.Game game)
+        private async Task SendRoundSummaryForBots(Game game)
         {
             var players = GetPlayers(game);
             if (!players.Any(x => x.IsBot)) return;
 
             var playerDice = players.Where(x => x.NumberOfDice > 0).ToList()
-                .Select(x => new {
+                .Select(x => new
+                {
                     Username = GetUserNickname(x.Username),
                     Dice = x.Dice
                 });
@@ -26,7 +26,7 @@ namespace PerudoBot.Modules
             await SendMessage($"Round summary for bots: ||{JsonConvert.SerializeObject(playerDice)}||");
         }
 
-        private async Task GetRoundSummary(Data.Game game)
+        private async Task GetRoundSummary(Game game)
         {
             var players = GetPlayers(game).Where(x => x.NumberOfDice > 0).ToList();
             var playerDice = players.Select(x => $"{GetUserNickname(x.Username)}: {string.Join(" ", x.Dice.Split(",").Select(x => int.Parse(x).GetEmoji()))}".TrimEnd());
@@ -60,6 +60,5 @@ namespace PerudoBot.Modules
                 embed: embed)
                 .ConfigureAwait(false);
         }
-
     }
 }

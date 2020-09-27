@@ -1,16 +1,15 @@
 ﻿using Discord;
 using Discord.Commands;
 using Newtonsoft.Json;
-using PerudoBot.Data;
 using System.Linq;
 using System.Threading.Tasks;
+using Game = PerudoBot.Data.Game;
 
 namespace PerudoBot.Modules
 {
     public partial class Commands : ModuleBase<SocketCommandContext>
     {
-
-        private async Task DisplayCurrentStandings(Data.Game game)
+        private async Task DisplayCurrentStandings(Game game)
         {
             var players = GetPlayers(game).Where(x => x.NumberOfDice > 0);
             var totalDice = players.Sum(x => x.NumberOfDice);
@@ -44,7 +43,8 @@ namespace PerudoBot.Modules
                 embed: embed)
                 .ConfigureAwait(false);
         }
-        private async Task DisplayCurrentStandingsForBots(Data.Game game)
+
+        private async Task DisplayCurrentStandingsForBots(Game game)
         {
             var players = GetPlayers(game);
             if (!players.Any(x => x.IsBot)) return;

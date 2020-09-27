@@ -1,21 +1,22 @@
-﻿using System;
+﻿using Discord;
+using Discord.Commands;
+using Discord.WebSocket;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using PerudoBot.Data;
+using Serilog;
+using System;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
-using Discord;
-using Discord.Commands;
-using Discord.WebSocket;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Configuration;
-using PerudoBot.Data;
-using Microsoft.EntityFrameworkCore;
-using Serilog;
 
 namespace PerudoBot
 {
     partial class Program
     {
-        static void Main(string[] args) => new Program().RunBotASync().GetAwaiter().GetResult();
+        private static void Main(string[] args) => 
+            new Program().RunBotASync().GetAwaiter().GetResult();
 
         private DiscordSocketClient _client;
         private CommandService _commands;
@@ -78,7 +79,7 @@ namespace PerudoBot
             }
             else if (message.HasStringPrefix(context.Client.CurrentUser.Mention, ref argPos))
             {
-                result = await _commands.ExecuteAsync(context, argPos+1, _services);
+                result = await _commands.ExecuteAsync(context, argPos + 1, _services);
             }
 
             if (result != null)

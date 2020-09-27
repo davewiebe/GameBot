@@ -1,7 +1,6 @@
 ﻿using Discord;
 using Discord.Commands;
 using Microsoft.EntityFrameworkCore;
-using PerudoBot.Data;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -10,23 +9,21 @@ namespace PerudoBot.Modules
 {
     public partial class Commands : ModuleBase<SocketCommandContext>
     {
-
         [Command("gamelog")]
         public async Task Gamelogs(params string[] stringArray)
         {
-            
             var guildId = Context.Guild.Id;
             var players1 = _db.Players.AsQueryable()
                 .Where(x => x.Game.IsRanked)
                 .Where(x => x.Game.GuildId == guildId)
-                .Where(x => x.Game.State == FINISHED)
+                .Where(x => x.Game.State == (int)GameState.Finished)
                 .Include(x => x.Game.Notes)
                 .OrderBy(x => x.Game.DateCreated)
                 .ToList();
 
             var players = players1
                 .GroupBy(x => x.Game);
-               // .Where(x => x.Count() > 1);
+            // .Where(x => x.Count() > 1);
 
             var skipNumber = 0;
             var page = 1;
@@ -37,7 +34,8 @@ namespace PerudoBot.Modules
                 {
                     page = int.Parse(stringArray[0].Substring(2));
                     skipNumber = (page - 1) * 10;
-                }else
+                }
+                else
                 {
                     i = int.Parse(stringArray[0]);
                 }
@@ -93,6 +91,7 @@ namespace PerudoBot.Modules
         {
             await Gamelogs(stringArray);
         }
+
         [Command("leaderboard")]
         public async Task Leaderboard(params string[] stringArray)
         {

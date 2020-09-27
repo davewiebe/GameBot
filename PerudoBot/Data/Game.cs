@@ -7,7 +7,7 @@ namespace PerudoBot.Data
     {
         public int Id { get; set; }
         public int State { get; set; }
-        
+
         public int? PlayerTurnId { get; set; }
         public int NumberOfDice { get; internal set; }
         public int Penalty { get; internal set; }

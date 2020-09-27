@@ -7,13 +7,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Game = PerudoBot.Data.Game;
 
 namespace PerudoBot.Modules
 {
     public partial class Commands : ModuleBase<SocketCommandContext>
     {
-
-        private async Task RollDiceStartNewRound(Data.Game game)
+        private async Task RollDiceStartNewRound(Game game)
         {
             _db.SaveChanges();
             // IF THERE IS ONLY ONE PLAYER LEFT, ANNOUNCE THAT THEY WIN
@@ -31,7 +31,7 @@ namespace PerudoBot.Modules
                     await SendMessage(rattles.Winrattle);
                 }
 
-                game.State = FINISHED;
+                game.State = (int)GameState.Finished;
                 game.DateFinished = DateTime.Now;
                 game.Winner = activePlayers.Single().Username;
                 _db.SaveChanges();
@@ -100,7 +100,6 @@ namespace PerudoBot.Modules
                 await SendTempMessage("!gif fight");
                 await SendMessage($":face_with_monocle: Faceoff Round :face_with_monocle: {GetUser(GetCurrentPlayer(game).Username).Mention} goes first. Bid on total pips only (eg. `!bid 4`)");
             }
-
             else if (game.NextRoundIsPalifico)
             {
                 await SendMessage($":game_die: Palifico Round :game_die: {GetUser(GetCurrentPlayer(game).Username).Mention} goes first.\n" +
