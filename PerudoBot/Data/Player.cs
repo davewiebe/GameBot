@@ -11,5 +11,8 @@
         public string Dice { get; set; }
         public int TurnOrder { get; internal set; }
         public bool IsBot { get; internal set; }
+        public int GhostAttemptsLeft { get; internal set; }
+        public int GhostAttemptQuantity { get; internal set; }
+        public int GhostAttemptPips { get; internal set; }
     }
 }

@@ -19,11 +19,24 @@ namespace PerudoBot.Modules
 
             var game = GetGame(IN_PROGRESS);
 
-            //TODO: ghost player rejoin
+            //ghost player rejoin
             var ghosts = GetPlayers(game).Where(x => x.NumberOfDice == 0);
-            if (ghosts.Any(x => x.Username == Context.User.Username))
+            var ghostPlayer = ghosts.SingleOrDefault(x => x.Username == Context.User.Username);
+            if (ghostPlayer != null)
             {
+                if (GetPlayers(game).Count == 2) return;
+                if (ghostPlayer.GhostAttemptsLeft > 0)
+                {
+                    var lastBuid = GetMostRecentBid(game);
+                    if (lastBuid == null) return;
+                    if (lastBuid.Quantity == 0) return;
 
+                    ghostPlayer.GhostAttemptQuantity = lastBuid.Quantity;
+                    ghostPlayer.GhostAttemptPips = lastBuid.Pips;
+                    ghostPlayer.GhostAttemptsLeft -= 1;
+                    _db.SaveChanges();
+                    await SendMessage($"{GetUserNickname(Context.User.Username)}'s exact attempt has been recorded. Good luck.");
+                }
             }
 
 
@@ -111,6 +124,7 @@ namespace PerudoBot.Modules
 
                 await SendRoundSummaryForBots(game);
                 await GetRoundSummary(game);
+                await CheckGhostAttempts(game);
 
                 SetTurnPlayerToRoundStartPlayer(game);
             }
@@ -130,5 +144,6 @@ namespace PerudoBot.Modules
             Thread.Sleep(4000);
             await RollDiceStartNewRound(game);
         }
+
     }
 }
