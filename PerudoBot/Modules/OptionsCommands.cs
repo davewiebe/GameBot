@@ -324,6 +324,7 @@ namespace PerudoBot.Modules
             if (game.CanCallLiarAnytime) options.Add("Players can call **liar** out of turn.");
             if (game.CanCallExactAnytime) options.Add("Players can call **exact** out of turn.");
             if (game.CanBidAnytime) options.Add("Players can **bid** out of turn.");
+            if (game.CanCallExactToJoinAgain) options.Add("Defeated players have 1 chance to call exact to rejoin with 1 die (3+ players).");
             if (game.IsRanked) options.Add("Game is ranked and saved to highscore board.");
 
             return options;
