@@ -16,14 +16,13 @@ namespace PerudoBot.Modules
             var players1 = _db.Players.AsQueryable()
                 .Where(x => x.Game.IsRanked)
                 .Where(x => x.Game.GuildId == guildId)
-                .Where(x => x.Game.State == (int)GameState.Finished)
+                .Where(x => x.Game.State == (int)(object)GameState.Finished)
                 .Include(x => x.Game.Notes)
                 .OrderBy(x => x.Game.DateCreated)
                 .ToList();
 
             var players = players1
                 .GroupBy(x => x.Game);
-            // .Where(x => x.Count() > 1);
 
             var skipNumber = 0;
             var page = 1;
