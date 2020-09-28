@@ -10,13 +10,14 @@ namespace PerudoBot.Modules
     public partial class Commands : ModuleBase<SocketCommandContext>
     {
         [Command("redo")]
-        //[Alias("replay again playanother another")]
+        [Alias("same anotherround replay again playanother another")]
         public async Task Redo(params string[] stringArray)
         {
             if (_db.Games
                 .AsQueryable()
                 .Where(x => x.ChannelId == Context.Channel.Id)
-                .Where(x => x.State == (int)GameState.InProgress || x.State == (int)GameState.Setup)
+                .Where(x => x.State == (int)(object)GameState.InProgress 
+                    || x.State == (int)(object)GameState.Setup)
                 .Any())
             {
                 string message = $"A game is already in progress.";

@@ -9,13 +9,8 @@ namespace PerudoBot.Modules
 {
     public partial class Commands : ModuleBase<SocketCommandContext>
     {
-        [Command("options")]
-        public async Task Options(params string[] stringArray)
-        {
-            await Option(stringArray);
-        }
-
         [Command("option")]
+        [Alias("options")]
         public async Task Option(params string[] stringArray)
         {
             if (stringArray.Length == 0)
