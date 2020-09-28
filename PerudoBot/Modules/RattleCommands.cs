@@ -8,7 +8,6 @@ namespace PerudoBot.Modules
 {
     public partial class Commands : ModuleBase<SocketCommandContext>
     {
-
         [Command("rattles")]
         public async Task Rattles()
         {
@@ -27,7 +26,6 @@ namespace PerudoBot.Modules
                 { RetryMode = RetryMode.RetryRatelimit };
                 await user.SendMessageAsync(message, options: requestOptions);
             }
-
         }
 
         [Command("deathrattle")]

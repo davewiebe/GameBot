@@ -1,6 +1,5 @@
 ﻿using Discord;
 using Discord.Commands;
-using PerudoBot.Data;
 using PerudoBot.Extensions;
 using System.Linq;
 using System.Threading.Tasks;
@@ -9,11 +8,10 @@ namespace PerudoBot.Modules
 {
     public partial class Commands : ModuleBase<SocketCommandContext>
     {
-
         [Command("status")]
         public async Task Status()
         {
-            var game = GetGame(SETUP);
+            var game = GetGame(GameState.Setup);
             if (game != null)
             {
                 var players = GetPlayers(game);
@@ -46,13 +44,12 @@ namespace PerudoBot.Modules
                 return;
             }
 
-            game = GetGame(IN_PROGRESS);
+            game = GetGame(GameState.InProgress);
             if (game != null)
             {
                 var nextPlayer = GetCurrentPlayer(game);
                 var bid = GetMostRecentBid(game);
                 await DisplayCurrentStandings(game);
-
 
                 var options = GetOptions(game);
                 var builder = new EmbedBuilder()
@@ -60,7 +57,6 @@ namespace PerudoBot.Modules
                                 .AddField("Options", $"{string.Join("\n", options)}", inline: false);
                 var embed = builder.Build();
                 await Context.Channel.SendMessageAsync(embed: embed).ConfigureAwait(false);
-
 
                 var recentBidText = "";
                 if (bid != null)

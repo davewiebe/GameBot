@@ -8,20 +8,19 @@ namespace PerudoBot.Modules
 {
     public partial class Commands : ModuleBase<SocketCommandContext>
     {
-
         [Command("start")]
         public async Task Start()
         {
-            if (await ValidateState(SETUP) == false) return;
+            if (await ValidateState(GameState.Setup) == false) return;
 
-            var game = GetGame(SETUP);
+            var game = GetGame(GameState.Setup);
 
             ShufflePlayers(game);
             SetDice(game);
 
             var players = GetPlayers(game);
 
-            game.State = IN_PROGRESS;
+            game.State = (int)GameState.InProgress;
             game.PlayerTurnId = players.First().Id;
             game.RoundStartPlayerId = players.First().Id;
 
@@ -30,10 +29,9 @@ namespace PerudoBot.Modules
             await RollDiceStartNewRound(game);
 
             _db.SaveChanges();
-
         }
 
-        private void ShufflePlayers(Data.Game game)
+        private void ShufflePlayers(Game game)
         {
             var players = GetPlayers(game);
             var r = new Random();
@@ -48,7 +46,7 @@ namespace PerudoBot.Modules
             _db.SaveChanges();
         }
 
-        private void SetDice(Data.Game game)
+        private void SetDice(Game game)
         {
             var players = GetPlayers(game);
 

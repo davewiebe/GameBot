@@ -3,6 +3,7 @@ using Discord.WebSocket;
 using PerudoBot.Data;
 using System.Linq;
 using System.Threading.Tasks;
+using Game = PerudoBot.Data.Game;
 
 namespace PerudoBot.Modules
 {
@@ -11,7 +12,7 @@ namespace PerudoBot.Modules
         [Command("add")]
         public async Task AddUserToGame(params string[] stringArray)
         {
-            var game = GetGame(SETUP);
+            var game = GetGame(GameState.Setup);
             if (game == null)
             {
                 await SendMessage($"Unable to add players at this time.");
@@ -23,7 +24,7 @@ namespace PerudoBot.Modules
             await Status();
         }
 
-        private void AddUsers(Data.Game game, SocketUserMessage message)
+        private void AddUsers(Game game, SocketUserMessage message)
         {
             if (message.MentionedUsers.Count == 0)
             {
@@ -35,7 +36,7 @@ namespace PerudoBot.Modules
             }
         }
 
-        private void AddUserToGame(Data.Game game, string username)
+        private void AddUserToGame(Game game, string username)
         {
             bool userAlreadyExistsInGame = UserAlreadyExistsInGame(username, game);
             if (userAlreadyExistsInGame)
@@ -53,7 +54,7 @@ namespace PerudoBot.Modules
             _db.SaveChanges();
         }
 
-        private bool UserAlreadyExistsInGame(string username, Data.Game game)
+        private bool UserAlreadyExistsInGame(string username, Game game)
         {
             var players = GetPlayers(game);
             bool userAlreadyExistsInGame = players.FirstOrDefault(x => x.Username == username) != null;
@@ -65,7 +66,7 @@ namespace PerudoBot.Modules
         {
             var userToAdd = Context.Message.MentionedUsers.First();
 
-            var game = GetGame(SETUP);
+            var game = GetGame(GameState.Setup);
             if (game == null)
             {
                 await SendMessage($"Unable to remove players at this time.");
@@ -80,6 +81,5 @@ namespace PerudoBot.Modules
 
             await SendMessage($"{GetUserNickname(userToAdd.Username)} removed from game.");
         }
-
     }
 }

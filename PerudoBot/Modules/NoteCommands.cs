@@ -9,7 +9,6 @@ namespace PerudoBot.Modules
 {
     public partial class Commands : ModuleBase<SocketCommandContext>
     {
-
         [Command("log")]
         public async Task Log(params string[] stringArray)
         {
@@ -21,17 +20,18 @@ namespace PerudoBot.Modules
         {
             await Notes(stringArray);
         }
+
         [Command("notes")]
         public async Task Notes(params string[] stringArray)
         {
-            var game = GetGame(IN_PROGRESS);
+            var game = GetGame(GameState.InProgress);
 
             if (game == null)
             {
                 var now = DateTime.Now.AddMinutes(-5);
                 game = _db.Games.AsQueryable()
                     .Where(x => x.ChannelId == Context.Channel.Id)
-                    .Where(x => x.State == FINISHED)
+                    .Where(x => x.State == (int)(object)GameState.Finished)
                     .Where(x => x.DateFinished > now)
                     .OrderByDescending(x => x.Id)
 

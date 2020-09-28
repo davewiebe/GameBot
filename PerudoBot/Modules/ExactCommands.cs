@@ -11,13 +11,12 @@ namespace PerudoBot.Modules
 {
     public partial class Commands : ModuleBase<SocketCommandContext>
     {
-
         [Command("exact")]
         public async Task Exact()
         {
-            if (await ValidateState(IN_PROGRESS) == false) return;
+            if (await ValidateState(GameState.InProgress) == false) return;
 
-            var game = GetGame(IN_PROGRESS);
+            var game = GetGame(GameState.InProgress);
 
             //ghost player rejoin
             var ghosts = GetPlayers(game).Where(x => x.NumberOfDice == 0);
@@ -60,13 +59,11 @@ namespace PerudoBot.Modules
                 return;
             }
 
-
             // Cannot be first bid of the round
             var previousBid = GetMostRecentBid(game);
             if (previousBid == null) return;
             if (previousBid.Quantity == 0) return;
             int countOfPips = GetNumberOfDiceMatchingBid(game, previousBid.Pips);
-
 
             _db.Bids.Add(new Bid
             {
@@ -120,7 +117,6 @@ namespace PerudoBot.Modules
                         await DecrementDieFromPlayer(player, game.ExactCallPenalty);
                     }
                 }
-
 
                 await SendRoundSummaryForBots(game);
                 await GetRoundSummary(game);

@@ -22,7 +22,7 @@ namespace PerudoBot.Modules
                     "*01-Sept/2020*\n" +
                     "- Added exactanytime, liaranytime\n" +
                     "- Fixed some bugs\n" +
-                    "\n" + 
+                    "\n" +
                     "**3.Blue.4**\n" +
                     "*26-Aug-20*\n" +
                     "- added variable numbas o'dice\n" +
@@ -43,8 +43,7 @@ namespace PerudoBot.Modules
                     "**1.0**\n" +
                     "*Date unknown*\n" +
                     "- First release! I'll remember this day forever!\n");
-
             }
         }
-    }  
+    }
 }

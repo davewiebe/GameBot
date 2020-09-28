@@ -1,22 +1,16 @@
 ﻿using Discord;
 using Discord.Commands;
-using PerudoBot.Data;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Game = PerudoBot.Data.Game;
 
 namespace PerudoBot.Modules
 {
     public partial class Commands : ModuleBase<SocketCommandContext>
     {
-
-        [Command("options")]
-        public async Task Options(params string[] stringArray)
-        {
-            await Option(stringArray);
-        }
-
         [Command("option")]
+        [Alias("options")]
         public async Task Option(params string[] stringArray)
         {
             if (stringArray.Length == 0)
@@ -75,24 +69,21 @@ namespace PerudoBot.Modules
 
                 if (numberOfDice > 0 && numberOfDice <= 100)
                 {
-                    var game = GetGame(SETUP);
+                    var game = GetGame(GameState.Setup);
 
                     game.NumberOfDice = numberOfDice;
                     _db.SaveChanges();
                 }
                 SetOptions(stringArray.Skip(2).ToArray());
             }
-
             else if (stringArray[0] == "penalty")
             {
                 if (stringArray[1].ToLower() == "variable")
                 {
-
-                    var game = GetGame(SETUP);
+                    var game = GetGame(GameState.Setup);
 
                     game.Penalty = 0;
                     _db.SaveChanges();
-
                 }
                 else
                 {
@@ -100,7 +91,7 @@ namespace PerudoBot.Modules
 
                     if (numberOfDice > 0 && numberOfDice <= 100)
                     {
-                        var game = GetGame(SETUP);
+                        var game = GetGame(GameState.Setup);
 
                         game.Penalty = numberOfDice;
                         _db.SaveChanges();
@@ -108,10 +99,9 @@ namespace PerudoBot.Modules
                 }
                 SetOptions(stringArray.Skip(2).ToArray());
             }
-
             else if (stringArray[0] == "randomized")
             {
-                var game = GetGame(SETUP);
+                var game = GetGame(GameState.Setup);
 
                 game.RandomizeBetweenRounds = true;
                 _db.SaveChanges();
@@ -120,7 +110,7 @@ namespace PerudoBot.Modules
             }
             else if (stringArray[0] == "ghostexact")
             {
-                var game = GetGame(SETUP);
+                var game = GetGame(GameState.Setup);
 
                 game.CanCallExactToJoinAgain = true;
                 _db.SaveChanges();
@@ -129,7 +119,7 @@ namespace PerudoBot.Modules
             }
             else if (stringArray[0] == "noghostexact")
             {
-                var game = GetGame(SETUP);
+                var game = GetGame(GameState.Setup);
 
                 game.CanCallExactToJoinAgain = false;
                 _db.SaveChanges();
@@ -139,7 +129,7 @@ namespace PerudoBot.Modules
 
             else if (stringArray[0] == "ordered")
             {
-                var game = GetGame(SETUP);
+                var game = GetGame(GameState.Setup);
 
                 game.RandomizeBetweenRounds = false;
                 _db.SaveChanges();
@@ -148,7 +138,7 @@ namespace PerudoBot.Modules
             }
             else if (stringArray[0] == "ranked")
             {
-                var game = GetGame(SETUP);
+                var game = GetGame(GameState.Setup);
 
                 game.IsRanked = true;
                 _db.SaveChanges();
@@ -157,7 +147,7 @@ namespace PerudoBot.Modules
             }
             else if (stringArray[0] == "unranked")
             {
-                var game = GetGame(SETUP);
+                var game = GetGame(GameState.Setup);
 
                 game.IsRanked = false;
                 _db.SaveChanges();
@@ -166,7 +156,7 @@ namespace PerudoBot.Modules
             }
             else if (stringArray[0] == "palifico")
             {
-                var game = GetGame(SETUP);
+                var game = GetGame(GameState.Setup);
 
                 game.Palifico = true;
                 _db.SaveChanges();
@@ -175,7 +165,7 @@ namespace PerudoBot.Modules
             }
             else if (stringArray[0] == "nopalifico")
             {
-                var game = GetGame(SETUP);
+                var game = GetGame(GameState.Setup);
 
                 game.Palifico = false;
                 _db.SaveChanges();
@@ -184,7 +174,7 @@ namespace PerudoBot.Modules
             }
             else if (stringArray[0] == "faceoff")
             {
-                var game = GetGame(SETUP);
+                var game = GetGame(GameState.Setup);
 
                 game.FaceoffEnabled = true;
                 _db.SaveChanges();
@@ -193,7 +183,7 @@ namespace PerudoBot.Modules
             }
             else if (stringArray[0] == "nofaceoff")
             {
-                var game = GetGame(SETUP);
+                var game = GetGame(GameState.Setup);
 
                 game.FaceoffEnabled = false;
                 _db.SaveChanges();
@@ -202,7 +192,7 @@ namespace PerudoBot.Modules
             }
             else if (stringArray[0] == "nowild" || stringArray[0] == "nowilds")
             {
-                var game = GetGame(SETUP);
+                var game = GetGame(GameState.Setup);
 
                 game.WildsEnabled = false;
                 _db.SaveChanges();
@@ -211,17 +201,16 @@ namespace PerudoBot.Modules
             }
             else if (stringArray[0] == "wild" || stringArray[0] == "wilds")
             {
-                var game = GetGame(SETUP);
+                var game = GetGame(GameState.Setup);
 
                 game.WildsEnabled = true;
                 _db.SaveChanges();
 
                 SetOptions(stringArray.Skip(1).ToArray());
             }
-
             else if (stringArray[0] == "bidanytime")
             {
-                var game = GetGame(SETUP);
+                var game = GetGame(GameState.Setup);
 
                 game.CanBidAnytime = true;
                 _db.SaveChanges();
@@ -230,7 +219,7 @@ namespace PerudoBot.Modules
             }
             else if (stringArray[0] == "nobidanytime")
             {
-                var game = GetGame(SETUP);
+                var game = GetGame(GameState.Setup);
 
                 game.CanBidAnytime = false;
                 _db.SaveChanges();
@@ -239,7 +228,7 @@ namespace PerudoBot.Modules
             }
             else if (stringArray[0] == "exactanytime")
             {
-                var game = GetGame(SETUP);
+                var game = GetGame(GameState.Setup);
 
                 game.CanCallExactAnytime = true;
                 _db.SaveChanges();
@@ -248,7 +237,7 @@ namespace PerudoBot.Modules
             }
             else if (stringArray[0] == "noexactanytime")
             {
-                var game = GetGame(SETUP);
+                var game = GetGame(GameState.Setup);
                 game.ExactCallBonus = 0;
                 game.ExactCallPenalty = 0;
                 game.CanCallExactAnytime = false;
@@ -256,10 +245,9 @@ namespace PerudoBot.Modules
 
                 SetOptions(stringArray.Skip(1).ToArray());
             }
-
             else if (stringArray[0] == "liaranytime")
             {
-                var game = GetGame(SETUP);
+                var game = GetGame(GameState.Setup);
 
                 game.CanCallLiarAnytime = true;
                 _db.SaveChanges();
@@ -268,17 +256,16 @@ namespace PerudoBot.Modules
             }
             else if (stringArray[0] == "noliaranytime")
             {
-                var game = GetGame(SETUP);
+                var game = GetGame(GameState.Setup);
 
                 game.CanCallLiarAnytime = false;
                 _db.SaveChanges();
 
                 SetOptions(stringArray.Skip(1).ToArray());
             }
-
             else if (stringArray[0] == "exact")
             {
-                var game = GetGame(SETUP);
+                var game = GetGame(GameState.Setup);
 
                 var exactCallerBonus = int.Parse(stringArray[1]);
                 var exactOthersPenalty = int.Parse(stringArray[2]);
@@ -291,7 +278,6 @@ namespace PerudoBot.Modules
                     _db.SaveChanges();
                 }
 
-
                 SetOptions(stringArray.Skip(3).ToArray());
             }
             else
@@ -300,7 +286,7 @@ namespace PerudoBot.Modules
             }
         }
 
-        public List<string> GetOptions(Data.Game game)
+        public List<string> GetOptions(Game game)
         {
             var options = new List<string>();
 

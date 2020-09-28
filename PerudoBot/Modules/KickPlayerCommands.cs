@@ -1,7 +1,4 @@
 ﻿using Discord.Commands;
-using Discord.WebSocket;
-using Npgsql.TypeHandlers.DateTimeHandlers;
-using PerudoBot.Data;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,7 +10,7 @@ namespace PerudoBot.Modules
         [Command("kick", RunMode = RunMode.Async)]
         public async Task KickUserFromGame(params string[] stringArray)
         {
-            var game = GetGame(IN_PROGRESS);
+            var game = GetGame(GameState.InProgress);
 
             var userToKick = Context.Message.MentionedUsers.Single();
             var player = GetPlayers(game).Where(x => x.NumberOfDice > 0).Where(x => x.Username == userToKick.Username).Single();
@@ -40,7 +37,6 @@ namespace PerudoBot.Modules
             await SendMessage($"{GetUserNickname(userToKick.Username)} has been kicked.");
 
             Thread.Sleep(6000);
-
 
             await SendMessage($"LOL JK.");
             Thread.Sleep(2000);
