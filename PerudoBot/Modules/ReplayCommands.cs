@@ -49,7 +49,8 @@ namespace PerudoBot.Modules
                 Palifico = lastGame.Palifico,
                 IsRanked = lastGame.IsRanked,
                 GuildId = Context.Guild.Id,
-                FaceoffEnabled = lastGame.FaceoffEnabled
+                FaceoffEnabled = lastGame.FaceoffEnabled,
+                CanCallExactToJoinAgain = lastGame.CanCallExactToJoinAgain
             });
             _db.SaveChanges();
 
