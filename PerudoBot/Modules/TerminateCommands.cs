@@ -13,13 +13,14 @@ namespace PerudoBot.Modules
             if (game != null)
             {
                 game.State = (int)GameState.Terminated;
+                _db.SaveChanges();
                 await SendMessage("I'll be back.");
                 return;
             }
 
             await SendMessage("No games to terminate.");
 
-            _db.SaveChanges();
+
         }
     }
 }
