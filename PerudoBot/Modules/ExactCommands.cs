@@ -133,6 +133,7 @@ namespace PerudoBot.Modules
 
                 await SendRoundSummaryForBots(game);
                 await GetRoundSummary(game);
+                await CheckGhostAttempts(game);
 
                 await DecrementDieFromPlayerAndSetThierTurnAsync(game, biddingPlayer, penalty);
             }
@@ -140,6 +141,5 @@ namespace PerudoBot.Modules
             Thread.Sleep(4000);
             await RollDiceStartNewRound(game);
         }
-
     }
 }

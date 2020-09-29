@@ -84,6 +84,7 @@ namespace PerudoBot.Modules
                 await SendRoundSummaryForBots(game);
                 await GetRoundSummary(game);
                 await DecrementDieFromPlayerAndSetThierTurnAsync(game, biddingPlayer, penalty);
+                await CheckGhostAttempts(game);
             }
             else
             {
@@ -95,6 +96,7 @@ namespace PerudoBot.Modules
                 await SendRoundSummaryForBots(game);
                 await GetRoundSummary(game);
                 await DecrementDieFromPlayerAndSetThierTurnAsync(game, previousBid.Player, penalty);
+                await CheckGhostAttempts(game);
             }
 
             Thread.Sleep(4000);
