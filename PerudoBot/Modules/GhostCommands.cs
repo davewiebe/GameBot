@@ -25,6 +25,13 @@ namespace PerudoBot.Modules
 
                     await SendMessage($"A wild {GetUserNickname(ghost.Username)} appeared!");
                 }
+                else if(ghost.GhostAttemptQuantity > 0)
+                {
+                    ghost.GhostAttemptsLeft = -1;
+                    _db.SaveChanges();
+
+                    await SendMessage($"{GetUserNickname(ghost.Username)} fled.");
+                }
             }
         }
     }
