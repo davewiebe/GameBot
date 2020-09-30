@@ -1,5 +1,6 @@
 ﻿using Discord.Commands;
 using PerudoBot.Services;
+using System.Threading.Tasks;
 
 namespace PerudoBot.Modules
 {
@@ -10,6 +11,12 @@ namespace PerudoBot.Modules
         public Commands(AudioService service)
         {
             _audioService = service;
+        }
+
+        [Command("add")]
+        public async Task AddPlayer()
+        {
+
         }
     }
 }

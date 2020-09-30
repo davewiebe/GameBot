@@ -17,6 +17,10 @@ namespace PerudoBot.Modules
 
             var game = GetGame(GameState.InProgress);
 
+            var previousBid = GetMostRecentBid(game);
+            if (previousBid == null) return;
+            if (previousBid.Quantity == 0) return;
+
             if (game.CanCallLiarAnytime)
             {
                 var player = _db.Players.AsQueryable().Where(x => x.GameId == game.Id).OrderBy(x => x.TurnOrder)
@@ -79,6 +83,7 @@ namespace PerudoBot.Modules
                 await SendRoundSummaryForBots(game);
                 await GetRoundSummary(game);
                 await DecrementDieFromPlayerAndSetThierTurnAsync(game, biddingPlayer, penalty);
+                await CheckGhostAttempts(game);
             }
             else
             {
@@ -91,6 +96,7 @@ namespace PerudoBot.Modules
                 await SendRoundSummaryForBots(game);
                 await GetRoundSummary(game);
                 await DecrementDieFromPlayerAndSetThierTurnAsync(game, previousBid.Player, penalty);
+                await CheckGhostAttempts(game);
             }
 
             _db.Actions.Add(liarCall);

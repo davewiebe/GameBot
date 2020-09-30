@@ -55,6 +55,7 @@ namespace PerudoBot.Modules
         {
             player.NumberOfDice -= penalty;
 
+            var game = GetGame(GameState.InProgress);
             if (player.NumberOfDice < 0) player.NumberOfDice = 0;
 
             if (player.NumberOfDice <= 0)
@@ -65,18 +66,21 @@ namespace PerudoBot.Modules
                 {
                     await SendMessage(deathrattle.Deathrattle);
                 }
-                if (GetGame(GameState.InProgress).CanCallExactToJoinAgain)
+
+                if (game.CanCallExactToJoinAgain)
                 {
-                    if (player.GhostAttemptsLeft != -1)
+                    if (GetPlayers(game).Where(x => x.NumberOfDice > 0).Count() > 2)
                     {
-                        player.GhostAttemptsLeft = 1;
-                        _db.SaveChanges();
-                        await SendMessage($"{GetUserNickname(player.Username)} you have 1 attempt at an `!exact` call to win your way back into the game while there's more than 2 players left.");
+                        if (player.GhostAttemptsLeft != -1)
+                        {
+                            player.GhostAttemptsLeft = 1;
+                            _db.SaveChanges();
+                            await SendMessage($"{GetUserNickname(player.Username)} you have 1 attempt at an `!exact` call to win your way back into the game while there's more than 2 players left.");
+                        }
                     }
                 }
             }
 
-            var game = GetGame(GameState.InProgress);
             if (player.NumberOfDice == 1 && game.Palifico)
             {
                 game.NextRoundIsPalifico = true;
@@ -114,11 +118,14 @@ namespace PerudoBot.Modules
 
                 if (game.CanCallExactToJoinAgain)
                 {
-                    if (player.GhostAttemptsLeft != -1)
+                    if (GetPlayers(game).Where(x => x.NumberOfDice > 0).Count() > 2)
                     {
-                        player.GhostAttemptsLeft = 1;
-                        _db.SaveChanges();
-                        await SendMessage($"{GetUserNickname(player.Username)} you have 1 attempt at an `!exact` call to win your way back into the game while there's more than 2 players left.");
+                        if (player.GhostAttemptsLeft != -1)
+                        {
+                            player.GhostAttemptsLeft = 1;
+                            _db.SaveChanges();
+                            await SendMessage($"{GetUserNickname(player.Username)} you have 1 attempt at an `!exact` call to win your way back into the game while there's more than 2 players left.");
+                        }
                     }
                 }
 
@@ -162,7 +169,7 @@ namespace PerudoBot.Modules
             var playerIds = _db.Players
                 .AsQueryable()
                 .Where(x => x.GameId == game.Id)
-                .Where(x => x.NumberOfDice > 0)
+                .Where(x => x.NumberOfDice > 0 || x.Username == currentPlayer.Username) // in case the current user is eliminated and won't show up
                 .OrderBy(x => x.TurnOrder)
                 .Select(x => x.Id)
                 .ToList();

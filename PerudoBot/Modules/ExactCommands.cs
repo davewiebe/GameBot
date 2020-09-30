@@ -23,7 +23,7 @@ namespace PerudoBot.Modules
             var ghostPlayer = ghosts.SingleOrDefault(x => x.Username == Context.User.Username);
             if (ghostPlayer != null)
             {
-                if (GetPlayers(game).Count == 2) return;
+                if (GetPlayers(game).Where(x => x.NumberOfDice > 0).Count() == 2) return;
                 if (ghostPlayer.GhostAttemptsLeft > 0)
                 {
                     var lastBuid = GetMostRecentBid(game);
@@ -32,12 +32,17 @@ namespace PerudoBot.Modules
 
                     ghostPlayer.GhostAttemptQuantity = lastBuid.Quantity;
                     ghostPlayer.GhostAttemptPips = lastBuid.Pips;
-                    ghostPlayer.GhostAttemptsLeft -= 1;
                     _db.SaveChanges();
                     await SendMessage($"{GetUserNickname(Context.User.Username)}'s exact attempt has been recorded. Good luck.");
                 }
             }
 
+
+            // Cannot be first bid of the round
+            var previousBid = GetMostRecentBid(game);
+            if (previousBid == null) return;
+            if (previousBid.Quantity == 0) return;
+            int countOfPips = GetNumberOfDiceMatchingBid(game, previousBid.Pips);
 
 
             var originalBiddingPlayer = GetCurrentPlayer(game);
@@ -59,11 +64,6 @@ namespace PerudoBot.Modules
                 return;
             }
 
-            // Cannot be first bid of the round
-            var previousBid = GetMostRecentBid(game);
-            if (previousBid == null) return;
-            if (previousBid.Quantity == 0) return;
-            int countOfPips = GetNumberOfDiceMatchingBid(game, previousBid.Pips);
 
             _db.Actions.Add(new ExactCall
             {
@@ -127,6 +127,7 @@ namespace PerudoBot.Modules
 
                 await SendRoundSummaryForBots(game);
                 await GetRoundSummary(game);
+                await CheckGhostAttempts(game);
 
                 await DecrementDieFromPlayerAndSetThierTurnAsync(game, biddingPlayer, penalty);
             }
@@ -134,6 +135,5 @@ namespace PerudoBot.Modules
             Thread.Sleep(4000);
             await RollDiceStartNewRound(game);
         }
-
     }
 }
