@@ -3,17 +3,22 @@ using Discord.Commands;
 using PerudoBot.Data;
 using System.Linq;
 using System.Threading.Tasks;
+using PerudoBot.Services;
 using Game = PerudoBot.Data.Game;
+using System;
 
 namespace PerudoBot.Modules
 {
     public partial class Commands : ModuleBase<SocketCommandContext>
     {
         private readonly GameBotDbContext _db;
+        private readonly PerudoGameService _perudoGameService;
 
         public Commands()
         {
+            //TODO: Let DI handle instantiation
             _db = new GameBotDbContext();
+            _perudoGameService = new PerudoGameService(_db);
         }
 
         private async Task SendMessage(string message, bool isTTS = false)
@@ -58,6 +63,18 @@ namespace PerudoBot.Modules
                 .Where(x => x.ChannelId == Context.Channel.Id)
                 .Where(x => gameStateIds.Contains(x.State))
                 .SingleOrDefault();
+        }
+
+        private void RemoveUserCommand()
+        {
+            try
+            {
+                _ = Context.Message.DeleteAsync();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
         }
     }
 }

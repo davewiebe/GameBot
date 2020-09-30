@@ -7,19 +7,17 @@ namespace PerudoBot.Modules
     {
         [Command("terminate")]
         public async Task Terminate()
-        {
-            var game = GetGame(GameState.InProgress, GameState.Setup);
+        {            
+            var game = GetGame(GameState.Setup, GameState.InProgress);
 
             if (game != null)
             {
-                game.State = (int)GameState.Terminated;
-                _db.SaveChanges();
+                await _perudoGameService.TerminateGame(game.Id);
                 await SendMessage("I'll be back.");
                 return;
             }
 
             await SendMessage("No games to terminate.");
-
 
         }
     }

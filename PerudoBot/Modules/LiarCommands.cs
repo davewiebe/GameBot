@@ -1,6 +1,7 @@
 ﻿using Discord.Commands;
 using PerudoBot.Data;
 using PerudoBot.Extensions;
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -37,21 +38,14 @@ namespace PerudoBot.Modules
             if (previousBid == null) return;
             if (previousBid.Quantity == 0) return;
 
-            _db.Bids.Add(new Bid
+            var liarCall = new LiarCall()
             {
                 PlayerId = biddingPlayer.Id,
-                Call = "liar",
-                GameId = game.Id
-            });
-            _db.SaveChanges();
+                Game = game,
+                ParentAction = previousBid
+            };
 
-            try
-            {
-                _ = Context.Message.DeleteAsync();
-            }
-            catch
-            {
-            }
+            RemoveUserCommand();
 
             var biddingObject = previousBid.Pips.GetEmoji();
             var biddingName = "dice";
@@ -67,6 +61,7 @@ namespace PerudoBot.Modules
             int countOfPips = GetNumberOfDiceMatchingBid(game, previousBid.Pips);
             if (countOfPips >= previousBid.Quantity)
             {
+                liarCall.IsSuccess = false;
                 var penalty = (countOfPips - previousBid.Quantity) + 1;
                 if (game.Penalty != 0) penalty = game.Penalty;
 
@@ -87,6 +82,7 @@ namespace PerudoBot.Modules
             }
             else
             {
+                liarCall.IsSuccess = true;
                 var penalty = previousBid.Quantity - countOfPips;
                 if (game.Penalty != 0) penalty = game.Penalty;
 
@@ -96,6 +92,9 @@ namespace PerudoBot.Modules
                 await GetRoundSummary(game);
                 await DecrementDieFromPlayerAndSetThierTurnAsync(game, previousBid.Player, penalty);
             }
+
+            _db.Actions.Add(liarCall);
+            _db.SaveChanges();
 
             Thread.Sleep(4000);
             await RollDiceStartNewRound(game);

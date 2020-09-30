@@ -32,5 +32,7 @@ namespace PerudoBot.Data
         public DateTime DateFinished { get; internal set; }
         public bool CanCallExactToJoinAgain { get; internal set; }
         public ulong StatusMessage { get; internal set; }
+
+        public virtual ICollection<Action> Actions { get; set; }
     }
 }

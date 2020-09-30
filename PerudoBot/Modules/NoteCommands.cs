@@ -46,13 +46,7 @@ namespace PerudoBot.Modules
                 return;
             }
 
-            try
-            {
-                _ = Context.Message.DeleteAsync();
-            }
-            catch
-            {
-            }
+            RemoveUserCommand();
 
             _db.Notes.Add(new Note
             {

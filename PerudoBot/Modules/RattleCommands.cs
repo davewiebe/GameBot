@@ -32,11 +32,7 @@ namespace PerudoBot.Modules
         public async Task Deathrattle(params string[] stringArray)
         {
             var username = Context.Message.Author.Username;
-            try
-            {
-                _ = Context.Message.DeleteAsync();
-            }
-            catch { }
+            RemoveUserCommand();
 
             // get current deathrattle
             var currentDr = _db.Rattles.SingleOrDefault(x => x.Username == username);
@@ -62,11 +58,7 @@ namespace PerudoBot.Modules
         public async Task Winrattle(params string[] stringArray)
         {
             var username = Context.Message.Author.Username;
-            try
-            {
-                _ = Context.Message.DeleteAsync();
-            }
-            catch { }
+            RemoveUserCommand();
 
             var currentDr = _db.Rattles.SingleOrDefault(x => x.Username == username);
             if (currentDr == null)
@@ -90,11 +82,7 @@ namespace PerudoBot.Modules
         public async Task Tauntrattle(params string[] stringArray)
         {
             var username = Context.Message.Author.Username;
-            try
-            {
-                _ = Context.Message.DeleteAsync();
-            }
-            catch { }
+            RemoveUserCommand();
 
             var currentDr = _db.Rattles.SingleOrDefault(x => x.Username == username);
             if (currentDr == null)

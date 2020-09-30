@@ -52,7 +52,6 @@ namespace PerudoBot.Modules
 
             var bid = new Bid
             {
-                Call = "",
                 Pips = 0,
                 Quantity = quantity,
                 PlayerId = biddingPlayer.Id,
@@ -64,20 +63,14 @@ namespace PerudoBot.Modules
             /// TODO: Add Exact bid too
             /// TODO: Add Liar bid too
             ///
-            _db.Bids.Add(bid);
+            _db.Actions.Add(bid);
             _db.SaveChanges();
 
             SetNextPlayer(game, biddingPlayer);
 
             var nextPlayer = GetCurrentPlayer(game);
 
-            try
-            {
-                _ = Context.Message.DeleteAsync();
-            }
-            catch
-            {
-            }
+            RemoveUserCommand();
             var bidderNickname = GetUserNickname(biddingPlayer.Username);
             var nextPlayerMention = GetUser(nextPlayer.Username).Mention;
 
@@ -105,11 +98,11 @@ namespace PerudoBot.Modules
 
             var bid = new Bid
             {
-                Call = "",
                 Pips = pips,
                 Quantity = quantity,
                 Player = biddingPlayer,
-                GameId = game.Id
+                GameId = game.Id,
+                IsSuccess = true
             };
 
             if (await VerifyBid(bid) == false) return;
@@ -141,34 +134,28 @@ namespace PerudoBot.Modules
             }
 
             _db.Bids.Add(bid);
+
             _db.SaveChanges();
 
             SetNextPlayer(game, biddingPlayer);
 
             var nextPlayer = GetCurrentPlayer(game);
 
-            try
-            {
-                _ = Context.Message.DeleteAsync();
-            }
-            catch
-            {
-            }
+            RemoveUserCommand();
             var bidderNickname = GetUserNickname(biddingPlayer.Username);
             var nextPlayerMention = GetUser(nextPlayer.Username).Mention;
 
             var userMessage = $"{ bidderNickname } bids `{ quantity}` ˣ { pips.GetEmoji()}. { nextPlayerMention } is up.";
 
-            var botMessage = new
-            {
-                U = bidderNickname,
-                P = pips,
-                Q = quantity
-            };
-
             if (AreBotsInGame(game))
             {
-                await SendMessage($"{userMessage} ||{JsonConvert.SerializeObject(botMessage)}||");
+                var botMessage = new
+                {
+                    U = bidderNickname,
+                    P = pips,
+                    Q = quantity
+                };
+                await SendMessage($"{userMessage} || {JsonConvert.SerializeObject(botMessage)}||");
             }
             else
             {
@@ -179,7 +166,7 @@ namespace PerudoBot.Modules
         private async Task<bool> VerifyBid(Bid bid)
         {
             var game = GetGame(GameState.InProgress);
-            Bid mostRecentBid = GetMostRecentBid(game);
+            var mostRecentBid = GetMostRecentBid(game);
 
             var players = GetPlayers(game);
 
@@ -238,7 +225,7 @@ namespace PerudoBot.Modules
                 return true;
             }
 
-            if (mostRecentBid.Call != "")
+            if (mostRecentBid is Bid)
             {
                 if (bid.Pips == 1)
                 {
@@ -272,19 +259,9 @@ namespace PerudoBot.Modules
             if (bid.Pips == 1 && mostRecentBid.Pips != 1)
             {
                 var prevRoundId = 0;
-                var prevRound = _db.Bids.AsQueryable().Where(x => x.Call != "").ToList().LastOrDefault();
+                var prevRound = _db.Bids.AsQueryable().ToList().LastOrDefault();
 
                 if (prevRound != null) prevRoundId = prevRound.Id;
-
-                // Removed this. Apparently not in the rules
-                //var hasGoneToOnesAlready = _db.Bids.AsQueryable()
-                //    .Where(x => x.Id > prevRoundId)
-                //    .Where(x => x.GameId == game.Id).Where(x => x.Pips == 1).Any();
-                //if (hasGoneToOnesAlready)
-                //{
-                //    await SendMessage("Cannot switch to wilds more than once a round.");
-                //    return false;
-                //}
 
                 if (bid.Quantity * 2 <= mostRecentBid.Quantity)
                 {

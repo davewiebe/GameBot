@@ -65,21 +65,15 @@ namespace PerudoBot.Modules
             if (previousBid.Quantity == 0) return;
             int countOfPips = GetNumberOfDiceMatchingBid(game, previousBid.Pips);
 
-            _db.Bids.Add(new Bid
+            _db.Actions.Add(new ExactCall
             {
                 PlayerId = game.PlayerTurnId.Value,
-                Call = "exact",
-                GameId = game.Id
+                GameId = game.Id,
+                ParentActionId = previousBid.Id
             });
             _db.SaveChanges();
 
-            try
-            {
-                _ = Context.Message.DeleteAsync();
-            }
-            catch
-            {
-            }
+            RemoveUserCommand();
 
             var bidObject = previousBid.Pips.GetEmoji();
             var bidName = "dice";

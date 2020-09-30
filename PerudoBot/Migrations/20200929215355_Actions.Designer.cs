@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using PerudoBot.Data;
@@ -9,9 +10,10 @@ using PerudoBot.Data;
 namespace PerudoBot.Migrations
 {
     [DbContext(typeof(GameBotDbContext))]
-    partial class GameBotDbContextModelSnapshot : ModelSnapshot
+    [Migration("20200929215355_Actions")]
+    partial class Actions
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -33,10 +35,6 @@ namespace PerudoBot.Migrations
                     b.Property<int>("GameId")
                         .HasColumnType("integer");
 
-                    b.Property<bool>("IsSuccess")
-                        .HasColumnName("IsSuccess")
-                        .HasColumnType("boolean");
-
                     b.Property<int?>("ParentActionId")
                         .HasColumnType("integer");
 
@@ -54,6 +52,35 @@ namespace PerudoBot.Migrations
                     b.ToTable("Actions");
 
                     b.HasDiscriminator<string>("ActionType").HasValue("Action");
+                });
+
+            modelBuilder.Entity("PerudoBot.Data.Bid2", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+
+                    b.Property<string>("Call")
+                        .HasColumnType("text");
+
+                    b.Property<int>("GameId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Pips")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("PlayerId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlayerId");
+
+                    b.ToTable("OldBids");
                 });
 
             modelBuilder.Entity("PerudoBot.Data.BotKey", b =>
@@ -243,6 +270,31 @@ namespace PerudoBot.Migrations
                     b.ToTable("Rattles");
                 });
 
+            modelBuilder.Entity("PerudoBot.Data.TauntLog", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+
+                    b.Property<int>("GameId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("TaunteePlayerId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("TaunterPlayerId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TaunteePlayerId");
+
+                    b.HasIndex("TaunterPlayerId");
+
+                    b.ToTable("TauntLogs");
+                });
+
             modelBuilder.Entity("PerudoBot.Data.Bid", b =>
                 {
                     b.HasBaseType("PerudoBot.Data.Action");
@@ -260,12 +312,20 @@ namespace PerudoBot.Migrations
                 {
                     b.HasBaseType("PerudoBot.Data.Action");
 
+                    b.Property<bool>("IsSuccess")
+                        .HasColumnName("IsSuccess")
+                        .HasColumnType("boolean");
+
                     b.HasDiscriminator().HasValue("ExactCall");
                 });
 
             modelBuilder.Entity("PerudoBot.Data.LiarCall", b =>
                 {
                     b.HasBaseType("PerudoBot.Data.Action");
+
+                    b.Property<bool>("IsSuccess")
+                        .HasColumnName("IsSuccess")
+                        .HasColumnType("boolean");
 
                     b.HasDiscriminator().HasValue("LiarCall");
                 });
@@ -289,6 +349,15 @@ namespace PerudoBot.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("PerudoBot.Data.Bid2", b =>
+                {
+                    b.HasOne("PerudoBot.Data.Player", "Player")
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("PerudoBot.Data.Note", b =>
                 {
                     b.HasOne("PerudoBot.Data.Game", "Game")
@@ -303,6 +372,21 @@ namespace PerudoBot.Migrations
                     b.HasOne("PerudoBot.Data.Game", "Game")
                         .WithMany()
                         .HasForeignKey("GameId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("PerudoBot.Data.TauntLog", b =>
+                {
+                    b.HasOne("PerudoBot.Data.Player", "Tauntee")
+                        .WithMany()
+                        .HasForeignKey("TaunteePlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("PerudoBot.Data.Player", "Taunter")
+                        .WithMany()
+                        .HasForeignKey("TaunterPlayerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

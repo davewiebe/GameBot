@@ -17,8 +17,27 @@ namespace PerudoBot.Data
         public DbSet<Rattle> Rattles { get; set; }
         public DbSet<Note> Notes { get; set; }
         public DbSet<Player> Players { get; set; }
-        public DbSet<Bid> Bids { get; set; }
         public DbSet<BotKey> BotKeys { get; set; }
+        public DbSet<Action> Actions { get; set; }
+        public DbSet<Bid> Bids { get; set; }
+        public DbSet<LiarCall> LiarCalls { get; set; }
+        public DbSet<ExactCall> ExactCalls { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Action>()
+                .ToTable("Actions")
+                .HasDiscriminator<string>("ActionType");
+
+            modelBuilder.Entity<Bid>()
+                .Property(x => x.IsSuccess).HasColumnName("IsSuccess");
+
+            modelBuilder.Entity<LiarCall>()
+                .Property(x => x.IsSuccess).HasColumnName("IsSuccess");
+
+            modelBuilder.Entity<ExactCall>()
+                .Property(x => x.IsSuccess).HasColumnName("IsSuccess");
+        }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
