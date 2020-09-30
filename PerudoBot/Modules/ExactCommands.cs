@@ -39,6 +39,12 @@ namespace PerudoBot.Modules
             }
 
 
+            // Cannot be first bid of the round
+            var previousBid = GetMostRecentBid(game);
+            if (previousBid == null) return;
+            if (previousBid.Quantity == 0) return;
+            int countOfPips = GetNumberOfDiceMatchingBid(game, previousBid.Pips);
+
 
             var originalBiddingPlayer = GetCurrentPlayer(game);
             if (game.CanCallExactAnytime)
@@ -59,11 +65,6 @@ namespace PerudoBot.Modules
                 return;
             }
 
-            // Cannot be first bid of the round
-            var previousBid = GetMostRecentBid(game);
-            if (previousBid == null) return;
-            if (previousBid.Quantity == 0) return;
-            int countOfPips = GetNumberOfDiceMatchingBid(game, previousBid.Pips);
 
             _db.Bids.Add(new Bid
             {
