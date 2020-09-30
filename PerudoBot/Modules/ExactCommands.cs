@@ -23,7 +23,7 @@ namespace PerudoBot.Modules
             var ghostPlayer = ghosts.SingleOrDefault(x => x.Username == Context.User.Username);
             if (ghostPlayer != null)
             {
-                if (GetPlayers(game).Count == 2) return;
+                if (GetPlayers(game).Where(x => x.NumberOfDice > 0).Count() == 2) return;
                 if (ghostPlayer.GhostAttemptsLeft > 0)
                 {
                     var lastBuid = GetMostRecentBid(game);
@@ -32,7 +32,6 @@ namespace PerudoBot.Modules
 
                     ghostPlayer.GhostAttemptQuantity = lastBuid.Quantity;
                     ghostPlayer.GhostAttemptPips = lastBuid.Pips;
-                    ghostPlayer.GhostAttemptsLeft -= 1;
                     _db.SaveChanges();
                     await SendMessage($"{GetUserNickname(Context.User.Username)}'s exact attempt has been recorded. Good luck.");
                 }
