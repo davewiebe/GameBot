@@ -35,7 +35,7 @@ namespace PerudoBot.Modules
             var tenor = new TenorClient(_tenorToken);
             tenor.SetContentFilter(TenorSharp.Enums.ContentFilter.high);
             GifObject[] gifs = new GifObject[0];
-            var range = 50;
+            var range = 20;
             while (range > 1)
             {
                 try
