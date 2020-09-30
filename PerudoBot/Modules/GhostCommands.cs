@@ -16,7 +16,9 @@ namespace PerudoBot.Modules
 
             foreach (var ghost in ghosts)
             {
+                if (ghost.GhostAttemptPips == 0) continue;
                 var quantity = GetNumberOfDiceMatchingBid(game, ghost.GhostAttemptPips);
+                
                 if (quantity == ghost.GhostAttemptQuantity)
                 {
                     ghost.GhostAttemptsLeft = -1;

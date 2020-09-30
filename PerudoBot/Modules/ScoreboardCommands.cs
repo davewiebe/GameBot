@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -17,12 +18,13 @@ namespace PerudoBot.Modules
                 .Where(x => x.Game.IsRanked)
                 .Where(x => x.Game.GuildId == guildId)
                 .Where(x => x.Game.State == (int)(object)GameState.Finished)
+                .Where(x => x.Game.Winner != null)
                 .Include(x => x.Game.Notes)
                 .OrderBy(x => x.Game.DateCreated)
                 .ToList();
 
-            var players = players1
-                .GroupBy(x => x.Game);
+           var players = players1
+                .GroupBy(x => x.Game).ToList();
 
             var skipNumber = 0;
             var page = 1;
@@ -54,6 +56,8 @@ namespace PerudoBot.Modules
                 }
                 var nonWinnerList = string.Join(", ", item.Where(x => x.Username != item.Key.Winner).Select(x => GetUserNickname(x.Username)));
                 monk.Add($"`{index.ToString("D2")}. {item.Key.DateCreated:yyyy-MM-dd}` :trophy: **{GetUserNickname(item.Key.Winner)}**, {nonWinnerList}");
+
+
                 index += 1;
 
                 if (i > -1)
