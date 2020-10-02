@@ -11,7 +11,7 @@ namespace PerudoBot.Modules
         [Command("rattles")]
         public async Task Rattles()
         {
-            await SendMessage("Set your rattles with `!deathrattle`, `!winrattle`, and `!tauntrattle`.\nI've PM'd you your rattles.");
+            await SendMessageAsync("Set your rattles with `!deathrattle`, `!winrattle`, and `!tauntrattle`.\nI've PM'd you your rattles.");
 
             var user = Context.Message.Author;
 
@@ -32,7 +32,7 @@ namespace PerudoBot.Modules
         public async Task Deathrattle(params string[] stringArray)
         {
             var username = Context.Message.Author.Username;
-            RemoveUserCommand();
+            DeleteCommandFromDiscord();
 
             // get current deathrattle
             var currentDr = _db.Rattles.SingleOrDefault(x => x.Username == username);
@@ -51,14 +51,14 @@ namespace PerudoBot.Modules
                 currentDr.Deathrattle = string.Join(" ", stringArray);
                 _db.SaveChanges();
             }
-            await SendMessage($"{username}'s deathrattle updated.");
+            await SendMessageAsync($"{username}'s deathrattle updated.");
         }
 
         [Command("winrattle")]
         public async Task Winrattle(params string[] stringArray)
         {
             var username = Context.Message.Author.Username;
-            RemoveUserCommand();
+            DeleteCommandFromDiscord();
 
             var currentDr = _db.Rattles.SingleOrDefault(x => x.Username == username);
             if (currentDr == null)
@@ -75,14 +75,14 @@ namespace PerudoBot.Modules
                 currentDr.Winrattle = string.Join(" ", stringArray);
                 _db.SaveChanges();
             }
-            await SendMessage($"{(username)}'s winrattle updated.");
+            await SendMessageAsync($"{(username)}'s winrattle updated.");
         }
 
         [Command("tauntrattle")]
         public async Task Tauntrattle(params string[] stringArray)
         {
             var username = Context.Message.Author.Username;
-            RemoveUserCommand();
+            DeleteCommandFromDiscord();
 
             var currentDr = _db.Rattles.SingleOrDefault(x => x.Username == username);
             if (currentDr == null)
@@ -99,7 +99,7 @@ namespace PerudoBot.Modules
                 currentDr.Tauntrattle = string.Join(" ", stringArray);
                 _db.SaveChanges();
             }
-            await SendMessage($"{(username)}'s tauntrattle updated.");
+            await SendMessageAsync($"{(username)}'s tauntrattle updated.");
         }
     }
 }

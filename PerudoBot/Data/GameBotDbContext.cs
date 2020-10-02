@@ -23,20 +23,30 @@ namespace PerudoBot.Data
         public DbSet<LiarCall> LiarCalls { get; set; }
         public DbSet<ExactCall> ExactCalls { get; set; }
 
+        public DbSet<Round> Rounds { get; set; }
+
+        public DbSet<StandardRound> StandardRounds { get; }
+        public DbSet<PalificoRound> PalificoRounds { get; }
+        public DbSet<FaceoffRound> FaceoffRounds { get; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Action>()
                 .ToTable("Actions")
                 .HasDiscriminator<string>("ActionType");
 
-            modelBuilder.Entity<Bid>()
-                .Property(x => x.IsSuccess).HasColumnName("IsSuccess");
+            modelBuilder.Entity<Round>()
+                .ToTable("Rounds")
+                .HasDiscriminator<string>("RoundType");
 
-            modelBuilder.Entity<LiarCall>()
-                .Property(x => x.IsSuccess).HasColumnName("IsSuccess");
+            //modelBuilder.Entity<Bid>()
+            //    .Property(x => x.IsSuccess).HasColumnName("IsSuccess");
 
-            modelBuilder.Entity<ExactCall>()
-                .Property(x => x.IsSuccess).HasColumnName("IsSuccess");
+            //modelBuilder.Entity<LiarCall>()
+            //    .Property(x => x.IsSuccess).HasColumnName("IsSuccess");
+
+            //modelBuilder.Entity<ExactCall>()
+            //    .Property(x => x.IsSuccess).HasColumnName("IsSuccess");
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -50,6 +60,7 @@ namespace PerudoBot.Data
 
                 var connectionString = configuration.GetConnectionString("GameBotDb");
                 optionsBuilder.UseNpgsql(connectionString);
+                // optionsBuilder.UseSnakeCaseNamingConvention();
             }
         }
     }

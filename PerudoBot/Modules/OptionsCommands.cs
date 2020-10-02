@@ -45,11 +45,11 @@ namespace PerudoBot.Modules
                 return;
             }
 
-            SetOptions(stringArray);
+            await SetOptionsAsync(stringArray);
             await Status();
         }
 
-        private void SetOptions(string[] stringArray)
+        private async Task SetOptionsAsync(string[] stringArray)
         {
             if (stringArray.Length == 0) return;
 
@@ -69,18 +69,18 @@ namespace PerudoBot.Modules
 
                 if (numberOfDice > 0 && numberOfDice <= 100)
                 {
-                    var game = GetGame(GameState.Setup);
+                    var game = await GetGameAsync(GameState.Setup);
 
                     game.NumberOfDice = numberOfDice;
                     _db.SaveChanges();
                 }
-                SetOptions(stringArray.Skip(2).ToArray());
+                await SetOptionsAsync(stringArray.Skip(2).ToArray());
             }
             else if (stringArray[0] == "penalty")
             {
                 if (stringArray[1].ToLower() == "variable")
                 {
-                    var game = GetGame(GameState.Setup);
+                    var game = await GetGameAsync(GameState.Setup);
 
                     game.Penalty = 0;
                     _db.SaveChanges();
@@ -91,181 +91,180 @@ namespace PerudoBot.Modules
 
                     if (numberOfDice > 0 && numberOfDice <= 100)
                     {
-                        var game = GetGame(GameState.Setup);
+                        var game = await GetGameAsync(GameState.Setup);
 
                         game.Penalty = numberOfDice;
                         _db.SaveChanges();
                     }
                 }
-                SetOptions(stringArray.Skip(2).ToArray());
+                await SetOptionsAsync(stringArray.Skip(2).ToArray());
             }
             else if (stringArray[0] == "randomized")
             {
-                var game = GetGame(GameState.Setup);
+                var game = await GetGameAsync(GameState.Setup);
 
                 game.RandomizeBetweenRounds = true;
                 _db.SaveChanges();
 
-                SetOptions(stringArray.Skip(1).ToArray());
+                await SetOptionsAsync(stringArray.Skip(1).ToArray());
             }
             else if (stringArray[0] == "ghostexact")
             {
-                var game = GetGame(GameState.Setup);
+                var game = await GetGameAsync(GameState.Setup);
 
                 game.CanCallExactToJoinAgain = true;
                 _db.SaveChanges();
 
-                SetOptions(stringArray.Skip(1).ToArray());
+                await SetOptionsAsync(stringArray.Skip(1).ToArray());
             }
             else if (stringArray[0] == "noghostexact")
             {
-                var game = GetGame(GameState.Setup);
+                var game = await GetGameAsync(GameState.Setup);
 
                 game.CanCallExactToJoinAgain = false;
                 _db.SaveChanges();
 
-                SetOptions(stringArray.Skip(1).ToArray());
+                await SetOptionsAsync(stringArray.Skip(1).ToArray());
             }
-
             else if (stringArray[0] == "ordered")
             {
-                var game = GetGame(GameState.Setup);
+                var game = await GetGameAsync(GameState.Setup);
 
                 game.RandomizeBetweenRounds = false;
                 _db.SaveChanges();
 
-                SetOptions(stringArray.Skip(1).ToArray());
+                await SetOptionsAsync(stringArray.Skip(1).ToArray());
             }
             else if (stringArray[0] == "ranked")
             {
-                var game = GetGame(GameState.Setup);
+                var game = await GetGameAsync(GameState.Setup);
 
                 game.IsRanked = true;
                 _db.SaveChanges();
 
-                SetOptions(stringArray.Skip(1).ToArray());
+                await SetOptionsAsync(stringArray.Skip(1).ToArray());
             }
             else if (stringArray[0] == "unranked")
             {
-                var game = GetGame(GameState.Setup);
+                var game = await GetGameAsync(GameState.Setup);
 
                 game.IsRanked = false;
                 _db.SaveChanges();
 
-                SetOptions(stringArray.Skip(1).ToArray());
+                await SetOptionsAsync(stringArray.Skip(1).ToArray());
             }
             else if (stringArray[0] == "palifico")
             {
-                var game = GetGame(GameState.Setup);
+                var game = await GetGameAsync(GameState.Setup);
 
                 game.Palifico = true;
                 _db.SaveChanges();
 
-                SetOptions(stringArray.Skip(1).ToArray());
+                await SetOptionsAsync(stringArray.Skip(1).ToArray());
             }
             else if (stringArray[0] == "nopalifico")
             {
-                var game = GetGame(GameState.Setup);
+                var game = await GetGameAsync(GameState.Setup);
 
                 game.Palifico = false;
                 _db.SaveChanges();
 
-                SetOptions(stringArray.Skip(1).ToArray());
+                await SetOptionsAsync(stringArray.Skip(1).ToArray());
             }
             else if (stringArray[0] == "faceoff")
             {
-                var game = GetGame(GameState.Setup);
+                var game = await GetGameAsync(GameState.Setup);
 
                 game.FaceoffEnabled = true;
                 _db.SaveChanges();
 
-                SetOptions(stringArray.Skip(1).ToArray());
+                await SetOptionsAsync(stringArray.Skip(1).ToArray());
             }
             else if (stringArray[0] == "nofaceoff")
             {
-                var game = GetGame(GameState.Setup);
+                var game = await GetGameAsync(GameState.Setup);
 
                 game.FaceoffEnabled = false;
                 _db.SaveChanges();
 
-                SetOptions(stringArray.Skip(1).ToArray());
+                await SetOptionsAsync(stringArray.Skip(1).ToArray());
             }
             else if (stringArray[0] == "nowild" || stringArray[0] == "nowilds")
             {
-                var game = GetGame(GameState.Setup);
+                var game = await GetGameAsync(GameState.Setup);
 
                 game.WildsEnabled = false;
                 _db.SaveChanges();
 
-                SetOptions(stringArray.Skip(1).ToArray());
+                await SetOptionsAsync(stringArray.Skip(1).ToArray());
             }
             else if (stringArray[0] == "wild" || stringArray[0] == "wilds")
             {
-                var game = GetGame(GameState.Setup);
+                var game = await GetGameAsync(GameState.Setup);
 
                 game.WildsEnabled = true;
                 _db.SaveChanges();
 
-                SetOptions(stringArray.Skip(1).ToArray());
+                await SetOptionsAsync(stringArray.Skip(1).ToArray());
             }
             else if (stringArray[0] == "bidanytime")
             {
-                var game = GetGame(GameState.Setup);
+                var game = await GetGameAsync(GameState.Setup);
 
                 game.CanBidAnytime = true;
                 _db.SaveChanges();
 
-                SetOptions(stringArray.Skip(1).ToArray());
+                await SetOptionsAsync(stringArray.Skip(1).ToArray());
             }
             else if (stringArray[0] == "nobidanytime")
             {
-                var game = GetGame(GameState.Setup);
+                var game = await GetGameAsync(GameState.Setup);
 
                 game.CanBidAnytime = false;
                 _db.SaveChanges();
 
-                SetOptions(stringArray.Skip(1).ToArray());
+                await SetOptionsAsync(stringArray.Skip(1).ToArray());
             }
             else if (stringArray[0] == "exactanytime")
             {
-                var game = GetGame(GameState.Setup);
+                var game = await GetGameAsync(GameState.Setup);
 
                 game.CanCallExactAnytime = true;
                 _db.SaveChanges();
 
-                SetOptions(stringArray.Skip(1).ToArray());
+                await SetOptionsAsync(stringArray.Skip(1).ToArray());
             }
             else if (stringArray[0] == "noexactanytime")
             {
-                var game = GetGame(GameState.Setup);
+                var game = await GetGameAsync(GameState.Setup);
                 game.ExactCallBonus = 0;
                 game.ExactCallPenalty = 0;
                 game.CanCallExactAnytime = false;
                 _db.SaveChanges();
 
-                SetOptions(stringArray.Skip(1).ToArray());
+                await SetOptionsAsync(stringArray.Skip(1).ToArray());
             }
             else if (stringArray[0] == "liaranytime")
             {
-                var game = GetGame(GameState.Setup);
+                var game = await GetGameAsync(GameState.Setup);
 
                 game.CanCallLiarAnytime = true;
                 _db.SaveChanges();
 
-                SetOptions(stringArray.Skip(1).ToArray());
+                await SetOptionsAsync(stringArray.Skip(1).ToArray());
             }
             else if (stringArray[0] == "noliaranytime")
             {
-                var game = GetGame(GameState.Setup);
+                var game = await GetGameAsync(GameState.Setup);
 
                 game.CanCallLiarAnytime = false;
                 _db.SaveChanges();
 
-                SetOptions(stringArray.Skip(1).ToArray());
+                await SetOptionsAsync(stringArray.Skip(1).ToArray());
             }
             else if (stringArray[0] == "exact")
             {
-                var game = GetGame(GameState.Setup);
+                var game = await GetGameAsync(GameState.Setup);
 
                 var exactCallerBonus = int.Parse(stringArray[1]);
                 var exactOthersPenalty = int.Parse(stringArray[2]);
@@ -278,11 +277,11 @@ namespace PerudoBot.Modules
                     _db.SaveChanges();
                 }
 
-                SetOptions(stringArray.Skip(3).ToArray());
+                await SetOptionsAsync(stringArray.Skip(3).ToArray());
             }
             else
             {
-                SetOptions(stringArray.Skip(1).ToArray());
+                await SetOptionsAsync(stringArray.Skip(1).ToArray());
             }
         }
 

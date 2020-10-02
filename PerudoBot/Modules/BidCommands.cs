@@ -13,9 +13,9 @@ namespace PerudoBot.Modules
         [Alias("b")]
         public async Task Bid(params string[] bidText)
         {
-            if (await ValidateState(GameState.InProgress) == false) return;
+            if (await ValidateStateAsync(GameState.InProgress) == false) return;
 
-            var game = GetGame(GameState.InProgress);
+            var game = await GetGameAsync(GameState.InProgress);
 
             var currentPlayer = GetCurrentPlayer(game);
 
@@ -55,7 +55,7 @@ namespace PerudoBot.Modules
                 Pips = 0,
                 Quantity = quantity,
                 PlayerId = biddingPlayer.Id,
-                GameId = game.Id
+                RoundId = game.GetLatestRound().Id
             };
 
             if (await VerifyBid(bid) == false) return;
@@ -70,13 +70,13 @@ namespace PerudoBot.Modules
 
             var nextPlayer = GetCurrentPlayer(game);
 
-            RemoveUserCommand();
+            DeleteCommandFromDiscord();
             var bidderNickname = GetUserNickname(biddingPlayer.Username);
             var nextPlayerMention = GetUser(nextPlayer.Username).Mention;
 
             var userMessage = $"{ bidderNickname } bids `{ quantity}` ˣ :record_button:. { nextPlayerMention } is up.";
 
-            await SendMessage(userMessage);
+            await SendMessageAsync(userMessage);
         }
 
         private async Task HandlePipBid(string[] bidText, Game game, Player biddingPlayer)
@@ -101,7 +101,7 @@ namespace PerudoBot.Modules
                 Pips = pips,
                 Quantity = quantity,
                 Player = biddingPlayer,
-                GameId = game.Id,
+                RoundId = game.GetLatestRound().Id,
                 IsSuccess = true
             };
 
@@ -141,7 +141,7 @@ namespace PerudoBot.Modules
 
             var nextPlayer = GetCurrentPlayer(game);
 
-            RemoveUserCommand();
+            DeleteCommandFromDiscord();
             var bidderNickname = GetUserNickname(biddingPlayer.Username);
             var nextPlayerMention = GetUser(nextPlayer.Username).Mention;
 
@@ -155,17 +155,17 @@ namespace PerudoBot.Modules
                     P = pips,
                     Q = quantity
                 };
-                await SendMessage($"{userMessage} || {JsonConvert.SerializeObject(botMessage)}||");
+                await SendMessageAsync($"{userMessage} || {JsonConvert.SerializeObject(botMessage)}||");
             }
             else
             {
-                await SendMessage(userMessage);
+                await SendMessageAsync(userMessage);
             }
         }
 
         private async Task<bool> VerifyBid(Bid bid)
         {
-            var game = GetGame(GameState.InProgress);
+            var game = await GetGameAsync(GameState.InProgress);
             var mostRecentBid = GetMostRecentBid(game);
 
             var players = GetPlayers(game);
@@ -175,7 +175,7 @@ namespace PerudoBot.Modules
                 if (mostRecentBid == null) return true;
                 if (bid.Quantity < mostRecentBid.Quantity)
                 {
-                    await SendMessage("Bid has to be higher.");
+                    await SendMessageAsync("Bid has to be higher.");
                     return false;
                 }
                 return true;
@@ -183,27 +183,28 @@ namespace PerudoBot.Modules
 
             if (bid.Quantity > players.Sum(x => x.NumberOfDice))
             {
-                await SendMessage($"Really? {bid.Quantity} dice?");
-                await SendMessage($"I'm gonna let you think this one through a little bit first.");
+                await SendMessageAsync($"Really? {bid.Quantity} dice?");
+                await SendMessageAsync($"I'm gonna let you think this one through a little bit first.");
                 return false;
             }
 
-            if (game.NextRoundIsPalifico)
+            if (game.GetLatestRound() is PalificoRound)
             {
+                if (game.GetLatestRound().Actions.Count == 0) return true;
                 if (bid.Player.NumberOfDice != 1 && bid.Pips != mostRecentBid.Pips)
                 {
-                    await SendMessage("Only players at 1 die can change pips in Palifico round.");
+                    await SendMessageAsync("Only players at 1 die can change pips in Palifico round.");
                     return false;
                 }
 
                 if (bid.Quantity < mostRecentBid.Quantity)
                 {
-                    await SendMessage("Bid has to be higher.");
+                    await SendMessageAsync("Bid has to be higher.");
                     return false;
                 }
                 if (bid.Quantity == mostRecentBid.Quantity && bid.Pips <= mostRecentBid.Pips)
                 {
-                    await SendMessage("Bid has to be higher.");
+                    await SendMessageAsync("Bid has to be higher.");
                     return false;
                 }
                 return true;
@@ -211,7 +212,7 @@ namespace PerudoBot.Modules
 
             if (game.WildsEnabled == false && bid.Pips == 1)
             {
-                await SendMessage("Cannot bid on wilds this game.");
+                await SendMessageAsync("Cannot bid on wilds this game.");
                 return false;
             }
 
@@ -219,7 +220,7 @@ namespace PerudoBot.Modules
             {
                 if (bid.Pips == 1)
                 {
-                    await SendMessage("Cannot start the round by bidding on wilds.");
+                    await SendMessageAsync("Cannot start the round by bidding on wilds.");
                     return false;
                 }
                 return true;
@@ -229,7 +230,7 @@ namespace PerudoBot.Modules
             {
                 if (bid.Pips == 1)
                 {
-                    await SendMessage("Cannot start the round by bidding on wilds.");
+                    await SendMessageAsync("Cannot start the round by bidding on wilds.");
                     return false;
                 }
                 return true;
@@ -240,7 +241,7 @@ namespace PerudoBot.Modules
             {
                 if (bid.Quantity < mostRecentBid.Quantity)
                 {
-                    await SendMessage("Bid has to be higher.");
+                    await SendMessageAsync("Bid has to be higher.");
                     return false;
                 }
                 return true;
@@ -250,7 +251,7 @@ namespace PerudoBot.Modules
             {
                 if (bid.Quantity < mostRecentBid.Quantity * 2)
                 {
-                    await SendMessage("Bid has to be higher.");
+                    await SendMessageAsync("Bid has to be higher.");
                     return false;
                 }
                 return true;
@@ -265,7 +266,7 @@ namespace PerudoBot.Modules
 
                 if (bid.Quantity * 2 <= mostRecentBid.Quantity)
                 {
-                    await SendMessage("Bid has to be higher.");
+                    await SendMessageAsync("Bid has to be higher.");
                     return false;
                 }
                 return true;
@@ -273,12 +274,12 @@ namespace PerudoBot.Modules
 
             if (bid.Quantity < mostRecentBid.Quantity)
             {
-                await SendMessage("Bid has to be higher.");
+                await SendMessageAsync("Bid has to be higher.");
                 return false;
             }
             if (bid.Quantity == mostRecentBid.Quantity && bid.Pips <= mostRecentBid.Pips)
             {
-                await SendMessage("Bid has to be higher.");
+                await SendMessageAsync("Bid has to be higher.");
                 return false;
             }
             return true;
@@ -286,7 +287,9 @@ namespace PerudoBot.Modules
 
         private Bid GetMostRecentBid(Game game)
         {
-            return _db.Bids.AsQueryable().Where(x => x.GameId == game.Id).ToList().LastOrDefault();
+            return game.GetLatestRound()
+                .Actions.OfType<Bid>()
+                .LastOrDefault();
         }
     }
 }

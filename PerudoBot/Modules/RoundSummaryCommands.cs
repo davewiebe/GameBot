@@ -23,10 +23,10 @@ namespace PerudoBot.Modules
                     Dice = x.Dice
                 });
 
-            await SendMessage($"Round summary for bots: ||{JsonConvert.SerializeObject(playerDice)}||");
+            await SendMessageAsync($"Round summary for bots: ||{JsonConvert.SerializeObject(playerDice)}||");
         }
 
-        private async Task GetRoundSummary(Game game)
+        private async Task SendRoundSummary(Game game)
         {
             var players = GetPlayers(game).Where(x => x.NumberOfDice > 0).ToList();
             var playerDice = players.Select(x => $"{GetUserNickname(x.Username)}: {string.Join(" ", x.Dice.Split(",").Select(x => int.Parse(x).GetEmoji()))}".TrimEnd());

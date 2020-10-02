@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using PerudoBot.Data;
@@ -9,9 +10,10 @@ using PerudoBot.Data;
 namespace PerudoBot.Migrations
 {
     [DbContext(typeof(GameBotDbContext))]
-    partial class GameBotDbContextModelSnapshot : ModelSnapshot
+    [Migration("20201002050812_AddRoundsBetweenGameAndBid")]
+    partial class AddRoundsBetweenGameAndBid
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -30,6 +32,9 @@ namespace PerudoBot.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int>("GameId")
+                        .HasColumnType("integer");
+
                     b.Property<bool>("IsOutOfTurn")
                         .HasColumnType("boolean");
 
@@ -42,10 +47,12 @@ namespace PerudoBot.Migrations
                     b.Property<int>("PlayerId")
                         .HasColumnType("integer");
 
-                    b.Property<int>("RoundId")
+                    b.Property<int?>("RoundId")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("GameId");
 
                     b.HasIndex("ParentActionId");
 
@@ -262,9 +269,6 @@ namespace PerudoBot.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("StartingPlayerId")
-                        .HasColumnType("integer");
-
                     b.HasKey("Id");
 
                     b.HasIndex("GameId");
@@ -301,20 +305,6 @@ namespace PerudoBot.Migrations
                     b.HasDiscriminator().HasValue("LiarCall");
                 });
 
-            modelBuilder.Entity("PerudoBot.Data.FaceoffRound", b =>
-                {
-                    b.HasBaseType("PerudoBot.Data.Round");
-
-                    b.HasDiscriminator().HasValue("FaceoffRound");
-                });
-
-            modelBuilder.Entity("PerudoBot.Data.PalificoRound", b =>
-                {
-                    b.HasBaseType("PerudoBot.Data.Round");
-
-                    b.HasDiscriminator().HasValue("PalificoRound");
-                });
-
             modelBuilder.Entity("PerudoBot.Data.StandardRound", b =>
                 {
                     b.HasBaseType("PerudoBot.Data.Round");
@@ -324,6 +314,12 @@ namespace PerudoBot.Migrations
 
             modelBuilder.Entity("PerudoBot.Data.Action", b =>
                 {
+                    b.HasOne("PerudoBot.Data.Game", "Game")
+                        .WithMany()
+                        .HasForeignKey("GameId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("PerudoBot.Data.Action", "ParentAction")
                         .WithMany()
                         .HasForeignKey("ParentActionId");
@@ -334,11 +330,9 @@ namespace PerudoBot.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("PerudoBot.Data.Round", "Round")
+                    b.HasOne("PerudoBot.Data.Round", null)
                         .WithMany("Actions")
-                        .HasForeignKey("RoundId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("RoundId");
                 });
 
             modelBuilder.Entity("PerudoBot.Data.Note", b =>

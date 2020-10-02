@@ -55,16 +55,16 @@ namespace PerudoBot.Modules
         {
             player.NumberOfDice -= penalty;
 
-            var game = GetGame(GameState.InProgress);
+            var game = await GetGameAsync(GameState.InProgress);
             if (player.NumberOfDice < 0) player.NumberOfDice = 0;
 
             if (player.NumberOfDice <= 0)
             {
-                await SendMessage($":fire::skull::fire: {GetUserNickname(player.Username)} defeated :fire::skull::fire:");
+                await SendMessageAsync($":fire::skull::fire: {GetUserNickname(player.Username)} defeated :fire::skull::fire:");
                 var deathrattle = _db.Rattles.SingleOrDefault(x => x.Username == player.Username);
                 if (deathrattle != null)
                 {
-                    await SendMessage(deathrattle.Deathrattle);
+                    await SendMessageAsync(deathrattle.Deathrattle);
                 }
 
                 if (game.CanCallExactToJoinAgain)
@@ -75,7 +75,7 @@ namespace PerudoBot.Modules
                         {
                             player.GhostAttemptsLeft = 1;
                             _db.SaveChanges();
-                            await SendMessage($"{GetUserNickname(player.Username)} you have 1 attempt at an `!exact` call to win your way back into the game while there's more than 2 players left.");
+                            await SendMessageAsync($"{GetUserNickname(player.Username)} you have 1 attempt at an `!exact` call to win your way back into the game while there's more than 2 players left.");
                         }
                     }
                 }
@@ -109,11 +109,11 @@ namespace PerudoBot.Modules
 
             if (player.NumberOfDice <= 0)
             {
-                await SendMessage($":fire::skull::fire: {GetUserNickname(player.Username)} defeated :fire::skull::fire:");
+                await SendMessageAsync($":fire::skull::fire: {GetUserNickname(player.Username)} defeated :fire::skull::fire:");
                 var deathrattle = _db.Rattles.SingleOrDefault(x => x.Username == player.Username);
                 if (deathrattle != null)
                 {
-                    await SendMessage(deathrattle.Deathrattle);
+                    await SendMessageAsync(deathrattle.Deathrattle);
                 }
 
                 if (game.CanCallExactToJoinAgain)
@@ -124,7 +124,7 @@ namespace PerudoBot.Modules
                         {
                             player.GhostAttemptsLeft = 1;
                             _db.SaveChanges();
-                            await SendMessage($"{GetUserNickname(player.Username)} you have 1 attempt at an `!exact` call to win your way back into the game while there's more than 2 players left.");
+                            await SendMessageAsync($"{GetUserNickname(player.Username)} you have 1 attempt at an `!exact` call to win your way back into the game while there's more than 2 players left.");
                         }
                     }
                 }

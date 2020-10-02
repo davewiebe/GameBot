@@ -24,7 +24,7 @@ namespace PerudoBot.Modules
         [Command("notes")]
         public async Task Notes(params string[] stringArray)
         {
-            var game = GetGame(GameState.InProgress);
+            var game = await GetGameAsync(GameState.InProgress);
 
             if (game == null)
             {
@@ -42,11 +42,11 @@ namespace PerudoBot.Modules
 
             if (text.Length > 256)
             {
-                await SendMessage("Note is too long.");
+                await SendMessageAsync("Note is too long.");
                 return;
             }
 
-            RemoveUserCommand();
+            DeleteCommandFromDiscord();
 
             _db.Notes.Add(new Note
             {
@@ -57,7 +57,7 @@ namespace PerudoBot.Modules
 
             _db.SaveChanges();
 
-            await SendMessage($"{GetUserNickname(Context.User.Username)} notes: {text}");
+            await SendMessageAsync($"{GetUserNickname(Context.User.Username)} notes: {text}");
         }
     }
 }

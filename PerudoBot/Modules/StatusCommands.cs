@@ -11,7 +11,7 @@ namespace PerudoBot.Modules
         [Command("status")]
         public async Task Status()
         {
-            var game = GetGame(GameState.Setup);
+            var game = await GetGameAsync(GameState.Setup);
             if (game != null)
             {
                 var players = GetPlayers(game);
@@ -44,7 +44,7 @@ namespace PerudoBot.Modules
                 return;
             }
 
-            game = GetGame(GameState.InProgress);
+            game = await GetGameAsync(GameState.InProgress);
             if (game != null)
             {
                 var nextPlayer = GetCurrentPlayer(game);
@@ -63,10 +63,10 @@ namespace PerudoBot.Modules
                 {
                     recentBidText = $"The most recent bid was for `{ bid.Quantity}` ˣ { bid.Pips.GetEmoji()}\n";
                 }
-                await SendMessage($"{recentBidText}It's {GetUserNickname(nextPlayer.Username)}'s turn.");
+                await SendMessageAsync($"{recentBidText}It's {GetUserNickname(nextPlayer.Username)}'s turn.");
                 return;
             }
-            await SendMessage("There are no games in progress.");
+            await SendMessageAsync("There are no games in progress.");
         }
     }
 }

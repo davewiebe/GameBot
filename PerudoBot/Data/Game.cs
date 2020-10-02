@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace PerudoBot.Data
 {
@@ -33,6 +34,16 @@ namespace PerudoBot.Data
         public bool CanCallExactToJoinAgain { get; internal set; }
         public ulong StatusMessage { get; internal set; }
 
-        public virtual ICollection<Action> Actions { get; set; }
+        public virtual ICollection<Round> Rounds { get; set; }
+
+        public Round GetLatestRound()
+        {
+            return Rounds.LastOrDefault();
+        }
+
+        public int GetCurrentRoundNumber()
+        {
+            return GetLatestRound()?.RoundNumber ?? 0;
+        }
     }
 }

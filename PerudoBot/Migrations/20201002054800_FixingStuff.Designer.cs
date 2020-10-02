@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using PerudoBot.Data;
@@ -9,9 +10,10 @@ using PerudoBot.Data;
 namespace PerudoBot.Migrations
 {
     [DbContext(typeof(GameBotDbContext))]
-    partial class GameBotDbContextModelSnapshot : ModelSnapshot
+    [Migration("20201002054800_FixingStuff")]
+    partial class FixingStuff
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -299,20 +301,6 @@ namespace PerudoBot.Migrations
                     b.HasBaseType("PerudoBot.Data.Action");
 
                     b.HasDiscriminator().HasValue("LiarCall");
-                });
-
-            modelBuilder.Entity("PerudoBot.Data.FaceoffRound", b =>
-                {
-                    b.HasBaseType("PerudoBot.Data.Round");
-
-                    b.HasDiscriminator().HasValue("FaceoffRound");
-                });
-
-            modelBuilder.Entity("PerudoBot.Data.PalificoRound", b =>
-                {
-                    b.HasBaseType("PerudoBot.Data.Round");
-
-                    b.HasDiscriminator().HasValue("PalificoRound");
                 });
 
             modelBuilder.Entity("PerudoBot.Data.StandardRound", b =>

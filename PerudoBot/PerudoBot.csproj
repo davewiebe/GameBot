@@ -48,6 +48,7 @@
 
   <ItemGroup>
     <PackageReference Include="Discord.Net" Version="2.2.0" />
+    <PackageReference Include="EFCore.NamingConventions" Version="1.1.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="3.1.5" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="3.1.5">
       <PrivateAssets>all</PrivateAssets>
@@ -76,5 +77,4 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-
 </Project>

@@ -12,10 +12,10 @@ namespace PerudoBot.Modules
         [Command("add")]
         public async Task AddUserToGame(params string[] stringArray)
         {
-            var game = GetGame(GameState.Setup);
+            var game = await GetGameAsync(GameState.Setup);
             if (game == null)
             {
-                await SendMessage($"Unable to add players at this time.");
+                await SendMessageAsync($"Unable to add players at this time.");
                 return;
             }
 
@@ -66,10 +66,10 @@ namespace PerudoBot.Modules
         {
             var userToAdd = Context.Message.MentionedUsers.First();
 
-            var game = GetGame(GameState.Setup);
+            var game = await GetGameAsync(GameState.Setup);
             if (game == null)
             {
-                await SendMessage($"Unable to remove players at this time.");
+                await SendMessageAsync($"Unable to remove players at this time.");
                 return;
             }
 
@@ -79,7 +79,7 @@ namespace PerudoBot.Modules
             _db.Players.Remove(userToRemove);
             _db.SaveChanges();
 
-            await SendMessage($"{GetUserNickname(userToAdd.Username)} removed from game.");
+            await SendMessageAsync($"{GetUserNickname(userToAdd.Username)} removed from game.");
         }
     }
 }

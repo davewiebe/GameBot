@@ -10,7 +10,7 @@ namespace PerudoBot.Modules
         [Command("kick", RunMode = RunMode.Async)]
         public async Task KickUserFromGame(params string[] stringArray)
         {
-            var game = GetGame(GameState.InProgress);
+            var game = await GetGameAsync(GameState.InProgress);
 
             var userToKick = Context.Message.MentionedUsers.Single();
             var player = GetPlayers(game).Where(x => x.NumberOfDice > 0).Where(x => x.Username == userToKick.Username).Single();
@@ -21,10 +21,10 @@ namespace PerudoBot.Modules
                 if (game.Id + player.Id == monkey)
                 {
                     player.NumberOfDice = 0;
-                    await SendMessage($"{GetUserNickname(userToKick.Username)} has been kicked.");
+                    await SendMessageAsync($"{GetUserNickname(userToKick.Username)} has been kicked.");
 
                     await SendRoundSummaryForBots(game);
-                    await GetRoundSummary(game);
+                    await SendRoundSummary(game);
 
                     SetTurnPlayerToRoundStartPlayer(game);
                     Thread.Sleep(2000);
@@ -34,14 +34,14 @@ namespace PerudoBot.Modules
                 return;
             }
 
-            await SendMessage($"{GetUserNickname(userToKick.Username)} has been kicked.");
+            await SendMessageAsync($"{GetUserNickname(userToKick.Username)} has been kicked.");
 
             Thread.Sleep(6000);
 
-            await SendMessage($"LOL JK.");
+            await SendMessageAsync($"LOL JK.");
             Thread.Sleep(2000);
 
-            await SendMessage($"But if you do want to kick them, send `!kick {game.Id + player.Id} @{GetUserNickname(player.Username)}`");
+            await SendMessageAsync($"But if you do want to kick them, send `!kick {game.Id + player.Id} @{GetUserNickname(player.Username)}`");
         }
     }
 }

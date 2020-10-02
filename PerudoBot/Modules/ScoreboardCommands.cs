@@ -98,7 +98,7 @@ namespace PerudoBot.Modules
         [Command("leaderboard")]
         public async Task Leaderboard(params string[] stringArray)
         {
-            await SendMessage("`!leaderboard` has been depricated. Try `!gamelogs`");
+            await SendMessageAsync("`!leaderboard` has been depricated. Try `!gamelogs`");
         }
     }
 }
