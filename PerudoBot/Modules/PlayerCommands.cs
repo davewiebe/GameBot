@@ -21,12 +21,15 @@ namespace PerudoBot.Modules
 
         private SocketGuildUser GetUser(string username)
         {
-            return Context.Guild.Users.First(x => x.Username == username);
+            return Context.Guild.Users.FirstOrDefault(x => x.Username == username);
         }
 
         private string GetUserNickname(string username)
         {
-            var nickname = GetUser(username).Nickname;
+            var user = GetUser(username);
+            if (user == null) return username;
+
+            var nickname = user.Nickname;
             if (string.IsNullOrEmpty(nickname)) return username;
             if (nickname.StripSpecialCharacters().Trim() == "") return "NULL";
             return nickname.StripSpecialCharacters();
