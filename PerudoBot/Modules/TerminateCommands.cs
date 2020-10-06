@@ -12,7 +12,7 @@ namespace PerudoBot.Modules
 
             if (game != null)
             {
-                await _perudoGameService.TerminateGame(game.Id);
+                await _perudoGameService.TerminateGameAsync(game.Id);
                 await SendMessageAsync("I'll be back.");
                 return;
             }

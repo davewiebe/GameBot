@@ -1,11 +1,12 @@
 ﻿using PerudoBot.Data;
 using PerudoBot.Modules;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace PerudoBot.Services
 {
-    public class PerudoGameService
+    public class PerudoGameService : IDisposable
     {
         public readonly GameBotDbContext _db;
 
@@ -14,13 +15,21 @@ namespace PerudoBot.Services
             _db = db;
         }
 
-        public async Task TerminateGame(int gameId)
+        public async Task TerminateGameAsync(int gameId)
         {
             var gameToTerminate = await _db.Games.SingleAsync(g => g.Id == gameId);
 
-            gameToTerminate.State = (int)GameState.Terminated;
+            if (gameToTerminate.State != (int)GameState.Finished)
+            {
+                gameToTerminate.State = (int)GameState.Terminated;
+            }
 
             await _db.SaveChangesAsync();
+        }
+
+        public void Dispose()
+        {
+            _db.Dispose();
         }
     }
 }
