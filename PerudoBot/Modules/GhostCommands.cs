@@ -12,7 +12,7 @@ namespace PerudoBot.Modules
         {
             var ghosts = GetPlayers(game)
                 .Where(x => x.NumberOfDice == 0)
-                .Where(x => x.GhostAttemptsLeft > 0);
+                .Where(x => x.GhostAttemptsLeft > 0).ToList();
 
             foreach (var ghost in ghosts)
             {
@@ -23,6 +23,7 @@ namespace PerudoBot.Modules
                 {
                     ghost.GhostAttemptsLeft = -1;
                     ghost.NumberOfDice = 1;
+                    ghost.Dice = "";
                     _db.SaveChanges();
 
                     await SendMessage($"A wild {GetUserNickname(ghost.Username)} appeared!");
