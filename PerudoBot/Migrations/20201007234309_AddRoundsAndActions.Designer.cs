@@ -10,8 +10,8 @@ using PerudoBot.Data;
 namespace PerudoBot.Migrations
 {
     [DbContext(typeof(GameBotDbContext))]
-    [Migration("20201002054800_FixingStuff")]
-    partial class FixingStuff
+    [Migration("20201007234309_AddRoundsAndActions")]
+    partial class AddRoundsAndActions
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -301,6 +301,20 @@ namespace PerudoBot.Migrations
                     b.HasBaseType("PerudoBot.Data.Action");
 
                     b.HasDiscriminator().HasValue("LiarCall");
+                });
+
+            modelBuilder.Entity("PerudoBot.Data.FaceoffRound", b =>
+                {
+                    b.HasBaseType("PerudoBot.Data.Round");
+
+                    b.HasDiscriminator().HasValue("FaceoffRound");
+                });
+
+            modelBuilder.Entity("PerudoBot.Data.PalificoRound", b =>
+                {
+                    b.HasBaseType("PerudoBot.Data.Round");
+
+                    b.HasDiscriminator().HasValue("PalificoRound");
                 });
 
             modelBuilder.Entity("PerudoBot.Data.StandardRound", b =>

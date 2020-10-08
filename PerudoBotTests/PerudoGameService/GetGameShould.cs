@@ -6,10 +6,10 @@ using PerudoBotTests;
 using Shouldly;
 using System.Threading.Tasks;
 
-namespace PerudoGameServiceTests
+namespace PerudoBotTests.PerudoGameServiceTests
 {
     [TestFixture]
-    public class PerudoGameServiceShould
+    public class GetGameShould
     {
         private GameBotDbContextFactory _factory;
         private GameBotDbContext _context;
@@ -26,16 +26,16 @@ namespace PerudoGameServiceTests
         [TestCase(GameState.Setup)]
         [TestCase(GameState.InProgress)]
         [Test]
-        public async Task TerminateGameWithStateOf(GameState currentState)
+        public async Task ReturnGameWithState(GameState state)
         {
-            var game = new Game { State = (int)currentState };
+            ulong channelId = 3;
+            var game = new Game { ChannelId = channelId, State = (int)state };
             _context.Games.Add(game);
             await _context.SaveChangesAsync();
 
-            await _service.TerminateGameAsync(game.Id);
+            var result = await _service.GetGameAsync(channelId, state);
 
-            var newGameState = ((GameState)game.State);
-            newGameState.ShouldBe(GameState.Terminated);
+            result.ShouldNotBeNull();
         }
 
         [Test]
@@ -59,6 +59,4 @@ namespace PerudoGameServiceTests
             _factory.Dispose();
         }
     }
-
-    //  }
 }

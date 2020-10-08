@@ -1,4 +1,5 @@
-﻿using PerudoBot.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using PerudoBot.Data;
 using PerudoBot.Modules;
 using System;
 using System.Linq;
@@ -17,7 +18,8 @@ namespace PerudoBot.Services
 
         public async Task TerminateGameAsync(int gameId)
         {
-            var gameToTerminate = await _db.Games.SingleAsync(g => g.Id == gameId);
+            var gameToTerminate = await _db.Games.AsQueryable()
+                .SingleAsync(g => g.Id == gameId);
 
             if (gameToTerminate.State != (int)GameState.Finished)
             {
@@ -25,6 +27,18 @@ namespace PerudoBot.Services
             }
 
             await _db.SaveChangesAsync();
+        }
+
+        public async Task<Game> GetGameAsync(ulong channelId, params GameState[] gameStates)
+        {
+            var gameStateIds = gameStates.Cast<int>().ToList();
+
+            return await _db.Games.AsQueryable()
+                .Include(g => g.Rounds)
+                    .ThenInclude(r => r.Actions)
+                .Where(x => x.ChannelId == channelId)
+                .Where(x => gameStateIds.Contains(x.State))
+                .SingleOrDefaultAsync();
         }
 
         public void Dispose()

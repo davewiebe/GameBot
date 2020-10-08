@@ -58,19 +58,11 @@ namespace PerudoBot.Modules
 
         private async Task<Game> GetGameAsync(params GameState[] gameStates)
         {
-            var gameStateIds = gameStates.Cast<int>().ToList();
-
-            return await _db.Games.AsQueryable()
-                .Include(g => g.Rounds)
-                    .ThenInclude(r => r.Actions)
-                .Where(x => x.ChannelId == Context.Channel.Id)
-                .Where(x => gameStateIds.Contains(x.State))
-                .SingleOrDefaultAsync();
+            return await _perudoGameService.GetGameAsync(Context.Channel.Id, gameStates);
         }
 
         private void DeleteCommandFromDiscord()
         {
-            // TODO: Is this working?
             try
             {
                 _ = Context.Message.DeleteAsync();

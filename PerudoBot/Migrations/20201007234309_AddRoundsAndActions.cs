@@ -3,7 +3,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace PerudoBot.Migrations
 {
-    public partial class Actions : Migration
+    public partial class AddRoundsAndActions : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -17,6 +17,10 @@ namespace PerudoBot.Migrations
 
             migrationBuilder.DropColumn(
                 name: "Call",
+                table: "Bids");
+
+            migrationBuilder.DropColumn(
+                name: "GameId",
                 table: "Bids");
 
             migrationBuilder.RenameTable(
@@ -48,15 +52,28 @@ namespace PerudoBot.Migrations
                 nullable: false,
                 defaultValue: "");
 
+            migrationBuilder.AddColumn<bool>(
+                name: "IsOutOfTurn",
+                table: "Actions",
+                nullable: false,
+                defaultValue: false);
+
+            migrationBuilder.AddColumn<bool>(
+                name: "IsSuccess",
+                table: "Actions",
+                nullable: false,
+                defaultValue: false);
+
             migrationBuilder.AddColumn<int>(
                 name: "ParentActionId",
                 table: "Actions",
                 nullable: true);
 
-            migrationBuilder.AddColumn<bool>(
-                name: "IsSuccess",
+            migrationBuilder.AddColumn<int>(
+                name: "RoundId",
                 table: "Actions",
-                nullable: true);
+                nullable: false,
+                defaultValue: 0);
 
             migrationBuilder.AddPrimaryKey(
                 name: "PK_Actions",
@@ -64,59 +81,26 @@ namespace PerudoBot.Migrations
                 column: "Id");
 
             migrationBuilder.CreateTable(
-                name: "OldBids",
-                columns: table => new
-                {
-                    Id = table.Column<int>(nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    PlayerId = table.Column<int>(nullable: false),
-                    GameId = table.Column<int>(nullable: false),
-                    Quantity = table.Column<int>(nullable: false),
-                    Pips = table.Column<int>(nullable: false),
-                    Call = table.Column<string>(nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_OldBids", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_OldBids_Players_PlayerId",
-                        column: x => x.PlayerId,
-                        principalTable: "Players",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "TauntLogs",
+                name: "Rounds",
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     GameId = table.Column<int>(nullable: false),
-                    TaunterPlayerId = table.Column<int>(nullable: false),
-                    TaunteePlayerId = table.Column<int>(nullable: false)
+                    RoundNumber = table.Column<int>(nullable: false),
+                    StartingPlayerId = table.Column<int>(nullable: false),
+                    RoundType = table.Column<string>(nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_TauntLogs", x => x.Id);
+                    table.PrimaryKey("PK_Rounds", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_TauntLogs_Players_TaunteePlayerId",
-                        column: x => x.TaunteePlayerId,
-                        principalTable: "Players",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_TauntLogs_Players_TaunterPlayerId",
-                        column: x => x.TaunterPlayerId,
-                        principalTable: "Players",
+                        name: "FK_Rounds_Games_GameId",
+                        column: x => x.GameId,
+                        principalTable: "Games",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Actions_GameId",
-                table: "Actions",
-                column: "GameId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Actions_ParentActionId",
@@ -124,27 +108,14 @@ namespace PerudoBot.Migrations
                 column: "ParentActionId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_OldBids_PlayerId",
-                table: "OldBids",
-                column: "PlayerId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_TauntLogs_TaunteePlayerId",
-                table: "TauntLogs",
-                column: "TaunteePlayerId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_TauntLogs_TaunterPlayerId",
-                table: "TauntLogs",
-                column: "TaunterPlayerId");
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_Actions_Games_GameId",
+                name: "IX_Actions_RoundId",
                 table: "Actions",
-                column: "GameId",
-                principalTable: "Games",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
+                column: "RoundId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Rounds_GameId",
+                table: "Rounds",
+                column: "GameId");
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Actions_Actions_ParentActionId",
@@ -161,14 +132,18 @@ namespace PerudoBot.Migrations
                 principalTable: "Players",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Cascade);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_Actions_Rounds_RoundId",
+                table: "Actions",
+                column: "RoundId",
+                principalTable: "Rounds",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Cascade);
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_Actions_Games_GameId",
-                table: "Actions");
-
             migrationBuilder.DropForeignKey(
                 name: "FK_Actions_Actions_ParentActionId",
                 table: "Actions");
@@ -177,22 +152,23 @@ namespace PerudoBot.Migrations
                 name: "FK_Actions_Players_PlayerId",
                 table: "Actions");
 
-            migrationBuilder.DropTable(
-                name: "OldBids");
+            migrationBuilder.DropForeignKey(
+                name: "FK_Actions_Rounds_RoundId",
+                table: "Actions");
 
             migrationBuilder.DropTable(
-                name: "TauntLogs");
+                name: "Rounds");
 
             migrationBuilder.DropPrimaryKey(
                 name: "PK_Actions",
                 table: "Actions");
 
             migrationBuilder.DropIndex(
-                name: "IX_Actions_GameId",
+                name: "IX_Actions_ParentActionId",
                 table: "Actions");
 
             migrationBuilder.DropIndex(
-                name: "IX_Actions_ParentActionId",
+                name: "IX_Actions_RoundId",
                 table: "Actions");
 
             migrationBuilder.DropColumn(
@@ -200,11 +176,19 @@ namespace PerudoBot.Migrations
                 table: "Actions");
 
             migrationBuilder.DropColumn(
-                name: "ParentActionId",
+                name: "IsOutOfTurn",
                 table: "Actions");
 
             migrationBuilder.DropColumn(
                 name: "IsSuccess",
+                table: "Actions");
+
+            migrationBuilder.DropColumn(
+                name: "ParentActionId",
+                table: "Actions");
+
+            migrationBuilder.DropColumn(
+                name: "RoundId",
                 table: "Actions");
 
             migrationBuilder.RenameTable(
@@ -237,6 +221,13 @@ namespace PerudoBot.Migrations
                 table: "Bids",
                 type: "text",
                 nullable: true);
+
+            migrationBuilder.AddColumn<int>(
+                name: "GameId",
+                table: "Bids",
+                type: "integer",
+                nullable: false,
+                defaultValue: 0);
 
             migrationBuilder.AddPrimaryKey(
                 name: "PK_Bids",

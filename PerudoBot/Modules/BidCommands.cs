@@ -173,7 +173,7 @@ namespace PerudoBot.Modules
             if (game.FaceoffEnabled && players.Sum(x => x.NumberOfDice) == 2)
             {
                 if (mostRecentBid == null) return true;
-                if (bid.Quantity < mostRecentBid.Quantity)
+                if (bid.Quantity <= mostRecentBid.Quantity)
                 {
                     await SendMessageAsync("Bid has to be higher.");
                     return false;
@@ -226,15 +226,15 @@ namespace PerudoBot.Modules
                 return true;
             }
 
-            if (mostRecentBid is Bid)
-            {
-                if (bid.Pips == 1)
-                {
-                    await SendMessageAsync("Cannot start the round by bidding on wilds.");
-                    return false;
-                }
-                return true;
-            }
+            //if (mostRecentBid is Bid) /// not a bid maybe?
+            //{
+            //    if (bid.Pips == 1)
+            //    {
+            //        await SendMessageAsync("Cannot start the round by bidding on wilds.");
+            //        return false;
+            //    }
+            //    return true;
+            //}
 
             // If last bid was 1s
             if (bid.Pips == 1 && mostRecentBid.Pips == 1)

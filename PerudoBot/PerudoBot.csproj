@@ -44,6 +44,18 @@
     <Compile Remove="Migrations\20200929173424_RenameBidToBid2.Designer.cs" />
     <Compile Remove="Migrations\20200929173640_RenameBidToOldBids.cs" />
     <Compile Remove="Migrations\20200929173640_RenameBidToOldBids.Designer.cs" />
+    <Compile Remove="Migrations\20200929215355_Actions.cs" />
+    <Compile Remove="Migrations\20200929215355_Actions.Designer.cs" />
+    <Compile Remove="Migrations\20200930185937_AddIsSuccessToAllActions.cs" />
+    <Compile Remove="Migrations\20200930185937_AddIsSuccessToAllActions.Designer.cs" />
+    <Compile Remove="Migrations\20201002050812_AddRoundsBetweenGameAndBid.cs" />
+    <Compile Remove="Migrations\20201002050812_AddRoundsBetweenGameAndBid.Designer.cs" />
+    <Compile Remove="Migrations\20201002052611_AddStartingPlayerIdToRound.cs" />
+    <Compile Remove="Migrations\20201002052611_AddStartingPlayerIdToRound.Designer.cs" />
+    <Compile Remove="Migrations\20201002054800_FixingStuff.cs" />
+    <Compile Remove="Migrations\20201002054800_FixingStuff.Designer.cs" />
+    <Compile Remove="Migrations\20201002062426_MoreFixing.cs" />
+    <Compile Remove="Migrations\20201002062426_MoreFixing.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>

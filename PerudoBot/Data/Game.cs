@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
+
+[assembly: InternalsVisibleTo("PerudoBotTests.PerudoGameServiceTests")]
 
 namespace PerudoBot.Data
 {
@@ -14,7 +17,7 @@ namespace PerudoBot.Data
         public int Penalty { get; internal set; }
         public bool RandomizeBetweenRounds { get; internal set; }
         public bool WildsEnabled { get; internal set; }
-        public ulong ChannelId { get; internal set; }
+        public ulong ChannelId { get; set; }
         public int RoundStartPlayerId { get; internal set; }
         public int ExactCallBonus { get; internal set; }
         public bool CanCallExactAnytime { get; internal set; }
