@@ -3,7 +3,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace PerudoBot.Migrations
 {
-    public partial class AddRoundsAndActions : Migration
+    public partial class AddNullableRoundsAndAction : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -72,8 +72,7 @@ namespace PerudoBot.Migrations
             migrationBuilder.AddColumn<int>(
                 name: "RoundId",
                 table: "Actions",
-                nullable: false,
-                defaultValue: 0);
+                nullable: true);
 
             migrationBuilder.AddPrimaryKey(
                 name: "PK_Actions",
@@ -139,7 +138,7 @@ namespace PerudoBot.Migrations
                 column: "RoundId",
                 principalTable: "Rounds",
                 principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
+                onDelete: ReferentialAction.Restrict);
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)

@@ -10,8 +10,8 @@ using PerudoBot.Data;
 namespace PerudoBot.Migrations
 {
     [DbContext(typeof(GameBotDbContext))]
-    [Migration("20201007234309_AddRoundsAndActions")]
-    partial class AddRoundsAndActions
+    [Migration("20201008040541_AddNullableRoundsAndAction")]
+    partial class AddNullableRoundsAndAction
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -44,7 +44,7 @@ namespace PerudoBot.Migrations
                     b.Property<int>("PlayerId")
                         .HasColumnType("integer");
 
-                    b.Property<int>("RoundId")
+                    b.Property<int?>("RoundId")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
@@ -338,9 +338,7 @@ namespace PerudoBot.Migrations
 
                     b.HasOne("PerudoBot.Data.Round", "Round")
                         .WithMany("Actions")
-                        .HasForeignKey("RoundId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("RoundId");
                 });
 
             modelBuilder.Entity("PerudoBot.Data.Note", b =>

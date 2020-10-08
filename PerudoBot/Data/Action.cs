@@ -11,7 +11,8 @@ namespace PerudoBot.Data
         public virtual Player Player { get; set; }
         public int PlayerId { get; set; }
 
-        public int RoundId { get; set; }
+        // TODO: make non-nullable
+        public int? RoundId { get; set; }
         public Round Round { get; set; }
 
         //public int GameId { get; set; }
