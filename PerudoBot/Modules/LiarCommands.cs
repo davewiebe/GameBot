@@ -132,7 +132,7 @@ namespace PerudoBot.Modules
                 await GetRoundSummary(game);
 
                 await CheckGhostAttempts(game);
-                
+
                 // make player with unsuccessful liar call the next to go
                 await DecrementDieFromPlayerAndSetThierTurnAsync(game, playerWhoShouldGoNext, penalty);
             }
@@ -147,9 +147,12 @@ namespace PerudoBot.Modules
                 await SendMessageAsync($"There was actually `{numberOfDiceMatchingBid}` {biddingName}. :fire: {GetUser(previousBid.Player.Username).Mention} loses {penalty} dice. :fire:");
 
                 await SendRoundSummaryForBots(game);
-                await SendRoundSummary(game);
+<<<<<<<<< Temporary merge branch 1
                 await GetRoundSummary(game);
-                
+=========
+                await SendRoundSummary(game);
+                await DecrementDieFromPlayerAndSetThierTurnAsync(game, previousBid.Player, penalty);
+>>>>>>>>> Temporary merge branch 2
                 await CheckGhostAttempts(game);
                 await DecrementDieFromPlayerAndSetThierTurnAsync(game, previousBid.Player, penalty);
             }
