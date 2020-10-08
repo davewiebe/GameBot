@@ -3,20 +3,26 @@ using Discord.Commands;
 using PerudoBot.Data;
 using System.Linq;
 using System.Threading.Tasks;
+using PerudoBot.Services;
 using Game = PerudoBot.Data.Game;
+using System;
+using Microsoft.EntityFrameworkCore;
 
 namespace PerudoBot.Modules
 {
     public partial class Commands : ModuleBase<SocketCommandContext>
     {
         private readonly GameBotDbContext _db;
+        private readonly PerudoGameService _perudoGameService;
 
         public Commands()
         {
+            //TODO: Let DI handle instantiation
             _db = new GameBotDbContext();
+            _perudoGameService = new PerudoGameService(_db);
         }
 
-        private async Task SendMessage(string message, bool isTTS = false)
+        private async Task SendMessageAsync(string message, bool isTTS = false)
         {
             if (string.IsNullOrEmpty(message)) return;
 
@@ -25,7 +31,7 @@ namespace PerudoBot.Modules
             await base.ReplyAsync(message, options: requestOptions, isTTS: isTTS);
         }
 
-        private async Task SendTempMessage(string message, bool isTTS = false)
+        private async Task SendTempMessageAsync(string message, bool isTTS = false)
         {
             var requestOptions = new RequestOptions()
             { RetryMode = RetryMode.RetryRatelimit };
@@ -38,26 +44,33 @@ namespace PerudoBot.Modules
             { }
         }
 
-        private async Task<bool> ValidateState(GameState gameState)
+        private async Task<bool> ValidateStateAsync(GameState gameState)
         {
-            var game = GetGame(gameState);
+            var game = await GetGameAsync(gameState);
 
             if (game == null)
             {
-                await SendMessage($"Cannot do that at this time.");
+                await SendMessageAsync($"Cannot do that at this time.");
                 return false;
             }
             return true;
         }
 
-        private Game GetGame(params GameState[] gameStates)
+        private async Task<Game> GetGameAsync(params GameState[] gameStates)
         {
-            var gameStateIds = gameStates.Cast<int>().ToList();
+            return await _perudoGameService.GetGameAsync(Context.Channel.Id, gameStates);
+        }
 
-            return _db.Games.AsQueryable()
-                .Where(x => x.ChannelId == Context.Channel.Id)
-                .Where(x => gameStateIds.Contains(x.State))
-                .SingleOrDefault();
+        private void DeleteCommandFromDiscord()
+        {
+            try
+            {
+                _ = Context.Message.DeleteAsync();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
         }
     }
 }

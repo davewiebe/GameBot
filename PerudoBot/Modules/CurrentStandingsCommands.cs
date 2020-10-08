@@ -59,7 +59,7 @@ namespace PerudoBot.Modules
                 TotalDice = totalDice
             };
 
-            await SendMessage($"Current standings for bots: ||{JsonConvert.SerializeObject(currentStandings)}||");
+            await SendMessageAsync($"Current standings for bots: ||{JsonConvert.SerializeObject(currentStandings)}||");
         }
     }
 }

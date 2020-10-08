@@ -13,9 +13,9 @@ namespace PerudoBot.Modules
         [Alias("b")]
         public async Task Bid(params string[] bidText)
         {
-            if (await ValidateState(GameState.InProgress) == false) return;
+            if (await ValidateStateAsync(GameState.InProgress) == false) return;
 
-            var game = GetGame(GameState.InProgress);
+            var game = await GetGameAsync(GameState.InProgress);
 
             var currentPlayer = GetCurrentPlayer(game);
 
@@ -52,11 +52,10 @@ namespace PerudoBot.Modules
 
             var bid = new Bid
             {
-                Call = "",
                 Pips = 0,
                 Quantity = quantity,
                 PlayerId = biddingPlayer.Id,
-                GameId = game.Id
+                RoundId = game.GetLatestRound().Id
             };
 
             if (await VerifyBid(bid) == false) return;
@@ -64,26 +63,20 @@ namespace PerudoBot.Modules
             /// TODO: Add Exact bid too
             /// TODO: Add Liar bid too
             ///
-            _db.Bids.Add(bid);
+            _db.Actions.Add(bid);
             _db.SaveChanges();
 
             SetNextPlayer(game, biddingPlayer);
 
             var nextPlayer = GetCurrentPlayer(game);
 
-            try
-            {
-                _ = Context.Message.DeleteAsync();
-            }
-            catch
-            {
-            }
+            DeleteCommandFromDiscord();
             var bidderNickname = GetUserNickname(biddingPlayer.Username);
             var nextPlayerMention = GetUser(nextPlayer.Username).Mention;
 
             var userMessage = $"{ bidderNickname } bids `{ quantity}` ˣ :record_button:. { nextPlayerMention } is up.";
 
-            await SendMessage(userMessage);
+            await SendMessageAsync(userMessage);
         }
 
         private async Task HandlePipBid(string[] bidText, Game game, Player biddingPlayer)
@@ -105,11 +98,11 @@ namespace PerudoBot.Modules
 
             var bid = new Bid
             {
-                Call = "",
                 Pips = pips,
                 Quantity = quantity,
                 Player = biddingPlayer,
-                GameId = game.Id
+                RoundId = game.GetLatestRound().Id,
+                IsSuccess = true
             };
 
             if (await VerifyBid(bid) == false) return;
@@ -141,54 +134,48 @@ namespace PerudoBot.Modules
             }
 
             _db.Bids.Add(bid);
+
             _db.SaveChanges();
 
             SetNextPlayer(game, biddingPlayer);
 
             var nextPlayer = GetCurrentPlayer(game);
 
-            try
-            {
-                _ = Context.Message.DeleteAsync();
-            }
-            catch
-            {
-            }
+            DeleteCommandFromDiscord();
             var bidderNickname = GetUserNickname(biddingPlayer.Username);
             var nextPlayerMention = GetUser(nextPlayer.Username).Mention;
 
             var userMessage = $"{ bidderNickname } bids `{ quantity}` ˣ { pips.GetEmoji()}. { nextPlayerMention } is up.";
 
-            var botMessage = new
-            {
-                U = bidderNickname,
-                P = pips,
-                Q = quantity
-            };
-
             if (AreBotsInGame(game))
             {
-                await SendMessage($"{userMessage} ||{JsonConvert.SerializeObject(botMessage)}||");
+                var botMessage = new
+                {
+                    U = bidderNickname,
+                    P = pips,
+                    Q = quantity
+                };
+                await SendMessageAsync($"{userMessage} || {JsonConvert.SerializeObject(botMessage)}||");
             }
             else
             {
-                await SendMessage(userMessage);
+                await SendMessageAsync(userMessage);
             }
         }
 
         private async Task<bool> VerifyBid(Bid bid)
         {
-            var game = GetGame(GameState.InProgress);
-            Bid mostRecentBid = GetMostRecentBid(game);
+            var game = await GetGameAsync(GameState.InProgress);
+            var mostRecentBid = GetMostRecentBid(game);
 
             var players = GetPlayers(game);
 
             if (game.FaceoffEnabled && players.Sum(x => x.NumberOfDice) == 2)
             {
                 if (mostRecentBid == null) return true;
-                if (bid.Quantity < mostRecentBid.Quantity)
+                if (bid.Quantity <= mostRecentBid.Quantity)
                 {
-                    await SendMessage("Bid has to be higher.");
+                    await SendMessageAsync("Bid has to be higher.");
                     return false;
                 }
                 return true;
@@ -196,27 +183,28 @@ namespace PerudoBot.Modules
 
             if (bid.Quantity > players.Sum(x => x.NumberOfDice))
             {
-                await SendMessage($"Really? {bid.Quantity} dice?");
-                await SendMessage($"I'm gonna let you think this one through a little bit first.");
+                await SendMessageAsync($"Really? {bid.Quantity} dice?");
+                await SendMessageAsync($"I'm gonna let you think this one through a little bit first.");
                 return false;
             }
 
-            if (game.NextRoundIsPalifico)
+            if (game.GetLatestRound() is PalificoRound)
             {
+                if (game.GetLatestRound().Actions.Count == 0) return true;
                 if (bid.Player.NumberOfDice != 1 && bid.Pips != mostRecentBid.Pips)
                 {
-                    await SendMessage("Only players at 1 die can change pips in Palifico round.");
+                    await SendMessageAsync("Only players at 1 die can change pips in Palifico round.");
                     return false;
                 }
 
                 if (bid.Quantity < mostRecentBid.Quantity)
                 {
-                    await SendMessage("Bid has to be higher.");
+                    await SendMessageAsync("Bid has to be higher.");
                     return false;
                 }
                 if (bid.Quantity == mostRecentBid.Quantity && bid.Pips <= mostRecentBid.Pips)
                 {
-                    await SendMessage("Bid has to be higher.");
+                    await SendMessageAsync("Bid has to be higher.");
                     return false;
                 }
                 return true;
@@ -224,7 +212,7 @@ namespace PerudoBot.Modules
 
             if (game.WildsEnabled == false && bid.Pips == 1)
             {
-                await SendMessage("Cannot bid on wilds this game.");
+                await SendMessageAsync("Cannot bid on wilds this game.");
                 return false;
             }
 
@@ -232,28 +220,28 @@ namespace PerudoBot.Modules
             {
                 if (bid.Pips == 1)
                 {
-                    await SendMessage("Cannot start the round by bidding on wilds.");
+                    await SendMessageAsync("Cannot start the round by bidding on wilds.");
                     return false;
                 }
                 return true;
             }
 
-            if (mostRecentBid.Call != "")
-            {
-                if (bid.Pips == 1)
-                {
-                    await SendMessage("Cannot start the round by bidding on wilds.");
-                    return false;
-                }
-                return true;
-            }
+            //if (mostRecentBid is Bid) /// not a bid maybe?
+            //{
+            //    if (bid.Pips == 1)
+            //    {
+            //        await SendMessageAsync("Cannot start the round by bidding on wilds.");
+            //        return false;
+            //    }
+            //    return true;
+            //}
 
             // If last bid was 1s
             if (bid.Pips == 1 && mostRecentBid.Pips == 1)
             {
                 if (bid.Quantity < mostRecentBid.Quantity)
                 {
-                    await SendMessage("Bid has to be higher.");
+                    await SendMessageAsync("Bid has to be higher.");
                     return false;
                 }
                 return true;
@@ -263,7 +251,7 @@ namespace PerudoBot.Modules
             {
                 if (bid.Quantity < mostRecentBid.Quantity * 2)
                 {
-                    await SendMessage("Bid has to be higher.");
+                    await SendMessageAsync("Bid has to be higher.");
                     return false;
                 }
                 return true;
@@ -272,23 +260,13 @@ namespace PerudoBot.Modules
             if (bid.Pips == 1 && mostRecentBid.Pips != 1)
             {
                 var prevRoundId = 0;
-                var prevRound = _db.Bids.AsQueryable().Where(x => x.Call != "").ToList().LastOrDefault();
+                var prevRound = _db.Bids.AsQueryable().ToList().LastOrDefault();
 
                 if (prevRound != null) prevRoundId = prevRound.Id;
 
-                // Removed this. Apparently not in the rules
-                //var hasGoneToOnesAlready = _db.Bids.AsQueryable()
-                //    .Where(x => x.Id > prevRoundId)
-                //    .Where(x => x.GameId == game.Id).Where(x => x.Pips == 1).Any();
-                //if (hasGoneToOnesAlready)
-                //{
-                //    await SendMessage("Cannot switch to wilds more than once a round.");
-                //    return false;
-                //}
-
                 if (bid.Quantity * 2 <= mostRecentBid.Quantity)
                 {
-                    await SendMessage("Bid has to be higher.");
+                    await SendMessageAsync("Bid has to be higher.");
                     return false;
                 }
                 return true;
@@ -296,12 +274,12 @@ namespace PerudoBot.Modules
 
             if (bid.Quantity < mostRecentBid.Quantity)
             {
-                await SendMessage("Bid has to be higher.");
+                await SendMessageAsync("Bid has to be higher.");
                 return false;
             }
             if (bid.Quantity == mostRecentBid.Quantity && bid.Pips <= mostRecentBid.Pips)
             {
-                await SendMessage("Bid has to be higher.");
+                await SendMessageAsync("Bid has to be higher.");
                 return false;
             }
             return true;
@@ -309,7 +287,9 @@ namespace PerudoBot.Modules
 
         private Bid GetMostRecentBid(Game game)
         {
-            return _db.Bids.AsQueryable().Where(x => x.GameId == game.Id).ToList().LastOrDefault();
+            return game.GetLatestRound()
+                .Actions.OfType<Bid>()
+                .LastOrDefault();
         }
     }
 }

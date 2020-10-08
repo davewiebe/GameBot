@@ -21,7 +21,7 @@ namespace PerudoBot.Modules
                 .Any())
             {
                 string message = $"A game is already in progress.";
-                await SendMessage(message);
+                await SendMessageAsync(message);
                 return;
             }
 
@@ -66,11 +66,11 @@ namespace PerudoBot.Modules
             var embed = builder.Build();
             await Context.Channel.SendMessageAsync(embed: embed).ConfigureAwait(false);
 
-            var game = GetGame(GameState.Setup);
+            var game = await GetGameAsync(GameState.Setup);
             AddUsers(game, Context.Message);
             try
             {
-                SetOptions(stringArray);
+                await SetOptionsAsync(stringArray);
             }
             catch (Exception e)
             {

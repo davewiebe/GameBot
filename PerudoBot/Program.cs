@@ -73,7 +73,7 @@ namespace PerudoBot
             IResult result = null;
 
             var argPos = 0;
-            if (message.HasStringPrefix("!", ref argPos))
+            if (message.HasStringPrefix(".", ref argPos))
             {
                 result = await _commands.ExecuteAsync(context, argPos, _services);
             }

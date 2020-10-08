@@ -23,12 +23,12 @@ namespace PerudoBot.Modules
             bool onlyOnePlayerLeft = activePlayers.Count() == 1;
             if (onlyOnePlayerLeft)
             {
-                await SendMessage($":trophy: {GetUser(activePlayers.Single().Username).Mention} is the winner with `{activePlayers.Single().NumberOfDice}` dice remaining! :trophy:");
+                await SendMessageAsync($":trophy: {GetUser(activePlayers.Single().Username).Mention} is the winner with `{activePlayers.Single().NumberOfDice}` dice remaining! :trophy:");
 
                 var rattles = _db.Rattles.SingleOrDefault(x => x.Username == activePlayers.Single().Username);
                 if (rattles != null)
                 {
-                    await SendMessage(rattles.Winrattle);
+                    await SendMessageAsync(rattles.Winrattle);
                 }
 
                 game.State = (int)GameState.Finished;
@@ -76,12 +76,12 @@ namespace PerudoBot.Modules
                     }
                     catch (Exception e)
                     {
-                        await SendEncryptedDice(player, user, player.Username);
+                        await SendEncryptedDiceAsync(player, user, player.Username);
                     }
                 }
                 else
                 {
-                    await SendEncryptedDice(player, user, botKey.BotAesKey);
+                    await SendEncryptedDiceAsync(player, user, botKey.BotAesKey);
                 }
             }
             _db.SaveChanges();
@@ -95,27 +95,51 @@ namespace PerudoBot.Modules
             game.RoundStartPlayerId = GetCurrentPlayer(game).Id;
             _db.SaveChanges();
 
+            Round round;
+
             if (activePlayers.Sum(x => x.NumberOfDice) == 2 && game.FaceoffEnabled)
             {
-                await SendTempMessage("!gif fight");
-                await SendMessage($":face_with_monocle: Faceoff Round :face_with_monocle: {GetUser(GetCurrentPlayer(game).Username).Mention} goes first. Bid on total pips only (eg. `!bid 4`)");
+                round = new FaceoffRound()
+                {
+                    GameId = game.Id,
+                    RoundNumber = game.GetCurrentRoundNumber() + 1,
+                    StartingPlayerId = GetCurrentPlayer(game).Id
+                };
+
+                await SendTempMessageAsync("!gif fight");
+                await SendMessageAsync($":face_with_monocle: Faceoff Round :face_with_monocle: {GetUser(GetCurrentPlayer(game).Username).Mention} goes first. Bid on total pips only (eg. `!bid 4`)");
             }
             else if (game.NextRoundIsPalifico)
             {
-                await SendMessage($":game_die: Palifico Round :game_die: {GetUser(GetCurrentPlayer(game).Username).Mention} goes first.\n" +
+                round = new PalificoRound()
+                {
+                    GameId = game.Id,
+                    RoundNumber = game.GetCurrentRoundNumber() + 1,
+                    StartingPlayerId = GetCurrentPlayer(game).Id
+                };
+
+                await SendMessageAsync($":game_die: Palifico Round :game_die: {GetUser(GetCurrentPlayer(game).Username).Mention} goes first.\n" +
                     $"`!exact` will only reset the round - no bonuses.");
             }
             else
             {
-                await SendMessage($"A new round has begun. {GetUser(GetCurrentPlayer(game).Username).Mention} goes first.");
+                round = new StandardRound()
+                {
+                    GameId = game.Id,
+                    RoundNumber = game.GetCurrentRoundNumber() + 1,
+                    StartingPlayerId = GetCurrentPlayer(game).Id
+                };
+                await SendMessageAsync($"A new round has begun. {GetUser(GetCurrentPlayer(game).Username).Mention} goes first.");
             }
+            _db.Rounds.Add(round);
+            await _db.SaveChangesAsync();
         }
 
-        private async Task SendEncryptedDice(Player player, SocketGuildUser user, string botKey)
+        private async Task SendEncryptedDiceAsync(Player player, SocketGuildUser user, string botKey)
         {
             var diceText = $"{player.Dice.Replace(",", " ")}";
             var encoded = SimpleAES.AES256.Encrypt(diceText, botKey);
-            await SendMessage($"{user.Mention}'s dice: ||{encoded}||");
+            await SendMessageAsync($"{user.Mention}'s dice: ||{encoded}||");
         }
     }
 }

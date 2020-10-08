@@ -18,7 +18,7 @@ namespace PerudoBot.Modules
             {
                 if (ghost.GhostAttemptPips == 0) continue;
                 var quantity = GetNumberOfDiceMatchingBid(game, ghost.GhostAttemptPips);
-                
+
                 if (quantity == ghost.GhostAttemptQuantity)
                 {
                     ghost.GhostAttemptsLeft = -1;
@@ -26,14 +26,14 @@ namespace PerudoBot.Modules
                     ghost.Dice = "";
                     _db.SaveChanges();
 
-                    await SendMessage($"A wild {GetUserNickname(ghost.Username)} appeared!");
+                    await SendMessageAsync($"A wild {GetUserNickname(ghost.Username)} appeared!");
                 }
-                else if(ghost.GhostAttemptQuantity > 0)
+                else if (ghost.GhostAttemptQuantity > 0)
                 {
                     ghost.GhostAttemptsLeft = -1;
                     _db.SaveChanges();
 
-                    await SendMessage($"{GetUserNickname(ghost.Username)} fled.");
+                    await SendMessageAsync($"{GetUserNickname(ghost.Username)} fled.");
                 }
             }
         }

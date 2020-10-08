@@ -11,9 +11,9 @@ namespace PerudoBot.Modules
         [Command("start")]
         public async Task Start()
         {
-            if (await ValidateState(GameState.Setup) == false) return;
+            if (await ValidateStateAsync(GameState.Setup) == false) return;
 
-            var game = GetGame(GameState.Setup);
+            var game = await GetGameAsync(GameState.Setup);
 
             ShufflePlayers(game);
             SetDice(game);
@@ -24,7 +24,7 @@ namespace PerudoBot.Modules
             game.PlayerTurnId = players.First().Id;
             game.RoundStartPlayerId = players.First().Id;
 
-            await SendMessage($"Starting the game!\nUse `!bid 2 2s` or `!exact` or `!liar` to play.");
+            await SendMessageAsync($"Starting the game!\nUse `!bid 2 2s` or `!exact` or `!liar` to play.");
 
             await RollDiceStartNewRound(game);
 

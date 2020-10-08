@@ -20,10 +20,47 @@
     <Compile Remove="Migrations\20200806152852_Perudo.Designer.cs" />
     <Compile Remove="Migrations\20200806153027_Perudo.cs" />
     <Compile Remove="Migrations\20200806153027_Perudo.Designer.cs" />
+    <Compile Remove="Migrations\20200928223520_TauntLogs.cs" />
+    <Compile Remove="Migrations\20200928223520_TauntLogs.Designer.cs" />
+    <Compile Remove="Migrations\20200928223731_TauntLogs.cs" />
+    <Compile Remove="Migrations\20200928223731_TauntLogs.Designer.cs" />
+    <Compile Remove="Migrations\20200929043544_Actions.cs" />
+    <Compile Remove="Migrations\20200929043544_Actions.Designer.cs" />
+    <Compile Remove="Migrations\20200929043845_Actions.cs" />
+    <Compile Remove="Migrations\20200929043845_Actions.Designer.cs" />
+    <Compile Remove="Migrations\20200929044320_Actions.cs" />
+    <Compile Remove="Migrations\20200929044320_Actions.Designer.cs" />
+    <Compile Remove="Migrations\20200929050117_Actions.cs" />
+    <Compile Remove="Migrations\20200929050117_Actions.Designer.cs" />
+    <Compile Remove="Migrations\20200929050520_Actions.cs" />
+    <Compile Remove="Migrations\20200929050520_Actions.Designer.cs" />
+    <Compile Remove="Migrations\20200929172327_Action3.cs" />
+    <Compile Remove="Migrations\20200929172327_Action3.Designer.cs" />
+    <Compile Remove="Migrations\20200929172737_RenameDiscriminator.cs" />
+    <Compile Remove="Migrations\20200929172737_RenameDiscriminator.Designer.cs" />
+    <Compile Remove="Migrations\20200929173220_CombineIsSuccessColumns.cs" />
+    <Compile Remove="Migrations\20200929173220_CombineIsSuccessColumns.Designer.cs" />
+    <Compile Remove="Migrations\20200929173424_RenameBidToBid2.cs" />
+    <Compile Remove="Migrations\20200929173424_RenameBidToBid2.Designer.cs" />
+    <Compile Remove="Migrations\20200929173640_RenameBidToOldBids.cs" />
+    <Compile Remove="Migrations\20200929173640_RenameBidToOldBids.Designer.cs" />
+    <Compile Remove="Migrations\20200929215355_Actions.cs" />
+    <Compile Remove="Migrations\20200929215355_Actions.Designer.cs" />
+    <Compile Remove="Migrations\20200930185937_AddIsSuccessToAllActions.cs" />
+    <Compile Remove="Migrations\20200930185937_AddIsSuccessToAllActions.Designer.cs" />
+    <Compile Remove="Migrations\20201002050812_AddRoundsBetweenGameAndBid.cs" />
+    <Compile Remove="Migrations\20201002050812_AddRoundsBetweenGameAndBid.Designer.cs" />
+    <Compile Remove="Migrations\20201002052611_AddStartingPlayerIdToRound.cs" />
+    <Compile Remove="Migrations\20201002052611_AddStartingPlayerIdToRound.Designer.cs" />
+    <Compile Remove="Migrations\20201002054800_FixingStuff.cs" />
+    <Compile Remove="Migrations\20201002054800_FixingStuff.Designer.cs" />
+    <Compile Remove="Migrations\20201002062426_MoreFixing.cs" />
+    <Compile Remove="Migrations\20201002062426_MoreFixing.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Discord.Net" Version="2.2.0" />
+    <PackageReference Include="EFCore.NamingConventions" Version="1.1.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="3.1.5" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="3.1.5">
       <PrivateAssets>all</PrivateAssets>
@@ -33,7 +70,7 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="3.1.5" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.5" />
     <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="3.1.5" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.1.5" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.1.8" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="3.1.4" />
     <PackageReference Include="Serilog" Version="2.9.0" />
     <PackageReference Include="Serilog.Extensions.Logging" Version="3.0.1" />
@@ -52,9 +89,4 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Services\" />
-  </ItemGroup>
-
 </Project>
