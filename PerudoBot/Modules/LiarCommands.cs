@@ -129,12 +129,12 @@ namespace PerudoBot.Modules
 
                 await SendRoundSummaryForBots(game);
                 await SendRoundSummary(game);
+                await GetRoundSummary(game);
 
+                await CheckGhostAttempts(game);
+                
                 // make player with unsuccessful liar call the next to go
                 await DecrementDieFromPlayerAndSetThierTurnAsync(game, playerWhoShouldGoNext, penalty);
-
-                // check if any ghosts made exact calls?
-                await CheckGhostAttempts(game);
             }
             else
             {
@@ -148,8 +148,10 @@ namespace PerudoBot.Modules
 
                 await SendRoundSummaryForBots(game);
                 await SendRoundSummary(game);
-                await DecrementDieFromPlayerAndSetThierTurnAsync(game, previousBid.Player, penalty);
+                await GetRoundSummary(game);
+                
                 await CheckGhostAttempts(game);
+                await DecrementDieFromPlayerAndSetThierTurnAsync(game, previousBid.Player, penalty);
             }
 
             _db.Actions.Add(liarCall);
