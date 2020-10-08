@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
@@ -42,6 +43,15 @@ namespace PerudoBot.Data
         public Round GetLatestRound()
         {
             return Rounds.LastOrDefault();
+        }
+
+        [NotMapped]
+        public Round CurrentRound
+        {
+            get
+            {
+                return Rounds.LastOrDefault();
+            }
         }
 
         public int GetCurrentRoundNumber()
