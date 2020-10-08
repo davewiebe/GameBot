@@ -135,6 +135,7 @@ namespace PerudoBot.Modules
 
                 // check if any ghosts made exact calls?
                 await CheckGhostAttempts(game);
+                await DecrementDieFromPlayerAndSetThierTurnAsync(game, biddingPlayer, penalty);
             }
             else
             {
@@ -149,7 +150,6 @@ namespace PerudoBot.Modules
                 await SendRoundSummaryForBots(game);
                 await SendRoundSummary(game);
                 await DecrementDieFromPlayerAndSetThierTurnAsync(game, previousBid.Player, penalty);
-                await CheckGhostAttempts(game);
             }
 
             _db.Actions.Add(liarCall);
