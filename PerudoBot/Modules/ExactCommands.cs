@@ -103,7 +103,7 @@ namespace PerudoBot.Modules
                     await SendMessageAsync($":crossed_swords: As a bonus, everyone else loses `{game.ExactCallPenalty}` dice :crossed_swords:");
 
                     await SendRoundSummaryForBots(game);
-                    await GetRoundSummary(game);
+                    await SendRoundSummary(game);
                     await CheckGhostAttempts(game);
 
                     var otherplayers = GetPlayers(game).Where(x => x.NumberOfDice > 0).Where(x => x.Id != biddingPlayer.Id);
@@ -115,7 +115,7 @@ namespace PerudoBot.Modules
                 else
                 {
                     await SendRoundSummaryForBots(game);
-                    await GetRoundSummary(game);
+                    await SendRoundSummary(game);
                     await CheckGhostAttempts(game);
                 }
 
