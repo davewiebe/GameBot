@@ -50,13 +50,10 @@ namespace PerudoBot.Data
         {
             get
             {
-                return Rounds.LastOrDefault();
+                return Rounds
+                    .OrderByDescending(r => r.RoundNumber)
+                    .LastOrDefault();
             }
-        }
-
-        public int GetCurrentRoundNumber()
-        {
-            return GetLatestRound()?.RoundNumber ?? 0;
         }
     }
 }
