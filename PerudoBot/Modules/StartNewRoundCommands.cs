@@ -92,7 +92,7 @@ namespace PerudoBot.Modules
             await DisplayCurrentStandings(game);
 
             _db.SaveChanges();
-            game.RoundStartPlayerId = GetCurrentPlayer(game).Id;
+            game.RoundStartPlayerId = _perudoGameService.GetCurrentPlayer(game).Id;
             _db.SaveChanges();
 
             Round round;
@@ -103,11 +103,11 @@ namespace PerudoBot.Modules
                 {
                     GameId = game.Id,
                     RoundNumber = game.CurrentRound.RoundNumber + 1,
-                    StartingPlayerId = GetCurrentPlayer(game).Id
+                    StartingPlayerId = _perudoGameService.GetCurrentPlayer(game).Id
                 };
 
                 await SendTempMessageAsync("!gif fight");
-                await SendMessageAsync($":face_with_monocle: Faceoff Round :face_with_monocle: {GetUser(GetCurrentPlayer(game).Username).Mention} goes first. Bid on total pips only (eg. `!bid 4`)");
+                await SendMessageAsync($":face_with_monocle: Faceoff Round :face_with_monocle: {GetUser(_perudoGameService.GetCurrentPlayer(game).Username).Mention} goes first. Bid on total pips only (eg. `!bid 4`)");
             }
             else if (game.NextRoundIsPalifico)
             {
@@ -115,10 +115,10 @@ namespace PerudoBot.Modules
                 {
                     GameId = game.Id,
                     RoundNumber = game.CurrentRound.RoundNumber + 1,
-                    StartingPlayerId = GetCurrentPlayer(game).Id
+                    StartingPlayerId = _perudoGameService.GetCurrentPlayer(game).Id
                 };
 
-                await SendMessageAsync($":game_die: Palifico Round :game_die: {GetUser(GetCurrentPlayer(game).Username).Mention} goes first.\n" +
+                await SendMessageAsync($":game_die: Palifico Round :game_die: {GetUser(_perudoGameService.GetCurrentPlayer(game).Username).Mention} goes first.\n" +
                     $"`!exact` will only reset the round - no bonuses.");
             }
             else
@@ -127,9 +127,9 @@ namespace PerudoBot.Modules
                 {
                     GameId = game.Id,
                     RoundNumber = (game.CurrentRound?.RoundNumber ?? 0) + 1,
-                    StartingPlayerId = GetCurrentPlayer(game).Id
+                    StartingPlayerId = _perudoGameService.GetCurrentPlayer(game).Id
                 };
-                await SendMessageAsync($"A new round has begun. {GetUser(GetCurrentPlayer(game).Username).Mention} goes first.");
+                await SendMessageAsync($"A new round has begun. {GetUser(_perudoGameService.GetCurrentPlayer(game).Username).Mention} goes first.");
             }
             _db.Rounds.Add(round);
             await _db.SaveChangesAsync();

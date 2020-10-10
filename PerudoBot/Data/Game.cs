@@ -40,11 +40,6 @@ namespace PerudoBot.Data
 
         public virtual ICollection<Round> Rounds { get; set; }
 
-        public Round GetLatestRound()
-        {
-            return Rounds.LastOrDefault();
-        }
-
         [NotMapped]
         public Round CurrentRound
         {

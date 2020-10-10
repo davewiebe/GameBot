@@ -43,7 +43,7 @@ namespace PerudoBot.Modules
             if (previousBid.Quantity == 0) return;
             int countOfPips = GetNumberOfDiceMatchingBid(game, previousBid.Pips);
 
-            var originalBiddingPlayer = GetCurrentPlayer(game);
+            var originalBiddingPlayer = _perudoGameService.GetCurrentPlayer(game);
             if (game.CanCallExactAnytime)
             {
                 var player = _db.Players.AsQueryable().Where(x => x.GameId == game.Id).OrderBy(x => x.TurnOrder)
@@ -55,7 +55,7 @@ namespace PerudoBot.Modules
                 _db.SaveChanges();
             }
 
-            var biddingPlayer = GetCurrentPlayer(game);
+            var biddingPlayer = _perudoGameService.GetCurrentPlayer(game);
 
             if (biddingPlayer.Username != Context.User.Username)
             {
@@ -65,7 +65,7 @@ namespace PerudoBot.Modules
             _db.Actions.Add(new ExactCall
             {
                 PlayerId = game.PlayerTurnId.Value,
-                RoundId = game.GetLatestRound().Id,
+                RoundId = game.CurrentRound.Id,
                 ParentActionId = previousBid.Id
             });
             _db.SaveChanges();

@@ -2,6 +2,7 @@
 using Discord.WebSocket;
 using PerudoBot.Data;
 using PerudoBot.Extensions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -11,6 +12,7 @@ namespace PerudoBot.Modules
 {
     public partial class Commands : ModuleBase<SocketCommandContext>
     {
+        [Obsolete("Use Perudo Game Service")]
         private List<Player> GetPlayers(Game game)
         {
             return _db.Players.AsQueryable()
@@ -42,7 +44,7 @@ namespace PerudoBot.Modules
             var thatUser = GetPlayers(game).Single(x => x.Id == game.PlayerTurnId);
             if (thatUser.NumberOfDice == 0)
             {
-                SetNextPlayer(game, thatUser);
+                _perudoGameService.SetNextPlayer(game, thatUser);
             }
 
             _db.SaveChanges();
@@ -132,7 +134,7 @@ namespace PerudoBot.Modules
                     }
                 }
 
-                SetNextPlayer(game, player);
+                _perudoGameService.SetNextPlayer(game, player);
             }
             else
             {
@@ -158,37 +160,6 @@ namespace PerudoBot.Modules
                 return allDice.Count(x => x == pips);
             }
             return allDice.Count(x => x == pips || x == 1);
-        }
-
-        private Player GetCurrentPlayer(Game game)
-        {
-            return _db.Players
-                .AsQueryable()
-                .Single(x => x.Id == game.PlayerTurnId);
-        }
-
-        private void SetNextPlayer(Game game, Player currentPlayer)
-        {
-            var playerIds = _db.Players
-                .AsQueryable()
-                .Where(x => x.GameId == game.Id)
-                .Where(x => x.NumberOfDice > 0 || x.Username == currentPlayer.Username) // in case the current user is eliminated and won't show up
-                .OrderBy(x => x.TurnOrder)
-                .Select(x => x.Id)
-                .ToList();
-
-            var playerIndex = playerIds.FindIndex(x => x == currentPlayer.Id);
-
-            if (playerIndex >= playerIds.Count - 1)
-            {
-                game.PlayerTurnId = playerIds.ElementAt(0);
-            }
-            else
-            {
-                game.PlayerTurnId = playerIds.ElementAt(playerIndex + 1);
-            }
-
-            _db.SaveChanges();
         }
     }
 }

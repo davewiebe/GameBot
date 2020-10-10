@@ -44,6 +44,7 @@ namespace PerudoBot.Modules
             { }
         }
 
+        [Obsolete("Use Perudo Game Service Instead")]
         private async Task<bool> ValidateStateAsync(GameState gameState)
         {
             var game = await GetGameAsync(gameState);

@@ -47,7 +47,7 @@ namespace PerudoBot.Modules
             game = await GetGameAsync(GameState.InProgress);
             if (game != null)
             {
-                var nextPlayer = GetCurrentPlayer(game);
+                var nextPlayer = _perudoGameService.GetCurrentPlayer(game);
                 var bid = GetMostRecentBid(game);
                 await DisplayCurrentStandings(game);
 
