@@ -58,6 +58,8 @@
     <Compile Remove="Migrations\20201002062426_MoreFixing.Designer.cs" />
     <Compile Remove="Migrations\20201007234309_AddRoundsAndActions.cs" />
     <Compile Remove="Migrations\20201007234309_AddRoundsAndActions.Designer.cs" />
+    <Compile Remove="Migrations\20201009233747_Tes.cs" />
+    <Compile Remove="Migrations\20201009233747_Tes.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>

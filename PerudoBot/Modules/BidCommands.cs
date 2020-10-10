@@ -17,7 +17,7 @@ namespace PerudoBot.Modules
 
             var game = await GetGameAsync(GameState.InProgress);
 
-            var currentPlayer = GetCurrentPlayer(game);
+            var currentPlayer = _perudoGameService.GetCurrentPlayer(game);
 
             if (!game.CanBidAnytime && currentPlayer.Username != Context.User.Username)
             {
@@ -66,9 +66,9 @@ namespace PerudoBot.Modules
             _db.Actions.Add(bid);
             _db.SaveChanges();
 
-            SetNextPlayer(game, biddingPlayer);
+            _perudoGameService.SetNextPlayer(game, biddingPlayer);
 
-            var nextPlayer = GetCurrentPlayer(game);
+            var nextPlayer = _perudoGameService.GetCurrentPlayer(game);
 
             DeleteCommandFromDiscord();
             var bidderNickname = GetUserNickname(biddingPlayer.Username);
@@ -107,9 +107,9 @@ namespace PerudoBot.Modules
 
             if (await VerifyBid(bid) == false) return;
 
-            if (game.CanBidAnytime && GetCurrentPlayer(game).Username != Context.User.Username)
+            if (game.CanBidAnytime && _perudoGameService.GetCurrentPlayer(game).Username != Context.User.Username)
             {
-                var prevCurrentPlayer = GetCurrentPlayer(game);
+                var prevCurrentPlayer = _perudoGameService.GetCurrentPlayer(game);
 
                 var currentPlayer = GetPlayers(game)
                     .Where(x => x.NumberOfDice > 0)
@@ -137,9 +137,9 @@ namespace PerudoBot.Modules
 
             _db.SaveChanges();
 
-            SetNextPlayer(game, biddingPlayer);
+            _perudoGameService.SetNextPlayer(game, biddingPlayer);
 
-            var nextPlayer = GetCurrentPlayer(game);
+            var nextPlayer = _perudoGameService.GetCurrentPlayer(game);
 
             DeleteCommandFromDiscord();
             var bidderNickname = GetUserNickname(biddingPlayer.Username);

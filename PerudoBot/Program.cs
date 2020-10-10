@@ -15,7 +15,7 @@ namespace PerudoBot
 {
     partial class Program
     {
-        private static void Main(string[] args) => 
+        private static void Main(string[] args) =>
             new Program().RunBotASync().GetAwaiter().GetResult();
 
         private DiscordSocketClient _client;
