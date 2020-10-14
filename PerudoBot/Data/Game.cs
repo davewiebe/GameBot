@@ -47,7 +47,7 @@ namespace PerudoBot.Data
             {
                 return Rounds
                     .OrderByDescending(r => r.RoundNumber)
-                    .LastOrDefault();
+                    .First();
             }
         }
     }
