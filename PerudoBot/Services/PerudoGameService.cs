@@ -138,14 +138,6 @@ namespace PerudoBot.Services
                 }
             }
 
-            //DeleteCommandFromDiscord();
-
-            //// send message that liar has been called, w/ details
-            //await SendMessageAsync($"{GetUserNickname(playerWhoShouldGoNext.Username)} called **liar** on `{previousBid.Quantity}` ˣ {biddingObject}.");
-
-            //// for the dramatic affect
-            //Thread.Sleep(4000);
-
             // GetNumberOfDiceMatchingBid
             int numberOfDiceMatchingBid = GetNumberOfDiceMatchingBid(game, liarCallRequest.PreviousBid.Pips);
             result.ActualQuantity = numberOfDiceMatchingBid;
@@ -156,15 +148,7 @@ namespace PerudoBot.Services
                 liarCall.IsSuccess = false;
                 result.IsSuccess = false;
 
-                //determine penalty
-                var penalty = (numberOfDiceMatchingBid - liarCallRequest.PreviousBid.Quantity) + 1; // if variable penalty
-                if (game.Penalty != 0) penalty = game.Penalty; // penalty is set to 0 for variable penalty games
-                result.Penalty = penalty;
-
-                // send outcome of unsuccessful liar call
-                //await SendMessageAsync($"There was actually `{numberOfDiceMatchingBid}` {biddingName}. :fire: {GetUser(playerWhoShouldGoNext.Username).Mention} loses {penalty} dice. :fire:");
-
-                // if matching dice is exactly what previous bid was, send that taunt!
+                result.Penalty = DeterminePenalty(game, numberOfDiceMatchingBid, liarCallRequest.PreviousBid.Quantity);
             }
             else
             {
@@ -181,6 +165,15 @@ namespace PerudoBot.Services
             _db.SaveChanges();
 
             return result;
+        }
+
+        private int DeterminePenalty(Game game, int numberOfDiceMatchingBid, int quantity)
+        {
+            if (game.Penalty != 0) // not variable penalty
+                return game.Penalty;
+
+            // otherwise, its variable penalty
+            return numberOfDiceMatchingBid - quantity + 1;
         }
 
         public List<Player> GetPlayers(Game game)
