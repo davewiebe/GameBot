@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 
@@ -15,9 +16,13 @@ namespace PerudoBot.Data
 
         public int StartingPlayerId { get; set; }
 
-        public Action GetLatestAction()
+        [NotMapped]
+        public Action LastAction
         {
-            return Actions.LastOrDefault();
+            get
+            {
+                return Actions.LastOrDefault();
+            }
         }
     }
 
