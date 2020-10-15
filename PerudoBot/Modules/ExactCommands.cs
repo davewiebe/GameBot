@@ -33,7 +33,9 @@ namespace PerudoBot.Modules
                     ghostPlayer.GhostAttemptQuantity = lastBuid.Quantity;
                     ghostPlayer.GhostAttemptPips = lastBuid.Pips;
                     _db.SaveChanges();
-                    await SendMessageAsync($"{GetUserNickname(Context.User.Username)}'s exact attempt has been recorded. Good luck.");
+
+                    DeleteCommandFromDiscord();
+                    await SendMessageAsync($"{GetUserNickname(Context.User.Username)}'s exact attempt: `{lastBuid.Quantity}` ˣ {lastBuid.Pips.GetEmoji()}. Good luck.");
                 }
             }
 
