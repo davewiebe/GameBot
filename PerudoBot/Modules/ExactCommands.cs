@@ -26,16 +26,24 @@ namespace PerudoBot.Modules
                 if (GetPlayers(game).Where(x => x.NumberOfDice > 0).Count() == 2) return;
                 if (ghostPlayer.GhostAttemptsLeft > 0)
                 {
-                    var lastBuid = GetMostRecentBid(game);
-                    if (lastBuid == null) return;
-                    if (lastBuid.Quantity == 0) return;
+                    var lastBid = GetMostRecentBid(game);
+                    if (lastBid == null) return;
+                    if (lastBid.Quantity == 0) return;
 
-                    ghostPlayer.GhostAttemptQuantity = lastBuid.Quantity;
-                    ghostPlayer.GhostAttemptPips = lastBuid.Pips;
+                    ghostPlayer.GhostAttemptQuantity = lastBid.Quantity;
+                    ghostPlayer.GhostAttemptPips = lastBid.Pips;
                     _db.SaveChanges();
 
                     DeleteCommandFromDiscord();
-                    await SendMessageAsync($":ghost: {GetUserNickname(Context.User.Username)}'s exact attempt: `{lastBuid.Quantity}` ˣ {lastBuid.Pips.GetEmoji()}. Good luck.");
+                    var lastBidMessage = await Context.Channel.GetMessageAsync(lastBid.MessageId);
+
+                    DeleteCommandFromDiscord(lastBidMessage.Id);
+                    
+                    var newMessage = await SendMessageAsync($"{lastBidMessage.Content} :ghost: {GetUserNickname(Context.User.Username)}");
+                    lastBid.MessageId = newMessage.Id;
+                    _db.SaveChanges();
+
+                    return;
                 }
             }
 

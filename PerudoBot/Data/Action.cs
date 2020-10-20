@@ -11,8 +11,7 @@ namespace PerudoBot.Data
         public virtual Player Player { get; set; }
         public int PlayerId { get; set; }
 
-        // TODO: make non-nullable
-        public int? RoundId { get; set; }
+        public int RoundId { get; set; }
         public Round Round { get; set; }
 
         //public int GameId { get; set; }
@@ -30,6 +29,7 @@ namespace PerudoBot.Data
     {
         public int Quantity { get; set; }
         public int Pips { get; set; }
+        public ulong MessageId { get; internal set; }
     }
 
     public class LiarCall : Action

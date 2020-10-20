@@ -1,9 +1,11 @@
-﻿using Discord.Commands;
+﻿using Discord;
+using Discord.Commands;
 using Newtonsoft.Json;
 using PerudoBot.Data;
 using PerudoBot.Extensions;
 using System.Linq;
 using System.Threading.Tasks;
+using Game = PerudoBot.Data.Game;
 
 namespace PerudoBot.Modules
 {
@@ -146,6 +148,7 @@ namespace PerudoBot.Modules
             var nextPlayerMention = GetUser(nextPlayer.Username).Mention;
 
             var userMessage = $"{ bidderNickname } bids `{ quantity}` ˣ { pips.GetEmoji()}. { nextPlayerMention } is up.";
+            IUserMessage sentMessage;
 
             if (AreBotsInGame(game))
             {
@@ -155,12 +158,15 @@ namespace PerudoBot.Modules
                     P = pips,
                     Q = quantity
                 };
-                await SendMessageAsync($"{userMessage} || {JsonConvert.SerializeObject(botMessage)}||");
+                sentMessage = await SendMessageAsync($"{userMessage} || {JsonConvert.SerializeObject(botMessage)}||");
             }
             else
             {
-                await SendMessageAsync(userMessage);
+                sentMessage = await SendMessageAsync(userMessage);
             }
+
+            bid.MessageId = sentMessage.Id;
+            _db.SaveChanges();
         }
 
         private async Task<bool> VerifyBid(Bid bid)

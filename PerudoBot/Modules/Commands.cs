@@ -22,13 +22,13 @@ namespace PerudoBot.Modules
             _perudoGameService = new PerudoGameService(_db);
         }
 
-        private async Task SendMessageAsync(string message, bool isTTS = false)
+        private async Task<IUserMessage> SendMessageAsync(string message, bool isTTS = false)
         {
-            if (string.IsNullOrEmpty(message)) return;
+            if (string.IsNullOrEmpty(message)) return null;
 
             var requestOptions = new RequestOptions()
             { RetryMode = RetryMode.RetryRatelimit };
-            await base.ReplyAsync(message, options: requestOptions, isTTS: isTTS);
+            return await base.ReplyAsync(message, options: requestOptions, isTTS: isTTS);
         }
 
         private async Task SendTempMessageAsync(string message, bool isTTS = false)
@@ -61,11 +61,19 @@ namespace PerudoBot.Modules
             return await _perudoGameService.GetGameAsync(Context.Channel.Id, gameStates);
         }
 
-        private void DeleteCommandFromDiscord()
+        private void DeleteCommandFromDiscord(ulong? messageId = null)
         {
+
             try
             {
-                _ = Context.Message.DeleteAsync();
+                if (messageId != null)
+                {
+                    _ = Context.Channel.DeleteMessageAsync(messageId.Value);
+                }
+                else
+                {
+                    _ = Context.Message.DeleteAsync();
+                }
             }
             catch (Exception e)
             {
