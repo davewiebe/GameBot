@@ -26,14 +26,14 @@ namespace PerudoBot.Modules
                     ghost.Dice = "";
                     _db.SaveChanges();
 
-                    await SendMessageAsync($"A wild {GetUserNickname(ghost.Username)} appeared!");
+                    await SendMessageAsync($":boom: A wild {GetUserNickname(ghost.Username)} appeared!");
                 }
                 else if (ghost.GhostAttemptQuantity > 0)
                 {
                     ghost.GhostAttemptsLeft = -1;
                     _db.SaveChanges();
 
-                    await SendMessageAsync($"{GetUserNickname(ghost.Username)} fled.");
+                    await SendMessageAsync($":runner: {GetUserNickname(ghost.Username)} fled.");
                 }
             }
         }

@@ -35,7 +35,7 @@ namespace PerudoBot.Modules
                     _db.SaveChanges();
 
                     DeleteCommandFromDiscord();
-                    await SendMessageAsync($"{GetUserNickname(Context.User.Username)}'s exact attempt: `{lastBuid.Quantity}` ˣ {lastBuid.Pips.GetEmoji()}. Good luck.");
+                    await SendMessageAsync($":ghost: {GetUserNickname(Context.User.Username)}'s exact attempt: `{lastBuid.Quantity}` ˣ {lastBuid.Pips.GetEmoji()}. Good luck.");
                 }
             }
 
