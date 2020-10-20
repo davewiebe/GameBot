@@ -68,11 +68,11 @@ namespace PerudoBot.Modules
             {
                 if (messageId != null)
                 {
-                    _ = Context.Channel.DeleteMessageAsync(messageId.Value);
+                    _ = Task.Run(() => Context.Channel.DeleteMessageAsync(messageId.Value));
                 }
                 else
                 {
-                    _ = Context.Message.DeleteAsync();
+                    _ = Task.Run(() => Context.Message.DeleteAsync());
                 }
             }
             catch (Exception e)

@@ -28,7 +28,7 @@ namespace PerudoBot.Modules
 
         private async Task SendRoundSummary(Game game)
         {
-            var players = GetPlayers(game).Where(x => x.NumberOfDice > 0).ToList();
+            var players = GetPlayers(game).Where(x => x.Dice != "").Where(x => x.NumberOfDice > 0).ToList();
             var playerDice = players.Select(x => $"{GetUserNickname(x.Username)}: {string.Join(" ", x.Dice.Split(",").Select(x => int.Parse(x).GetEmoji()))}".TrimEnd());
 
             var allDice = players.SelectMany(x => x.Dice.Split(",").Select(x => int.Parse(x)));

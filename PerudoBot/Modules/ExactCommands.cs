@@ -24,7 +24,7 @@ namespace PerudoBot.Modules
             if (ghostPlayer != null)
             {
                 if (GetPlayers(game).Where(x => x.NumberOfDice > 0).Count() == 2) return;
-                if (ghostPlayer.GhostAttemptsLeft > 0)
+                if (ghostPlayer.GhostAttemptsLeft > 0 && ghostPlayer.GhostAttemptPips == 0)
                 {
                     var lastBid = GetMostRecentBid(game);
                     if (lastBid == null) return;
@@ -34,15 +34,23 @@ namespace PerudoBot.Modules
                     ghostPlayer.GhostAttemptPips = lastBid.Pips;
                     _db.SaveChanges();
 
-                    DeleteCommandFromDiscord();
                     var lastBidMessage = await Context.Channel.GetMessageAsync(lastBid.MessageId);
 
-                    DeleteCommandFromDiscord(lastBidMessage.Id);
-                    
-                    var newMessage = await SendMessageAsync($"{lastBidMessage.Content} :ghost: {GetUserNickname(Context.User.Username)}");
-                    lastBid.MessageId = newMessage.Id;
-                    _db.SaveChanges();
+                    DeleteCommandFromDiscord();
 
+                    try
+                    { // try modifying last message. Will the cast work??
+                        var lastBidSocket = lastBidMessage as Discord.WebSocket.SocketUserMessage;
+                        await lastBidSocket.ModifyAsync(c => c.Content = $"{c.Content} :ghost: {GetUserNickname(Context.User.Username)}");
+                    }
+                    catch
+                    {
+                        DeleteCommandFromDiscord(lastBid.MessageId);
+
+                        var newMessage = await SendMessageAsync($"{lastBidMessage.Content} :ghost: {GetUserNickname(Context.User.Username)}");
+                        lastBid.MessageId = newMessage.Id;
+                        _db.SaveChanges();
+                    }
                     return;
                 }
             }

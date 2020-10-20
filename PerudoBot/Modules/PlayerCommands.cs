@@ -151,7 +151,7 @@ namespace PerudoBot.Modules
                 return allDice2.Sum();
             }
 
-            var allDice = players.SelectMany(x => x.Dice.Split(",").Select(x => int.Parse(x)));
+            var allDice = players.Where(x => x.Dice != "").SelectMany(x => x.Dice.Split(",").Select(x => int.Parse(x)));
 
             if (game.NextRoundIsPalifico)
             {
