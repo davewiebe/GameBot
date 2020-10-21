@@ -36,11 +36,10 @@ namespace PerudoBot.Modules
 
                     var lastBidMessage = await Context.Channel.GetMessageAsync(lastBid.MessageId);
 
-                    DeleteCommandFromDiscord();
-
                     try
                     {
-                        _ = lastBidMessage.DeleteAsync();
+                        _ = Task.Run(() => Context.Message.DeleteAsync());
+                        _ = Task.Run(() => lastBidMessage.DeleteAsync());
                     }
                     catch { }
 
