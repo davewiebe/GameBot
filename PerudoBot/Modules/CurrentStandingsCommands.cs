@@ -36,7 +36,7 @@ namespace PerudoBot.Modules
 
             var builder = new EmbedBuilder()
                 .WithTitle("Current standings")
-                .AddField("Users", $"{playerList}\n\nTotal dice left: `{totalDice}`\n{quickmaths}", inline: false);
+                .AddField("Players", $"{playerList}\n\nTotal dice left: `{totalDice}`\n{quickmaths}", inline: false);
             var embed = builder.Build();
 
             await Context.Channel.SendMessageAsync(

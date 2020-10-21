@@ -43,13 +43,13 @@ namespace PerudoBot.Modules
                 IsRanked = true,
                 GuildId = Context.Guild.Id,
                 FaceoffEnabled = true,
-                CanCallExactToJoinAgain = false,
+                CanCallExactToJoinAgain = true,
                 StatusMessage = 0
             });
             _db.SaveChanges();
 
             var commands =
-                $"`!add/remove @user` to add/remove players.\n" +
+                $"`!add/remove @player` to add/remove players.\n" +
                 $"`!option xyz` to set round options.\n" +
                 $"`!status` to view current status.\n" +
                 $"`!start` to start the game.";

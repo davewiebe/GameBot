@@ -45,7 +45,11 @@ namespace PerudoBot.Modules
                     }
                     catch
                     {
-                        DeleteCommandFromDiscord(lastBid.MessageId);
+                        try
+                        {
+                            _ = lastBidMessage.DeleteAsync();
+                        }
+                        catch { }
 
                         var newMessage = await SendMessageAsync($"{lastBidMessage.Content} :ghost: {GetUserNickname(Context.User.Username)}");
                         lastBid.MessageId = newMessage.Id;

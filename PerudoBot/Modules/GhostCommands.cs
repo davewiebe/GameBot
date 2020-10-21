@@ -16,7 +16,6 @@ namespace PerudoBot.Modules
 
             foreach (var ghost in ghosts)
             {
-                if (ghost.GhostAttemptPips == 0) continue;
                 var quantity = GetNumberOfDiceMatchingBid(game, ghost.GhostAttemptPips);
 
                 if (quantity == ghost.GhostAttemptQuantity)
@@ -30,10 +29,17 @@ namespace PerudoBot.Modules
                 }
                 else if (ghost.GhostAttemptQuantity > 0)
                 {
-                    ghost.GhostAttemptsLeft = -1;
+                    ghost.GhostAttemptsLeft -= 1;
                     _db.SaveChanges();
 
-                    await SendMessageAsync($":runner: {GetUserNickname(ghost.Username)} fled.");
+                    if (ghost.GhostAttemptsLeft > 0)
+                    {
+                        await SendMessageAsync($":hourglass: {GetUserNickname(ghost.Username)} has {ghost.GhostAttemptsLeft} attempt left.");
+                    }
+                    else
+                    {
+                        await SendMessageAsync($":runner: {GetUserNickname(ghost.Username)} fled.");
+                    }
                 }
             }
         }

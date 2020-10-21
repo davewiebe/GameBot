@@ -57,10 +57,10 @@ namespace PerudoBot.Modules
             allText = allText.Replace("simple", "nowild dice 5 penalty 1 noexactanytime noliaranytime nobidanytime exact 0 0 ordered nopalifico ranked");
             if (allText.Contains("suddendeath"))
             {
-                allText = allText.Replace("suddendeath", "") + "nopalifico nofaceoff penalty 100";
+                allText = allText.Replace("suddendeath", "") + "nopalifico penalty 100";
             }
             allText = allText.Replace("chaos", "exactanytime liaranytime bidanytime");
-            allText = allText.Replace("standard", "wild dice 5 penalty 1 noexactanytime noliaranytime nobidanytime exact 0 0 ordered palifico ranked");
+            allText = allText.Replace("standard", "wild dice 5 penalty 1 noexactanytime noliaranytime nobidanytime exact 0 0 ordered palifico ranked ghostexact faceoff");
 
             stringArray = allText.Split(" ");
             if (stringArray[0] == "dice")
@@ -289,6 +289,71 @@ namespace PerudoBot.Modules
         {
             var options = new List<string>();
 
+
+            if (game.NumberOfDice < 10)
+            {
+                var dice = "";
+                if (game.NumberOfDice >= 1) dice += ":one:";
+                if (game.NumberOfDice >= 2) dice += ":two:";
+                if (game.NumberOfDice >= 3) dice += ":three:";
+                if (game.NumberOfDice >= 4) dice += ":four:";
+                if (game.NumberOfDice >= 5) dice += ":five:";
+                if (game.NumberOfDice >= 6) dice += ":six:";
+                if (game.NumberOfDice >= 7) dice += ":seven:";
+                if (game.NumberOfDice >= 8) dice += ":eight:";
+                if (game.NumberOfDice >= 9) dice += ":nine:";
+
+                options.Add(dice);
+            }
+            else
+                options.Add($":game_die: ˣ {game.NumberOfDice}");
+
+            if (game.Penalty == 0)
+            {
+                options.Add(":fire::grey_question::grey_question::grey_question::grey_question:");
+            }
+            else
+            {
+                var penalty = System.Math.Min(game.NumberOfDice, game.Penalty);
+                var fire = "";
+                if (penalty >= 1) fire += ":fire:";
+                if (penalty >= 2) fire += ":fire:";
+                if (penalty >= 3) fire += ":fire:";
+                if (penalty >= 4) fire += ":fire:";
+                if (penalty >= 5) fire += ":fire:";
+                if (penalty >= 6) fire += ":fire:";
+                if (penalty >= 7) fire += ":fire:";
+                if (penalty >= 8) fire += ":fire:";
+                if (penalty >= 9) fire += ":fire:";
+                options.Add(fire);
+            }
+
+            // remove this option?? if (game.RandomizeBetweenRounds) options.Add("Player order will be **randomized** between rounds");
+            if (game.WildsEnabled) options.Add(":white_check_mark: :one:");
+
+            if (game.Palifico) options.Add($":white_check_mark: :game_die:");
+            else options.Add($":x: :game_die:");
+
+            if (game.FaceoffEnabled) options.Add(":white_check_mark: :face_with_monocle:");
+            else options.Add(":x: :face_with_monocle:");
+
+            if (game.ExactCallBonus > 0 || game.ExactCallPenalty > 0) options.Add($":white_check_mark: :zany_face: :shield:`{game.ExactCallBonus}` :crossed_swords:`{game.ExactCallPenalty}`");
+            else options.Add($":x: :zany_face:");
+
+            if (game.CanCallLiarAnytime) options.Add(":white_check_mark: :lying_face: :person_doing_cartwheel:");
+            else options.Add(":x: :lying_face: :person_doing_cartwheel:");
+
+            //if (game.CanCallExactAnytime) options.Add(":white_check_mark: :zany_face: :person_doing_cartwheel:");
+            //else options.Add(":x: :zany_face: :person_doing_cartwheel:");
+
+            if (game.CanBidAnytime) options.Add(":white_check_mark: :exploding_head: :person_doing_cartwheel:");
+
+            if (game.CanCallExactToJoinAgain) options.Add(":white_check_mark: :ghost: :ghost:");
+            else options.Add(":x: :ghost: ");
+
+            if (game.IsRanked) options.Add(":white_check_mark: :medal:");
+            else options.Add(":x: :medal:");
+            /* VERBOSE options
             options.Add($"Each player starts with `{game.NumberOfDice}` dice");
             if (game.Penalty == 0)
             {
@@ -311,6 +376,7 @@ namespace PerudoBot.Modules
             if (game.CanBidAnytime) options.Add("Players can **bid** out of turn.");
             if (game.CanCallExactToJoinAgain) options.Add("Defeated players have 1 chance to call exact to rejoin with 1 die (3+ players).");
             if (game.IsRanked) options.Add("Game is ranked and saved to highscore board.");
+            */
 
             return options;
         }
