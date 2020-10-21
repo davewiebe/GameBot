@@ -62,7 +62,14 @@ namespace PerudoBot
         public async Task RegisterCommandsAsync()
         {
             _client.MessageReceived += HandleCommandAsync;
+            _client.ReactionAdded += HandleReactionAddedAsync;
             await _commands.AddModulesAsync(Assembly.GetEntryAssembly(), _services);
+        }
+
+        private async Task HandleReactionAddedAsync(Cacheable<IUserMessage, ulong> arg1, ISocketMessageChannel arg2, SocketReaction arg3)
+        {
+            Console.WriteLine("emoji not implemented");
+            //throw new NotImplementedException();
         }
 
         private async Task HandleCommandAsync(SocketMessage arg)

@@ -39,22 +39,15 @@ namespace PerudoBot.Modules
                     DeleteCommandFromDiscord();
 
                     try
-                    { // try modifying last message. Will the cast work??
-                        var lastBidSocket = lastBidMessage as Discord.WebSocket.SocketUserMessage;
-                        await lastBidSocket.ModifyAsync(c => c.Content = $"{c.Content} :ghost: {GetUserNickname(Context.User.Username)}");
-                    }
-                    catch
                     {
-                        try
-                        {
-                            _ = lastBidMessage.DeleteAsync();
-                        }
-                        catch { }
-
-                        var newMessage = await SendMessageAsync($"{lastBidMessage.Content} :ghost: {GetUserNickname(Context.User.Username)}");
-                        lastBid.MessageId = newMessage.Id;
-                        _db.SaveChanges();
+                        _ = lastBidMessage.DeleteAsync();
                     }
+                    catch { }
+
+                    var newMessage = await SendMessageAsync($"{lastBidMessage.Content} :ghost: {GetUserNickname(Context.User.Username)}");
+                    lastBid.MessageId = newMessage.Id;
+                    _db.SaveChanges();
+                    
                     return;
                 }
             }

@@ -78,7 +78,7 @@ namespace PerudoBot.Modules
                         {
                             player.GhostAttemptsLeft = 2;
                             _db.SaveChanges();
-                            await SendMessageAsync($"{GetUserNickname(player.Username)} you have 2 attempts at an `!exact` call to win your way back into the game in the next 2 rounds (3+ players).");
+                            await SendMessageAsync($":hourglass::hourglass: {GetUserNickname(player.Username)} you have 2 attempts at an `!exact` call to win your way back into the game in the next 2 rounds (3+ players).");
                         }
                     }
                 }
@@ -127,7 +127,7 @@ namespace PerudoBot.Modules
                         {
                             player.GhostAttemptsLeft = 2;
                             _db.SaveChanges();
-                            await SendMessageAsync($"{GetUserNickname(player.Username)} you have 2 attempts at an `!exact` call to win your way back into the game in the next 2 rounds (3+ players).");
+                            await SendMessageAsync($":hourglass::hourglass: {GetUserNickname(player.Username)} you have 2 attempts at an `!exact` call to win your way back into the game in the next 2 rounds (3+ players).");
                         }
                     }
                 }

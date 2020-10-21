@@ -30,6 +30,8 @@ namespace PerudoBot.Modules
                 else if (ghost.GhostAttemptQuantity > 0)
                 {
                     ghost.GhostAttemptsLeft -= 1;
+                    ghost.GhostAttemptQuantity = 0;
+                    ghost.GhostAttemptPips = 0;
                     _db.SaveChanges();
 
                     if (ghost.GhostAttemptsLeft > 0)
