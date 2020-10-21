@@ -337,7 +337,7 @@ namespace PerudoBot.Modules
             if (game.FaceoffEnabled) options.Add(":white_check_mark: :face_with_monocle:");
             else options.Add(":x: :face_with_monocle:");
 
-            if (game.ExactCallBonus > 0 || game.ExactCallPenalty > 0) options.Add($":white_check_mark: :zany_face: :shield:`{game.ExactCallBonus}` :crossed_swords:`{game.ExactCallPenalty}`");
+            if (game.ExactCallBonus > 0 || game.ExactCallPenalty > 0) options.Add($":white_check_mark: :zany_face: `{game.ExactCallBonus}`:shield: `{game.ExactCallPenalty}`:crossed_swords:");
             else options.Add($":x: :zany_face:");
 
             if (game.CanCallLiarAnytime) options.Add(":white_check_mark: :lying_face: :person_doing_cartwheel:");
