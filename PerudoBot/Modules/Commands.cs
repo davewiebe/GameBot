@@ -10,6 +10,106 @@ using Microsoft.EntityFrameworkCore;
 
 namespace PerudoBot.Modules
 {
+    public partial class ReactionCommands : ModuleBase<CommandContext>
+    {
+        private readonly GameBotDbContext _db;
+        private readonly PerudoGameService _perudoGameService;
+
+        public ReactionCommands()
+        {
+            //TODO: Let DI handle instantiation
+            _db = new GameBotDbContext();
+            _perudoGameService = new PerudoGameService(_db);
+        }
+        [Command("➡️")]
+        public async Task Next()
+        {
+            var message = Context.Message;
+
+            int currentPage = GetCurrentPage(message);
+
+            var newPage = currentPage + 1;
+
+            var gamelogService = new GamelogService(_db);
+
+            var embedString = gamelogService.GetGamelog(Context.Guild.Id, newPage, -1);
+
+            var guildUsers = await Context.Guild.GetUsersAsync();
+            foreach (var guildUser in guildUsers)
+            {
+                if (guildUser.Nickname == null) continue;
+                embedString = embedString.Replace(guildUser.Username, guildUser.Nickname);
+            }
+
+            var builder = new EmbedBuilder()
+                                .WithTitle($"Game logs - Page {newPage}")
+                                .AddField("Games", embedString, inline: false);
+            var embed = builder.Build();
+
+            await message.RemoveAllReactionsAsync();
+            await Context.Message.ModifyAsync(x => x.Embed = embed);
+
+            if (newPage != 1)
+            {
+                await message.AddReactionAsync(new Emoji("⬅️"));
+            }
+            if (!embedString.Contains("01."))
+            {
+                _ = message.AddReactionAsync(new Emoji("➡️"));
+            }
+        }
+
+        private static int GetCurrentPage(IUserMessage message)
+        {
+            var currentPage = 1;
+            if (message.Embeds.First().Title.Contains("Page"))
+            {
+                var pageText = message.Embeds.First().Title.Split("Page")[1];
+                currentPage = int.Parse(pageText);
+            }
+
+            return currentPage;
+        }
+
+        [Command("⬅️")]
+        public async Task Prev()
+        {
+            var message = Context.Message;
+            int currentPage = GetCurrentPage(message);
+
+            var newPage = currentPage - 1;
+
+            var gamelogService = new GamelogService(_db);
+
+            var embedString = gamelogService.GetGamelog(Context.Guild.Id, newPage, -1);
+
+            var guildUsers = await Context.Guild.GetUsersAsync();
+            foreach (var guildUser in guildUsers)
+            {
+                if (guildUser.Nickname == null) continue;
+                embedString = embedString.Replace(guildUser.Username, guildUser.Nickname);
+            }
+            var pageText = newPage == 1 ? "" : $" - Page {newPage}";
+            var builder = new EmbedBuilder()
+                                .WithTitle($"Game logs{pageText}")
+                                .AddField("Games", embedString, inline: false);
+            var embed = builder.Build();
+
+            await message.RemoveAllReactionsAsync();
+            await Context.Message.ModifyAsync(x => x.Embed = embed);
+
+            if (newPage != 1)
+            {
+                await message.AddReactionAsync(new Emoji("⬅️"));
+            }
+
+            if (!embedString.Contains("01."))
+            {
+                _ = message.AddReactionAsync(new Emoji("➡️"));
+            }
+        }
+    }
+
     public partial class Commands : ModuleBase<SocketCommandContext>
     {
         private readonly GameBotDbContext _db;

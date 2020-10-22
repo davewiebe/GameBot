@@ -30,7 +30,8 @@ namespace PerudoBot
                 .AddJsonFile("appsettings.json", false)
                 .Build();
 
-            _client = new DiscordSocketClient();
+            var config = new DiscordSocketConfig { MessageCacheSize = 100 };
+            _client = new DiscordSocketClient(config);
             _commands = new CommandService();
 
             _services = new ServiceCollection()
@@ -66,10 +67,12 @@ namespace PerudoBot
             await _commands.AddModulesAsync(Assembly.GetEntryAssembly(), _services);
         }
 
-        private async Task HandleReactionAddedAsync(Cacheable<IUserMessage, ulong> arg1, ISocketMessageChannel arg2, SocketReaction arg3)
+        private async Task HandleReactionAddedAsync(Cacheable<IUserMessage, ulong> before, ISocketMessageChannel after, SocketReaction reaction)
         {
-            Console.WriteLine("emoji not implemented");
-            //throw new NotImplementedException();
+            if (_client.CurrentUser.Id == reaction.UserId) return;
+            var message = await before.GetOrDownloadAsync();
+            var context = new CommandContext(_client, message);
+            var result = await _commands.ExecuteAsync(context, reaction.Emote.Name, _services);
         }
 
         private async Task HandleCommandAsync(SocketMessage arg)

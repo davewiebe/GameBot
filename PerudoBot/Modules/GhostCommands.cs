@@ -16,12 +16,24 @@ namespace PerudoBot.Modules
 
             foreach (var ghost in ghosts)
             {
-                var quantity = GetNumberOfDiceMatchingBid(game, ghost.GhostAttemptPips);
+                if (ghost.GhostAttemptPips == 0 || ghost.GhostAttemptQuantity == 0)
+                {
+                    ghost.GhostAttemptsLeft -= 1;
+                    ghost.GhostAttemptQuantity = 0;
+                    ghost.GhostAttemptPips = 0;
+                    ghost.Dice = "";
+                    _db.SaveChanges();
+                    continue;
+                }
 
+                var quantity = GetNumberOfDiceMatchingBid(game, ghost.GhostAttemptPips);
+                
                 if (quantity == ghost.GhostAttemptQuantity)
                 {
                     ghost.GhostAttemptsLeft = -1;
                     ghost.NumberOfDice = 1;
+                    ghost.GhostAttemptQuantity = 0;
+                    ghost.GhostAttemptPips = 0;
                     ghost.Dice = "";
                     _db.SaveChanges();
 
