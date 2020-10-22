@@ -51,7 +51,7 @@ namespace PerudoBot.Modules
 
             var builder = new EmbedBuilder()
                 .WithTitle("Round Summary")
-                .AddField("Users", $"{string.Join("\n", playerDice)}", inline: true)
+                .AddField("Players", $"{string.Join("\n", playerDice)}", inline: true)
                 .AddField("Dice", $"{string.Join("\n", listOfAllDiceCounts)}", inline: true)
                 .AddField("Totals", $"{string.Join("\n", totals)}", inline: true);
             var embed = builder.Build();
