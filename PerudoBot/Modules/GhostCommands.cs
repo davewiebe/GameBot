@@ -23,6 +23,16 @@ namespace PerudoBot.Modules
                     ghost.GhostAttemptPips = 0;
                     ghost.Dice = "";
                     _db.SaveChanges();
+
+                    if (ghost.GhostAttemptsLeft > 0)
+                    {
+                        await SendMessageAsync($":hourglass: {GetUserNickname(ghost.Username)} has {ghost.GhostAttemptsLeft} attempt left.");
+                    }
+                    else
+                    {
+                        await SendMessageAsync($":runner: {GetUserNickname(ghost.Username)} fled.");
+                    }
+
                     continue;
                 }
 
