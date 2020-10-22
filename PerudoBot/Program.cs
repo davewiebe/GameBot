@@ -71,7 +71,7 @@ namespace PerudoBot
         {
             var message = await before.GetOrDownloadAsync();
 
-            if (IsReactionMine(reaction) && !IsMessageMine(message)) return;
+            if (IsReactionMine(reaction) || !IsMessageMine(message)) return;
 
             var context = new CommandContext(_client, message);
             Console.WriteLine($"Handling reaction of {reaction.Emote.Name}");

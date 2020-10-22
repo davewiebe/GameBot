@@ -78,6 +78,7 @@ namespace PerudoBot.Modules
             int currentPage = GetCurrentPage(message);
 
             var newPage = currentPage - 1;
+            if (newPage == 0) return;
 
             var gamelogService = new GamelogService(_db);
 
@@ -89,9 +90,9 @@ namespace PerudoBot.Modules
                 if (guildUser.Nickname == null) continue;
                 embedString = embedString.Replace(guildUser.Username, guildUser.Nickname);
             }
-            var pageText = newPage == 1 ? "" : $" - Page {newPage}";
+
             var builder = new EmbedBuilder()
-                                .WithTitle($"Game logs{pageText}")
+                                .WithTitle($"Game logs - Page {newPage}")
                                 .AddField("Games", embedString, inline: false);
             var embed = builder.Build();
 
