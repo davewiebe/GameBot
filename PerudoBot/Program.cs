@@ -15,7 +15,7 @@ namespace PerudoBot
 {
     partial class Program
     {
-        private static void Main(string[] args) => 
+        private static void Main(string[] args) =>
             new Program().RunBotASync().GetAwaiter().GetResult();
 
         private DiscordSocketClient _client;
@@ -69,9 +69,12 @@ namespace PerudoBot
 
         private async Task HandleReactionAddedAsync(Cacheable<IUserMessage, ulong> before, ISocketMessageChannel after, SocketReaction reaction)
         {
-            if (_client.CurrentUser.Id == reaction.UserId) return;
             var message = await before.GetOrDownloadAsync();
+
+            if (IsReactionMine(reaction) && !IsMessageMine(message)) return;
+
             var context = new CommandContext(_client, message);
+            Console.WriteLine($"Handling reaction of {reaction.Emote.Name}");
             var result = await _commands.ExecuteAsync(context, reaction.Emote.Name, _services);
         }
 
@@ -83,8 +86,10 @@ namespace PerudoBot
 
             IResult result = null;
 
+            var prefix = _configuration.GetSection("BotCommandPrefix").Value;
+
             var argPos = 0;
-            if (message.HasStringPrefix("!", ref argPos))
+            if (message.HasStringPrefix(prefix, ref argPos))
             {
                 result = await _commands.ExecuteAsync(context, argPos, _services);
             }
@@ -97,6 +102,16 @@ namespace PerudoBot
             {
                 if (!result.IsSuccess) Console.WriteLine(result.ErrorReason);
             }
+        }
+
+        private bool IsMessageMine(IUserMessage message)
+        {
+            return _client.CurrentUser.Id == message.Author.Id;
+        }
+
+        private bool IsReactionMine(SocketReaction reaction)
+        {
+            return _client.CurrentUser.Id == reaction.UserId;
         }
     }
 }
