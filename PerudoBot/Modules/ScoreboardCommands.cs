@@ -31,6 +31,13 @@ namespace PerudoBot.Modules
             var gamelogService = new GamelogService(_db);
             var embedString = gamelogService.GetGamelog(Context.Guild.Id, page, i);
 
+            var guildUsers = Context.Guild.Users;
+            foreach (var guildUser in guildUsers)
+            {
+                if (guildUser.Nickname == null) continue;
+                embedString = embedString.Replace(guildUser.Username, guildUser.Nickname);
+            }
+
             var pageText = i == -1 ? $" - Page {page}" : "";
 
             var builder = new EmbedBuilder()
