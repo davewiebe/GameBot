@@ -15,10 +15,9 @@ namespace PerudoBot.Data
 
         public int StartingPlayerId { get; set; }
 
-        public Action GetLatestAction()
-        {
-            return Actions.LastOrDefault();
-        }
+        public string RoundType { get; private set; }
+
+        public Action GetLatestAction() => Actions.LastOrDefault();
     }
 
     public class StandardRound : Round

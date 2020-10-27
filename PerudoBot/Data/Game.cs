@@ -38,6 +38,8 @@ namespace PerudoBot.Data
         public bool CanCallExactToJoinAgain { get; internal set; }
         public ulong StatusMessage { get; internal set; }
 
+        public virtual ICollection<Player> Players { get; set; }
+
         public virtual ICollection<Round> Rounds { get; set; }
 
         public Round GetLatestRound()
