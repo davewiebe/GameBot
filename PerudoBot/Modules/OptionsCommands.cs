@@ -57,7 +57,7 @@ namespace PerudoBot.Modules
             allText = allText.Replace("simple", "nowild dice 5 penalty 1 noexactanytime noliaranytime nobidanytime exact 0 0 ordered nopalifico ranked");
             if (allText.Contains("suddendeath"))
             {
-                allText = allText.Replace("suddendeath", "") + "nopalifico penalty 100";
+                allText = allText.Replace("suddendeath", "") + "nopalifico penalty 100 liaranytime";
             }
             allText = allText.Replace("chaos", "exactanytime liaranytime bidanytime");
             allText = allText.Replace("standard", "wild dice 5 penalty 1 noexactanytime noliaranytime nobidanytime exact 0 0 ordered palifico ranked ghostexact faceoff");
@@ -329,16 +329,14 @@ namespace PerudoBot.Modules
             }
 
             // remove this option?? if (game.RandomizeBetweenRounds) options.Add("Player order will be **randomized** between rounds");
-            if (game.WildsEnabled) options.Add(":white_check_mark: :one:");
+            if (!game.WildsEnabled) options.Add(":x: :one:");
 
-            if (game.Palifico) options.Add($":white_check_mark: :game_die:");
-            else options.Add($":x: :game_die:");
+            if (!game.Palifico) options.Add($":x: :game_die:");
 
-            if (game.FaceoffEnabled) options.Add(":white_check_mark: :face_with_monocle:");
-            else options.Add(":x: :face_with_monocle:");
+            if (!game.FaceoffEnabled) options.Add(":x: :face_with_monocle:");
 
-            if (game.ExactCallBonus > 0 || game.ExactCallPenalty > 0) options.Add($":white_check_mark: :zany_face: `{game.ExactCallBonus}`:shield: `{game.ExactCallPenalty}`:crossed_swords:");
-            else options.Add($":x: :zany_face:");
+            if (game.ExactCallBonus > 0 || game.ExactCallPenalty > 0) options.Add($":white_check_mark: :dart: `{game.ExactCallBonus}`:shield: `{game.ExactCallPenalty}`:crossed_swords:");
+            else options.Add($":x: :dart: :person_doing_cartwheel:");
 
             if (game.CanCallLiarAnytime) options.Add(":white_check_mark: :lying_face: :person_doing_cartwheel:");
             else options.Add(":x: :lying_face: :person_doing_cartwheel:");
@@ -351,8 +349,8 @@ namespace PerudoBot.Modules
             if (game.CanCallExactToJoinAgain) options.Add(":white_check_mark: :ghost: :ghost:");
             else options.Add(":x: :ghost: ");
 
-            if (game.IsRanked) options.Add(":white_check_mark: :medal:");
-            else options.Add(":x: :medal:");
+            if (game.IsRanked) options.Add(":white_check_mark: :trophy:");
+            else options.Add(":x: :trophy:");
             /* VERBOSE options
             options.Add($"Each player starts with `{game.NumberOfDice}` dice");
             if (game.Penalty == 0)
