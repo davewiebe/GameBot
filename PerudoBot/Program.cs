@@ -71,6 +71,7 @@ namespace PerudoBot
         {
             var message = await before.GetOrDownloadAsync();
 
+            if (message == null) return;
             if (IsReactionMine(reaction) || !IsMessageMine(message)) return;
 
             var context = new CommandContext(_client, message);
