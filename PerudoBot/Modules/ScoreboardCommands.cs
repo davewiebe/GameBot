@@ -187,7 +187,7 @@ namespace PerudoBot.Modules
             var mostCorrectExactCalls = topActionCountsInAGame
                 .Where(t => t.IsSuccess)
                 .Where(t => t.ActionType == nameof(ExactCall))
-                .Where(t => t.IsOutOfTurn)
+                .Where(t => !t.IsOutOfTurn)
                 .FirstOrDefault();
 
             var mostBids = topActionCountsInAGame
