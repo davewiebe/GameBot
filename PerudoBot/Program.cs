@@ -30,7 +30,7 @@ namespace PerudoBot
                 .AddJsonFile("appsettings.json", false)
                 .Build();
 
-            var config = new DiscordSocketConfig { MessageCacheSize = 100 };
+            var config = new DiscordSocketConfig { MessageCacheSize = 100, AlwaysDownloadUsers = true };
             _client = new DiscordSocketClient(config);
             _commands = new CommandService();
 
@@ -71,6 +71,7 @@ namespace PerudoBot
         {
             var message = await before.GetOrDownloadAsync();
 
+            if (message == null) return;
             if (IsReactionMine(reaction) || !IsMessageMine(message)) return;
 
             var context = new CommandContext(_client, message);

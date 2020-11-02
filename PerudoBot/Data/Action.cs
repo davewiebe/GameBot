@@ -23,6 +23,7 @@ namespace PerudoBot.Data
 
         public bool IsSuccess { get; set; }
         public bool IsOutOfTurn { get; set; }
+        public string ActionType { get; private set; }
     }
 
     public class Bid : Action

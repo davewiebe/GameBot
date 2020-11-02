@@ -1,6 +1,8 @@
 ﻿using Discord;
 using Discord.Commands;
 using Microsoft.EntityFrameworkCore;
+using PerudoBot.Data;
+using PerudoBot.Extensions;
 using PerudoBot.Services;
 using System;
 using System.Collections.Generic;
@@ -45,7 +47,6 @@ namespace PerudoBot.Modules
                                 .AddField("Games", embedString, inline: false);
             var embed = builder.Build();
 
-
             var message = await Context.Channel.SendMessageAsync(embed: embed).ConfigureAwait(false);
 
             if (i != -1) return;
@@ -60,7 +61,6 @@ namespace PerudoBot.Modules
             }
         }
 
-
         [Command("gamelogs")]
         public async Task Gamelog(params string[] stringArray)
         {
@@ -68,9 +68,150 @@ namespace PerudoBot.Modules
         }
 
         [Command("leaderboard")]
-        public async Task Leaderboard(params string[] stringArray)
+        [Alias("lb")]
+        public async Task Leaderboard(params string[] parameters)
         {
-            await SendMessageAsync("`!leaderboard` has been depricated. Try `!gamelogs`");
+            var options = parameters.Select(o => o.ToLower());
+            var gameMode = "All Ranked Games";
+
+            var baseQuery = _db.Players.AsQueryable().AsNoTracking();
+
+            if (options.Any(o => o == "suddendeath"))
+            {
+                gameMode = "Sudden Death";
+                baseQuery = baseQuery.Where(p => p.Game.Penalty == 100);
+            }
+
+            if (options.Any(o => o == "variable"))
+            {
+                gameMode = "Variable Penalty";
+                baseQuery = baseQuery.Where(p => p.Game.Penalty == 0);
+            }
+
+            if (options.Any(o => o == "standard"))
+            {
+                gameMode = "Standard Penalty";
+                baseQuery = baseQuery.Where(p => p.Game.Penalty == 1);
+            }
+
+            var result = baseQuery.Where(p => p.Game.IsRanked)
+                .Where(p => p.Game.State == 3)
+                .Where(p => p.Game.GuildId == Context.Guild.Id)
+                .Where(p => !p.IsBot)
+                .Select(p => new
+                {
+                    GameId = p.Game.Id,
+                    p.Game.IsRanked,
+                    p.Game.State,
+                    p.Username,
+                    IsWinner = (p.Username == p.Game.Winner) ? 1 : 0,
+                    PlayerCount = p.Game.Players.Count()
+                })
+                .Where(p => p.PlayerCount >= 3 && p.PlayerCount <= 100)
+                .GroupBy(g => g.Username)
+                .Select(g => new
+                {
+                    Username = g.Key,
+                    GamesPlayed = g.Count(),
+                    Wins = g.Sum(x => x.IsWinner),
+                    WinPercentage = ((double)g.Sum(x => x.IsWinner) / (double)g.Count()) * 100
+                })
+                .OrderByDescending(f => f.WinPercentage)
+                .ThenByDescending(f => f.GamesPlayed);
+
+            var usernamePadding = 13;
+            var gamesPlayedPadding = 5;
+            var winsPadding = 7;
+            var winPercentagePadding = 8;
+
+            var embedString = "Username".PadLeft(usernamePadding) + "GP".PadLeft(gamesPlayedPadding)
+                + "Wins".PadLeft(winsPadding) + "Win %".PadLeft(winPercentagePadding) + "\n";
+
+            foreach (var item in result)
+            {
+                var guildUser = Context.Guild.Users
+                    .FirstOrDefault(u => u.Username == item.Username);
+
+                var username = "";
+                if (guildUser == null)
+                {
+                    username = item.Username;
+                }
+                else
+                {
+                    username = (guildUser.Nickname != null ? guildUser.Nickname : item.Username);
+                }
+
+                username = username.PadLeft(usernamePadding);
+
+                var gamesPlayed = item.GamesPlayed.ToString().PadLeft(gamesPlayedPadding);
+                var wins = item.Wins.ToString().PadLeft(winsPadding);
+                var winPercentage = item.WinPercentage.ToString("0.0").PadLeft(winPercentagePadding);
+
+                embedString += $"{username}{gamesPlayed}{wins}{winPercentage}\n";
+            }
+
+            var builder = new EmbedBuilder()
+                                .WithTitle($"Leaderboard")
+                                .AddField(gameMode, $"```{embedString}```", inline: false)
+                                .AddField("Player count", "4+");
+            var embed = builder.Build();
+
+            _ = await Context.Channel.SendMessageAsync(embed: embed).ConfigureAwait(false);
+        }
+
+        [Command("awards")]
+        [Alias("records, walloffame")]
+        public async Task AwardsAsync(params string[] parameters)
+        {
+            await Context.Channel.TriggerTypingAsync();
+            var statsService = new StatsService(_db);
+
+            var builder = new EmbedBuilder()
+                    .WithTitle($"Wall of Fame");
+
+            var topActionCountsInAGame = statsService.GetTopActionsInAGame(Context.Guild.Id, 1);
+
+            var mostCorrectLiarCalls = topActionCountsInAGame
+                .Where(t => t.IsSuccess)
+                .Where(t => t.ActionType == nameof(LiarCall))
+                .Where(t => !t.IsOutOfTurn)
+                .FirstOrDefault();
+
+            var mostCorrectLiarCallsOutOfTurn = topActionCountsInAGame
+                .Where(t => t.IsSuccess)
+                .Where(t => t.ActionType == nameof(LiarCall))
+                .Where(t => t.IsOutOfTurn)
+                .FirstOrDefault();
+
+            var mostCorrectExactCalls = topActionCountsInAGame
+                .Where(t => t.IsSuccess)
+                .Where(t => t.ActionType == nameof(ExactCall))
+                .Where(t => t.IsOutOfTurn)
+                .FirstOrDefault();
+
+            var mostBids = topActionCountsInAGame
+                .Where(t => t.IsSuccess)
+                .Where(t => t.ActionType == nameof(Bid))
+                .FirstOrDefault();
+
+            builder.AddField($":lying_face: Most Correct Liar Calls",
+                (mostCorrectLiarCalls != null ? mostCorrectLiarCalls.TopRecords.ToStringWithNewlines()
+                    : "No records").WrapInCodeBlock());
+
+            builder.AddField($":lying_face::twisted_rightwards_arrows: Most Correct Liar Calls (Out Of Turn)",
+                (mostCorrectLiarCallsOutOfTurn != null ? mostCorrectLiarCallsOutOfTurn.TopRecords.ToStringWithNewlines()
+                    : "No records").WrapInCodeBlock());
+
+            builder.AddField($":dart: Most Correct Exact Calls",
+                (mostCorrectExactCalls != null ? mostCorrectExactCalls.TopRecords.ToStringWithNewlines()
+                    : "No records").WrapInCodeBlock());
+
+            builder.AddField($":tickets: Most Bids",
+                (mostBids != null ? mostBids.TopRecords.ToStringWithNewlines()
+                    : "No records").WrapInCodeBlock());
+
+            _ = await Context.Channel.SendMessageAsync(null, embed: builder.Build()).ConfigureAwait(false);
         }
     }
 }

@@ -289,7 +289,6 @@ namespace PerudoBot.Modules
         {
             var options = new List<string>();
 
-
             if (game.NumberOfDice < 10)
             {
                 var dice = "";
@@ -306,26 +305,46 @@ namespace PerudoBot.Modules
                 options.Add(dice);
             }
             else
-                options.Add($":game_die: ˣ {game.NumberOfDice}");
+                options.Add($":game_die: ˣ `{game.NumberOfDice}`");
 
             if (game.Penalty == 0)
             {
-                options.Add(":fire::grey_question::grey_question::grey_question::grey_question:");
+                if (game.NumberOfDice < 10)
+                {
+                    var fire = "";
+                    if (game.NumberOfDice >= 1) fire += ":fire:";
+                    if (game.NumberOfDice >= 2) fire += ":grey_question:";
+                    if (game.NumberOfDice >= 3) fire += ":grey_question:";
+                    if (game.NumberOfDice >= 4) fire += ":grey_question:";
+                    if (game.NumberOfDice >= 5) fire += ":grey_question:";
+                    if (game.NumberOfDice >= 6) fire += ":grey_question:";
+                    if (game.NumberOfDice >= 7) fire += ":grey_question:";
+                    if (game.NumberOfDice >= 8) fire += ":grey_question:";
+                    if (game.NumberOfDice >= 9) fire += ":grey_question:";
+                    options.Add(fire);
+                }
+                else
+                    options.Add($":grey_question: ˣ `{game.NumberOfDice}`");
             }
             else
             {
-                var penalty = System.Math.Min(game.NumberOfDice, game.Penalty);
-                var fire = "";
-                if (penalty >= 1) fire += ":fire:";
-                if (penalty >= 2) fire += ":fire:";
-                if (penalty >= 3) fire += ":fire:";
-                if (penalty >= 4) fire += ":fire:";
-                if (penalty >= 5) fire += ":fire:";
-                if (penalty >= 6) fire += ":fire:";
-                if (penalty >= 7) fire += ":fire:";
-                if (penalty >= 8) fire += ":fire:";
-                if (penalty >= 9) fire += ":fire:";
-                options.Add(fire);
+                if (game.NumberOfDice < 10)
+                {
+                    var penalty = System.Math.Min(game.NumberOfDice, game.Penalty);
+                    var fire = "";
+                    if (penalty >= 1) fire += ":fire:";
+                    if (penalty >= 2) fire += ":fire:";
+                    if (penalty >= 3) fire += ":fire:";
+                    if (penalty >= 4) fire += ":fire:";
+                    if (penalty >= 5) fire += ":fire:";
+                    if (penalty >= 6) fire += ":fire:";
+                    if (penalty >= 7) fire += ":fire:";
+                    if (penalty >= 8) fire += ":fire:";
+                    if (penalty >= 9) fire += ":fire:";
+                    options.Add(fire);
+                }
+                else
+                    options.Add($":fire: ˣ `{game.NumberOfDice}`");
             }
 
             // remove this option?? if (game.RandomizeBetweenRounds) options.Add("Player order will be **randomized** between rounds");
@@ -335,18 +354,15 @@ namespace PerudoBot.Modules
 
             if (!game.FaceoffEnabled) options.Add(":x: :face_with_monocle:");
 
-            if (game.ExactCallBonus > 0 || game.ExactCallPenalty > 0) options.Add($":white_check_mark: :zany_face: `{game.ExactCallBonus}`:shield: `{game.ExactCallPenalty}`:crossed_swords:");
-            else options.Add($":x: :zany_face: :person_doing_cartwheel:");
+            if (game.ExactCallBonus > 0 || game.ExactCallPenalty > 0) options.Add($":white_check_mark: :dart: `{game.ExactCallBonus}`:shield: `{game.ExactCallPenalty}`:crossed_swords:");
+            else options.Add($":x: :dart: :twisted_rightwards_arrows:");
 
-            if (game.CanCallLiarAnytime) options.Add(":white_check_mark: :lying_face: :person_doing_cartwheel:");
-            else options.Add(":x: :lying_face: :person_doing_cartwheel:");
+            if (game.CanCallLiarAnytime) options.Add(":white_check_mark: :lying_face: :twisted_rightwards_arrows:");
+            else options.Add(":x: :lying_face: :twisted_rightwards_arrows:");
 
-            //if (game.CanCallExactAnytime) options.Add(":white_check_mark: :zany_face: :person_doing_cartwheel:");
-            //else options.Add(":x: :zany_face: :person_doing_cartwheel:");
+            if (game.CanBidAnytime) options.Add(":white_check_mark: :tickets: :twisted_rightwards_arrows:");
 
-            if (game.CanBidAnytime) options.Add(":white_check_mark: :exploding_head: :person_doing_cartwheel:");
-
-            if (game.CanCallExactToJoinAgain) options.Add(":white_check_mark: :ghost: :ghost:");
+            if (game.CanCallExactToJoinAgain) options.Add(":white_check_mark: :ghost: :ghost: :ghost:");
             else options.Add(":x: :ghost: ");
 
             if (game.IsRanked) options.Add(":white_check_mark: :medal:");

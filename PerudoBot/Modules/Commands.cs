@@ -21,6 +21,7 @@ namespace PerudoBot.Modules
             _db = new GameBotDbContext();
             _perudoGameService = new PerudoGameService(_db);
         }
+
         [Command("➡️")]
         public async Task Next()
         {
@@ -164,7 +165,6 @@ namespace PerudoBot.Modules
 
         private void DeleteCommandFromDiscord(ulong? messageId = null)
         {
-
             try
             {
                 if (messageId != null)

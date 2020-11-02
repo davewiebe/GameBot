@@ -38,15 +38,6 @@ namespace PerudoBot.Data
             modelBuilder.Entity<Round>()
                 .ToTable("Rounds")
                 .HasDiscriminator<string>("RoundType");
-
-            //modelBuilder.Entity<Bid>()
-            //    .Property(x => x.IsSuccess).HasColumnName("IsSuccess");
-
-            //modelBuilder.Entity<LiarCall>()
-            //    .Property(x => x.IsSuccess).HasColumnName("IsSuccess");
-
-            //modelBuilder.Entity<ExactCall>()
-            //    .Property(x => x.IsSuccess).HasColumnName("IsSuccess");
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
