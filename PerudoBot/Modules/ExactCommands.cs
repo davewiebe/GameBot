@@ -1,4 +1,5 @@
-﻿using Discord.Commands;
+﻿using Discord;
+using Discord.Commands;
 using PerudoBot.Data;
 using PerudoBot.Extensions;
 using System;
@@ -34,18 +35,34 @@ namespace PerudoBot.Modules
                     ghostPlayer.GhostAttemptPips = lastBid.Pips;
                     _db.SaveChanges();
 
+                    
                     var lastBidMessage = await Context.Channel.GetMessageAsync(lastBid.MessageId);
 
                     try
                     {
                         _ = Task.Run(() => Context.Message.DeleteAsync());
-                        _ = Task.Run(() => lastBidMessage.DeleteAsync());
                     }
                     catch { }
+                    try
+                    {
+                        var castedMessage = lastBidMessage as IUserMessage;
 
-                    var newMessage = await SendMessageAsync($"{lastBidMessage.Content} :ghost: {GetUserNickname(Context.User.Username)}");
-                    lastBid.MessageId = newMessage.Id;
-                    _db.SaveChanges();
+                        await castedMessage.ModifyAsync(msg => msg.Content = $"{castedMessage.Content} :ghost: {GetUserNickname(Context.User.Username)}!");
+
+                    } catch
+                    {
+
+                        try
+                        {
+                            _ = Task.Run(() => lastBidMessage.DeleteAsync());
+                        }
+                        catch { }
+
+                        var newMessage = await SendMessageAsync($"{lastBidMessage.Content} :ghost: {GetUserNickname(Context.User.Username)} (old)");
+                        lastBid.MessageId = newMessage.Id;
+                        _db.SaveChanges();
+                    }
+
                     
                     return;
                 }
