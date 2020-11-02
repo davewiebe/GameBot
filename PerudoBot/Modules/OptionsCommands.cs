@@ -335,8 +335,8 @@ namespace PerudoBot.Modules
 
             if (!game.FaceoffEnabled) options.Add(":x: :face_with_monocle:");
 
-            if (game.ExactCallBonus > 0 || game.ExactCallPenalty > 0) options.Add($":white_check_mark: :dart: `{game.ExactCallBonus}`:shield: `{game.ExactCallPenalty}`:crossed_swords:");
-            else options.Add($":x: :dart: :person_doing_cartwheel:");
+            if (game.ExactCallBonus > 0 || game.ExactCallPenalty > 0) options.Add($":white_check_mark: :zany_face: `{game.ExactCallBonus}`:shield: `{game.ExactCallPenalty}`:crossed_swords:");
+            else options.Add($":x: :zany_face: :person_doing_cartwheel:");
 
             if (game.CanCallLiarAnytime) options.Add(":white_check_mark: :lying_face: :person_doing_cartwheel:");
             else options.Add(":x: :lying_face: :person_doing_cartwheel:");
@@ -349,8 +349,8 @@ namespace PerudoBot.Modules
             if (game.CanCallExactToJoinAgain) options.Add(":white_check_mark: :ghost: :ghost:");
             else options.Add(":x: :ghost: ");
 
-            if (game.IsRanked) options.Add(":white_check_mark: :trophy:");
-            else options.Add(":x: :trophy:");
+            if (game.IsRanked) options.Add(":white_check_mark: :medal:");
+            else options.Add(":x: :medal:");
             /* VERBOSE options
             options.Add($"Each player starts with `{game.NumberOfDice}` dice");
             if (game.Penalty == 0)
