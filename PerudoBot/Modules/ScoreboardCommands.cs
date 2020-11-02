@@ -1,6 +1,8 @@
 ﻿using Discord;
 using Discord.Commands;
 using Microsoft.EntityFrameworkCore;
+using PerudoBot.Data;
+using PerudoBot.Extensions;
 using PerudoBot.Services;
 using System;
 using System.Collections.Generic;
@@ -70,7 +72,7 @@ namespace PerudoBot.Modules
         public async Task Leaderboard(params string[] parameters)
         {
             var options = parameters.Select(o => o.ToLower());
-            var gameMode = "All Games";
+            var gameMode = "All Ranked Games";
 
             var baseQuery = _db.Players.AsQueryable().AsNoTracking();
 
@@ -151,10 +153,65 @@ namespace PerudoBot.Modules
 
             var builder = new EmbedBuilder()
                                 .WithTitle($"Leaderboard")
-                                .AddField(gameMode, $"```{embedString}```", inline: false);
+                                .AddField(gameMode, $"```{embedString}```", inline: false)
+                                .AddField("Player count", "4+");
             var embed = builder.Build();
 
             _ = await Context.Channel.SendMessageAsync(embed: embed).ConfigureAwait(false);
+        }
+
+        [Command("awards")]
+        [Alias("records, walloffame")]
+        public async Task AwardsAsync(params string[] parameters)
+        {
+            await Context.Channel.TriggerTypingAsync();
+            var statsService = new StatsService(_db);
+
+            var builder = new EmbedBuilder()
+                    .WithTitle($"Wall of Fame");
+
+            var topActionCountsInAGame = statsService.GetTopActionsInAGame(Context.Guild.Id, 1);
+
+            var mostCorrectLiarCalls = topActionCountsInAGame
+                .Where(t => t.IsSuccess)
+                .Where(t => t.ActionType == nameof(LiarCall))
+                .Where(t => !t.IsOutOfTurn)
+                .FirstOrDefault();
+
+            var mostCorrectLiarCallsOutOfTurn = topActionCountsInAGame
+                .Where(t => t.IsSuccess)
+                .Where(t => t.ActionType == nameof(LiarCall))
+                .Where(t => t.IsOutOfTurn)
+                .FirstOrDefault();
+
+            var mostCorrectExactCalls = topActionCountsInAGame
+                .Where(t => t.IsSuccess)
+                .Where(t => t.ActionType == nameof(ExactCall))
+                .Where(t => t.IsOutOfTurn)
+                .FirstOrDefault();
+
+            var mostBids = topActionCountsInAGame
+                .Where(t => t.IsSuccess)
+                .Where(t => t.ActionType == nameof(Bid))
+                .FirstOrDefault();
+
+            builder.AddField($":lying_face: Most Correct Liar Calls",
+                (mostCorrectLiarCalls != null ? mostCorrectLiarCalls.TopRecords.ToStringWithNewlines()
+                    : "No records").WrapInCodeBlock());
+
+            builder.AddField($":lying_face::twisted_rightwards_arrows: Most Correct Liar Calls (Out Of Turn)",
+                (mostCorrectLiarCallsOutOfTurn != null ? mostCorrectLiarCallsOutOfTurn.TopRecords.ToStringWithNewlines()
+                    : "No records").WrapInCodeBlock());
+
+            builder.AddField($":dart: Most Correct Exact Calls",
+                (mostCorrectExactCalls != null ? mostCorrectExactCalls.TopRecords.ToStringWithNewlines()
+                    : "No records").WrapInCodeBlock());
+
+            builder.AddField($":tickets: Most Bids",
+                (mostBids != null ? mostBids.TopRecords.ToStringWithNewlines()
+                    : "No records").WrapInCodeBlock());
+
+            _ = await Context.Channel.SendMessageAsync(null, embed: builder.Build()).ConfigureAwait(false);
         }
     }
 }

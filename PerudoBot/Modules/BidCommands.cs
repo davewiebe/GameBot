@@ -13,7 +13,7 @@ namespace PerudoBot.Modules
     {
         [Command("bid")]
         [Alias("b")]
-        public async Task Bid(params string[] bidText)
+        public async Task BidAsync(params string[] bidText)
         {
             if (await ValidateStateAsync(GameState.InProgress) == false) return;
 
