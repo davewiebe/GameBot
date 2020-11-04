@@ -66,6 +66,7 @@ namespace PerudoBot.Modules
 
                     // change the game's current player to the out of turn player
                     game.PlayerTurnId = player.Id;
+                    liarCall.PlayerId = player.Id;
 
                     // save changes so game is updated
                     _db.SaveChanges();
