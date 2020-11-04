@@ -74,6 +74,7 @@ namespace PerudoBot.Modules
             if (previousBid.Quantity == 0) return;
             int countOfPips = GetNumberOfDiceMatchingBid(game, previousBid.Pips);
 
+            var isOutOfTurn = false;
             var originalBiddingPlayer = GetCurrentPlayer(game);
             if (game.CanCallExactAnytime)
             {
@@ -81,6 +82,8 @@ namespace PerudoBot.Modules
                     .Where(x => x.NumberOfDice > 0)
                     .SingleOrDefault(x => x.Username == Context.User.Username);
                 if (player == null) return;
+
+                isOutOfTurn = true;
 
                 game.PlayerTurnId = player.Id;
                 _db.SaveChanges();
@@ -93,13 +96,16 @@ namespace PerudoBot.Modules
                 return;
             }
 
-            _db.Actions.Add(new ExactCall
+            var exactCall = new ExactCall
             {
                 PlayerId = game.PlayerTurnId.Value,
                 RoundId = game.GetLatestRound().Id,
-                ParentActionId = previousBid.Id
-            });
-            _db.SaveChanges();
+                ParentActionId = previousBid.Id,
+                IsOutOfTurn = isOutOfTurn,
+                IsSuccess = false
+            };
+
+            _db.Actions.Add(exactCall);
 
             DeleteCommandFromDiscord();
 
@@ -119,6 +125,8 @@ namespace PerudoBot.Modules
                 Thread.Sleep(3000);
 
                 await SendMessageAsync($":zany_face: The madman did it! It was exact! :zany_face:");
+
+                exactCall.IsSuccess = true;
 
                 var numPlayersLeft = GetPlayers(game).Where(x => x.NumberOfDice > 0).Count();
                 if (game.ExactCallBonus > 0 && numPlayersLeft >= 3 && !game.NextRoundIsPalifico && originalBiddingPlayer.Id != biddingPlayer.Id)
