@@ -96,7 +96,7 @@ namespace PerudoBot.Modules
             }
 
             if (quantity <= 0) return;
-            if (pips < 1 || pips > 6) return;
+            if (pips < game.LowestPip || pips > game.HighestPip) return;
 
             var bid = new Bid
             {
