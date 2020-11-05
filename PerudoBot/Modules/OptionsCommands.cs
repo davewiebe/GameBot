@@ -360,7 +360,7 @@ namespace PerudoBot.Modules
                 else
                     options.Add($":fire: ˣ `{game.NumberOfDice}`");
             }
-            if (game.LowestPip != 1 || game.HighestPip != 6) options.Add($"{game.LowestPip.GetEmoji()} :heavy_minus_sign: {game.HighestPip.GetEmoji()}");
+            if (game.LowestPip != 1 || game.HighestPip != 6) options.Add($"{game.LowestPip.GetEmoji()} :left_right_arrow: {game.HighestPip.GetEmoji()}");
 
             // remove this option?? if (game.RandomizeBetweenRounds) options.Add("Player order will be **randomized** between rounds");
             if (!game.WildsEnabled) options.Add(":x: :one:");
