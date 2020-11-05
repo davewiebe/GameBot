@@ -79,7 +79,7 @@ namespace PerudoBot.Modules
                 {
                     var low = int.Parse(stringArray[2]);
                     var high = int.Parse(stringArray[3]);
-                    if (low > 0 && high <= 6)
+                    if (low > 0 && high <= 6 && low < high)
                     {
                         game.LowestPip = low;
                         game.HighestPip = high;

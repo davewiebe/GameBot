@@ -1,6 +1,8 @@
 ﻿using Discord;
 using Discord.Commands;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Schema;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Game = PerudoBot.Data.Game;
@@ -16,8 +18,19 @@ namespace PerudoBot.Modules
 
             var playerList = string.Join("\n", players.Select(x => $"`{x.NumberOfDice}` {GetUserNickname(x.Username)}"));
 
-            var quickmaths = $"Quick maths: {totalDice}/3 = `{totalDice / 3.0:F2}`";
-            if (game.NextRoundIsPalifico) quickmaths = $"Quick maths: {totalDice}/6 = `{totalDice / 6.0:F2}`";
+            var diceRange = game.HighestPip - game.LowestPip + 1;
+            var wildsEnabled = game.LowestPip == 1;
+            var probability = diceRange * 1.0;
+            if (wildsEnabled) probability = probability / 2.0;
+
+            var probabilityString = $"{probability:F1}";
+            if (probability == Math.Floor(probability))
+            {
+                probabilityString = $"{probability:F0}";
+            }
+
+                var quickmaths = $"Quick maths: {totalDice}/{probabilityString} = `{totalDice / probability:F2}`";
+            if (game.NextRoundIsPalifico) quickmaths = $"Quick maths: {totalDice}/{diceRange} = `{totalDice / (diceRange * 1.0):F2}`";
             if (players.Sum(x => x.NumberOfDice) == 2 && game.FaceoffEnabled)
             {
                 quickmaths = $"Quick maths:\n" +
