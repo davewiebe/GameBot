@@ -56,6 +56,9 @@ namespace PerudoBot.Data
             }
         }
 
+        public int LowestPip { get; internal set; }
+        public int HighestPip { get; internal set; }
+
         public int GetCurrentRoundNumber()
         {
             return GetLatestRound()?.RoundNumber ?? 0;

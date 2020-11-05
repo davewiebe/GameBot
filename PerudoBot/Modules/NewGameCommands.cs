@@ -44,7 +44,9 @@ namespace PerudoBot.Modules
                 GuildId = Context.Guild.Id,
                 FaceoffEnabled = true,
                 CanCallExactToJoinAgain = true,
-                StatusMessage = 0
+                StatusMessage = 0,
+                LowestPip = 1,
+                HighestPip = 6
             });
             _db.SaveChanges();
 

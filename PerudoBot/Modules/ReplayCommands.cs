@@ -50,7 +50,9 @@ namespace PerudoBot.Modules
                 IsRanked = lastGame.IsRanked,
                 GuildId = Context.Guild.Id,
                 FaceoffEnabled = lastGame.FaceoffEnabled,
-                CanCallExactToJoinAgain = lastGame.CanCallExactToJoinAgain
+                CanCallExactToJoinAgain = lastGame.CanCallExactToJoinAgain,
+                HighestPip = lastGame.HighestPip,
+                LowestPip = lastGame.LowestPip
             });
             _db.SaveChanges();
 

@@ -54,7 +54,7 @@ namespace PerudoBot.Modules
                 List<int> dice = new List<int>();
                 for (int i = 0; i < player.NumberOfDice; i++)
                 {
-                    dice.Add(r.Next(1, 7));
+                    dice.Add(r.Next(game.LowestPip, game.HighestPip+1));
                 }
 
                 dice.Sort();

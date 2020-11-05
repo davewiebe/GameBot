@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.Commands;
+using PerudoBot.Extensions;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -67,13 +68,26 @@ namespace PerudoBot.Modules
             {
                 var numberOfDice = int.Parse(stringArray[1]);
 
+                var game = await GetGameAsync(GameState.Setup);
                 if (numberOfDice > 0 && numberOfDice <= 100)
                 {
-                    var game = await GetGameAsync(GameState.Setup);
 
                     game.NumberOfDice = numberOfDice;
-                    _db.SaveChanges();
                 }
+
+                try
+                {
+                    var low = int.Parse(stringArray[2]);
+                    var high = int.Parse(stringArray[3]);
+                    if (low > 0 && high <= 6)
+                    {
+                        game.LowestPip = low;
+                        game.HighestPip = high;
+                    }
+                }
+                catch { }
+                _db.SaveChanges();
+
                 await SetOptionsAsync(stringArray.Skip(2).ToArray());
             }
             else if (stringArray[0] == "penalty")
@@ -346,6 +360,7 @@ namespace PerudoBot.Modules
                 else
                     options.Add($":fire: ˣ `{game.NumberOfDice}`");
             }
+            if (game.LowestPip != 1 || game.HighestPip != 6) options.Add($"{game.LowestPip.GetEmoji()} :heavy_minus_sign: {game.HighestPip.GetEmoji()}");
 
             // remove this option?? if (game.RandomizeBetweenRounds) options.Add("Player order will be **randomized** between rounds");
             if (!game.WildsEnabled) options.Add(":x: :one:");
