@@ -10,7 +10,7 @@ namespace PerudoBot.Modules
     public partial class Commands : ModuleBase<SocketCommandContext>
     {
         [Command("add")]
-        public async Task AddUserToGame(params string[] stringArray)
+        public async Task AddUserToGameAsync(params string[] stringArray)
         {
             var game = await GetGameAsync(GameState.Setup);
             if (game == null)
@@ -28,27 +28,42 @@ namespace PerudoBot.Modules
         {
             if (message.MentionedUsers.Count == 0)
             {
-                AddUserToGame(game, message.Author.Username);
+                AddUserToGame(game, (SocketGuildUser)message.Author);
             }
             foreach (var userToAdd in message.MentionedUsers)
             {
-                AddUserToGame(game, userToAdd.Username);
+                AddUserToGame(game, userToAdd as SocketGuildUser);
             }
         }
 
-        private void AddUserToGame(Game game, string username)
+        private void AddUserToGame(Game game, SocketGuildUser user)
         {
-            bool userAlreadyExistsInGame = UserAlreadyExistsInGame(username, game);
+            bool userAlreadyExistsInGame = UserAlreadyExistsInGame(user.Username, game);
             if (userAlreadyExistsInGame)
             {
                 return;
             }
 
-            _db.Players.Add(new Player
+            var player = _db.Players.FirstOrDefault(p => p.Username == user.Username);
+
+            if (player != null)
             {
-                GameId = game.Id,
-                Username = username,
-                IsBot = GetUser(username).IsBot
+                player.Nickname = user.Nickname;
+            }
+            else
+            {
+                player = new Player
+                {
+                    Username = user.Username,
+                    Nickname = user.Nickname,
+                    IsBot = user.IsBot
+                };
+            }
+
+            _db.GamePlayers.Add(new GamePlayer
+            {
+                Game = game,
+                Player = player
             });
 
             _db.SaveChanges();
@@ -57,7 +72,7 @@ namespace PerudoBot.Modules
         private bool UserAlreadyExistsInGame(string username, Game game)
         {
             var players = GetPlayers(game);
-            bool userAlreadyExistsInGame = players.FirstOrDefault(x => x.Username == username) != null;
+            bool userAlreadyExistsInGame = players.FirstOrDefault(x => x.Player.Username == username) != null;
             return userAlreadyExistsInGame;
         }
 
@@ -73,10 +88,10 @@ namespace PerudoBot.Modules
                 return;
             }
 
-            var userToRemove = _db.Players.FirstOrDefault(x => x.GameId == game.Id && x.Username == userToAdd.Username);
+            var userToRemove = _db.GamePlayers.FirstOrDefault(x => x.GameId == game.Id && x.Player.Username == userToAdd.Username);
             if (userToRemove == null) return;
 
-            _db.Players.Remove(userToRemove);
+            _db.GamePlayers.Remove(userToRemove);
             _db.SaveChanges();
 
             await SendMessageAsync($"{GetUserNickname(userToAdd.Username)} removed from game.");

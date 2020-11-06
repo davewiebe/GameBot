@@ -21,7 +21,7 @@ namespace PerudoBot.Modules
 
             //ghost player rejoin
             var ghosts = GetPlayers(game).Where(x => x.NumberOfDice == 0);
-            var ghostPlayer = ghosts.SingleOrDefault(x => x.Username == Context.User.Username);
+            var ghostPlayer = ghosts.SingleOrDefault(x => x.Player.Username == Context.User.Username);
             if (ghostPlayer != null)
             {
                 if (GetPlayers(game).Where(x => x.NumberOfDice > 0).Count() == 2) return;
@@ -35,7 +35,6 @@ namespace PerudoBot.Modules
                     ghostPlayer.GhostAttemptPips = lastBid.Pips;
                     _db.SaveChanges();
 
-                    
                     var lastBidMessage = await Context.Channel.GetMessageAsync(lastBid.MessageId);
 
                     try
@@ -48,10 +47,9 @@ namespace PerudoBot.Modules
                         var castedMessage = lastBidMessage as IUserMessage;
 
                         await castedMessage.ModifyAsync(msg => msg.Content = $"{castedMessage.Content} :ghost: {GetUserNickname(Context.User.Username)}!");
-
-                    } catch
+                    }
+                    catch
                     {
-
                         try
                         {
                             _ = Task.Run(() => lastBidMessage.DeleteAsync());
@@ -63,7 +61,6 @@ namespace PerudoBot.Modules
                         _db.SaveChanges();
                     }
 
-                    
                     return;
                 }
             }
@@ -78,9 +75,9 @@ namespace PerudoBot.Modules
             var originalBiddingPlayer = GetCurrentPlayer(game);
             if (game.CanCallExactAnytime)
             {
-                var player = _db.Players.AsQueryable().Where(x => x.GameId == game.Id).OrderBy(x => x.TurnOrder)
+                var player = _db.GamePlayers.AsQueryable().Where(x => x.GameId == game.Id).OrderBy(x => x.TurnOrder)
                     .Where(x => x.NumberOfDice > 0)
-                    .SingleOrDefault(x => x.Username == Context.User.Username);
+                    .SingleOrDefault(x => x.Player.Username == Context.User.Username);
                 if (player == null) return;
 
                 isOutOfTurn = true;
@@ -91,14 +88,14 @@ namespace PerudoBot.Modules
 
             var biddingPlayer = GetCurrentPlayer(game);
 
-            if (biddingPlayer.Username != Context.User.Username)
+            if (biddingPlayer.Player.Username != Context.User.Username)
             {
                 return;
             }
 
             var exactCall = new ExactCall
             {
-                PlayerId = game.PlayerTurnId.Value,
+                GamePlayerId = game.PlayerTurnId.Value,
                 RoundId = game.GetLatestRound().Id,
                 ParentActionId = previousBid.Id,
                 IsOutOfTurn = isOutOfTurn,
@@ -116,7 +113,7 @@ namespace PerudoBot.Modules
                 bidObject = ":record_button:";
                 bidName = "pips";
             }
-            await SendMessageAsync($"{GetUserNickname(biddingPlayer.Username)} called **exact** on `{previousBid.Quantity}` ˣ {bidObject}.");
+            await SendMessageAsync($"{biddingPlayer.Player.Nickname} called **exact** on `{previousBid.Quantity}` ˣ {bidObject}.");
 
             Thread.Sleep(4000);
 
@@ -165,7 +162,7 @@ namespace PerudoBot.Modules
                 var penalty = Math.Abs(countOfPips - previousBid.Quantity);
                 if (game.Penalty != 0) penalty = game.Penalty;
 
-                await SendMessageAsync($"There was actually `{countOfPips}` {bidName}. :fire: {GetUser(biddingPlayer.Username).Mention} loses {penalty} dice. :fire:");
+                await SendMessageAsync($"There was actually `{countOfPips}` {bidName}. :fire: {GetUser(biddingPlayer.Player.Username).Mention} loses {penalty} dice. :fire:");
 
                 await SendRoundSummaryForBots(game);
                 await SendRoundSummary(game);

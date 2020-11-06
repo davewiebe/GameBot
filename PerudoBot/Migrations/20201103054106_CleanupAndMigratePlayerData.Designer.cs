@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using PerudoBot.Data;
@@ -9,9 +10,10 @@ using PerudoBot.Data;
 namespace PerudoBot.Migrations
 {
     [DbContext(typeof(GameBotDbContext))]
-    partial class GameBotDbContextModelSnapshot : ModelSnapshot
+    [Migration("20201103054106_CleanupAndMigratePlayerData")]
+    partial class CleanupAndMigratePlayerData
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -116,14 +118,8 @@ namespace PerudoBot.Migrations
                     b.Property<decimal>("GuildId")
                         .HasColumnType("numeric(20,0)");
 
-                    b.Property<int>("HighestPip")
-                        .HasColumnType("integer");
-
                     b.Property<bool>("IsRanked")
                         .HasColumnType("boolean");
-
-                    b.Property<int>("LowestPip")
-                        .HasColumnType("integer");
 
                     b.Property<bool>("NextRoundIsPalifico")
                         .HasColumnType("boolean");
@@ -233,17 +229,11 @@ namespace PerudoBot.Migrations
                         .HasColumnType("integer")
                         .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
-                    b.Property<decimal>("GuildId")
-                        .HasColumnType("numeric(20,0)");
-
                     b.Property<bool>("IsBot")
                         .HasColumnType("boolean");
 
                     b.Property<string>("Nickname")
                         .HasColumnType("text");
-
-                    b.Property<decimal>("UserId")
-                        .HasColumnType("numeric(20,0)");
 
                     b.Property<string>("Username")
                         .HasColumnType("text");

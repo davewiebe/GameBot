@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using PerudoBot.Data;
@@ -9,9 +10,10 @@ using PerudoBot.Data;
 namespace PerudoBot.Migrations
 {
     [DbContext(typeof(GameBotDbContext))]
-    partial class GameBotDbContextModelSnapshot : ModelSnapshot
+    [Migration("20201105050839_AddUserAndGuildInfoToPlayer")]
+    partial class AddUserAndGuildInfoToPlayer
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -116,14 +118,8 @@ namespace PerudoBot.Migrations
                     b.Property<decimal>("GuildId")
                         .HasColumnType("numeric(20,0)");
 
-                    b.Property<int>("HighestPip")
-                        .HasColumnType("integer");
-
                     b.Property<bool>("IsRanked")
                         .HasColumnType("boolean");
-
-                    b.Property<int>("LowestPip")
-                        .HasColumnType("integer");
 
                     b.Property<bool>("NextRoundIsPalifico")
                         .HasColumnType("boolean");

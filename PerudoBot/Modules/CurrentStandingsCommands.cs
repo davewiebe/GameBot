@@ -16,7 +16,7 @@ namespace PerudoBot.Modules
             var players = GetPlayers(game).Where(x => x.NumberOfDice > 0);
             var totalDice = players.Sum(x => x.NumberOfDice);
 
-            var playerList = string.Join("\n", players.Select(x => $"`{x.NumberOfDice}` {GetUserNickname(x.Username)}"));
+            var playerList = string.Join("\n", players.Select(x => $"`{x.NumberOfDice}` {x.Player.Nickname}"));
 
             var diceRange = game.HighestPip - game.LowestPip + 1;
             var wildsEnabled = game.LowestPip == 1;
@@ -55,16 +55,16 @@ namespace PerudoBot.Modules
 
         private async Task DisplayCurrentStandingsForBots(Game game)
         {
-            var players = GetPlayers(game);
-            if (!players.Any(x => x.IsBot)) return;
+            var gamePlayers = GetPlayers(game);
+            if (!gamePlayers.Any(x => x.Player.IsBot)) return;
 
-            players = players.Where(x => x.NumberOfDice > 0).ToList();
-            var totalDice = players.Sum(x => x.NumberOfDice);
+            gamePlayers = gamePlayers.Where(x => x.NumberOfDice > 0).ToList();
+            var totalDice = gamePlayers.Sum(x => x.NumberOfDice);
 
             var currentStandings = new
             {
-                Players = players.Select(x => new { Username = GetUserNickname(x.Username), DiceCount = x.NumberOfDice }),
-                TotalPlayers = players.Count(),
+                Players = gamePlayers.Select(x => new { Username = x.Player.Nickname, DiceCount = x.NumberOfDice }),
+                TotalPlayers = gamePlayers.Count(),
                 TotalDice = totalDice
             };
 

@@ -30,7 +30,7 @@ namespace PerudoBot
                 .AddJsonFile("appsettings.json", false)
                 .Build();
 
-            var config = new DiscordSocketConfig { MessageCacheSize = 100, AlwaysDownloadUsers = true };
+            var config = new DiscordSocketConfig { MessageCacheSize = 100, LogLevel = LogSeverity.Verbose };
             _client = new DiscordSocketClient(config);
             _commands = new CommandService();
 

@@ -16,7 +16,7 @@ namespace PerudoBot.Modules
             {
                 var players = GetPlayers(game);
                 var options = GetOptions(game);
-                var playersListString = string.Join("\n", players.Select(x => GetUserNickname(x.Username)));
+                var playersListString = string.Join("\n", players.Select(x => x.Player.Nickname));
                 if (players.Count() == 0) playersListString = "none";
 
                 var builder = new EmbedBuilder()
@@ -31,7 +31,8 @@ namespace PerudoBot.Modules
                     {
                         var lastMessage = await Context.Channel.GetMessageAsync(game.StatusMessage);
                         _ = lastMessage.DeleteAsync();
-                    } catch
+                    }
+                    catch
                     { }
                 }
 
@@ -63,7 +64,7 @@ namespace PerudoBot.Modules
                 {
                     recentBidText = $"The most recent bid was for `{ bid.Quantity}` ˣ { bid.Pips.GetEmoji()}\n";
                 }
-                await SendMessageAsync($"{recentBidText}It's {GetUserNickname(nextPlayer.Username)}'s turn.");
+                await SendMessageAsync($"{recentBidText}It's {nextPlayer.Player.Nickname}'s turn.");
                 return;
             }
             await SendMessageAsync("There are no games in progress.");

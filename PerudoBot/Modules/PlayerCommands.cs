@@ -1,5 +1,6 @@
 ﻿using Discord.Commands;
 using Discord.WebSocket;
+using Microsoft.EntityFrameworkCore;
 using PerudoBot.Data;
 using PerudoBot.Extensions;
 using System.Collections.Generic;
@@ -11,10 +12,11 @@ namespace PerudoBot.Modules
 {
     public partial class Commands : ModuleBase<SocketCommandContext>
     {
-        private List<Player> GetPlayers(Game game)
+        private List<GamePlayer> GetPlayers(Game game)
         {
-            return _db.Players.AsQueryable()
-                .Where(x => x.GameId == game.Id)
+            return _db.GamePlayers.AsQueryable()
+                .Include(gp => gp.Player)
+                .Where(gp => gp.GameId == game.Id)
                 .OrderBy(x => x.TurnOrder)
                 .ToList();
         }
@@ -50,11 +52,11 @@ namespace PerudoBot.Modules
 
         private bool AreBotsInGame(Game game)
         {
-            var players = GetPlayers(game);
-            return players.Any(x => x.IsBot);
+            var gamePlayers = GetPlayers(game);
+            return gamePlayers.Any(x => x.Player.IsBot);
         }
 
-        private async Task DecrementDieFromPlayer(Player player, int penalty)
+        private async Task DecrementDieFromPlayer(GamePlayer player, int penalty)
         {
             player.NumberOfDice -= penalty;
 
@@ -63,8 +65,8 @@ namespace PerudoBot.Modules
 
             if (player.NumberOfDice <= 0)
             {
-                await SendMessageAsync($":fire::skull::fire: {GetUserNickname(player.Username)} defeated :fire::skull::fire:");
-                var deathrattle = _db.Rattles.SingleOrDefault(x => x.Username == player.Username);
+                await SendMessageAsync($":fire::skull::fire: {player.Player.Nickname} defeated :fire::skull::fire:");
+                var deathrattle = _db.Rattles.SingleOrDefault(x => x.Username == player.Player.Username);
                 if (deathrattle != null)
                 {
                     await SendMessageAsync(deathrattle.Deathrattle);
@@ -78,7 +80,7 @@ namespace PerudoBot.Modules
                         {
                             player.GhostAttemptsLeft = 3;
                             _db.SaveChanges();
-                            await SendMessageAsync($":hourglass::hourglass: {GetUserNickname(player.Username)} you have `3` attempts at an `!exact` call to win your way back into the game (3+ players).");
+                            await SendMessageAsync($":hourglass::hourglass: {GetUserNickname(player.Player.Username)} you have `3` attempts at an `!exact` call to win your way back into the game (3+ players).");
                         }
                     }
                 }
@@ -95,7 +97,7 @@ namespace PerudoBot.Modules
             _db.SaveChanges();
         }
 
-        private async Task DecrementDieFromPlayerAndSetThierTurnAsync(Game game, Player player, int penalty)
+        private async Task DecrementDieFromPlayerAndSetThierTurnAsync(Game game, GamePlayer player, int penalty)
         {
             player.NumberOfDice -= penalty;
 
@@ -112,8 +114,8 @@ namespace PerudoBot.Modules
 
             if (player.NumberOfDice <= 0)
             {
-                await SendMessageAsync($":fire::skull::fire: {GetUserNickname(player.Username)} defeated :fire::skull::fire:");
-                var deathrattle = _db.Rattles.SingleOrDefault(x => x.Username == player.Username);
+                await SendMessageAsync($":fire::skull::fire: {player.Player.Nickname} defeated :fire::skull::fire:");
+                var deathrattle = _db.Rattles.SingleOrDefault(x => x.Username == player.Player.Username);
                 if (deathrattle != null)
                 {
                     await SendMessageAsync(deathrattle.Deathrattle);
@@ -127,7 +129,7 @@ namespace PerudoBot.Modules
                         {
                             player.GhostAttemptsLeft = 3;
                             _db.SaveChanges();
-                            await SendMessageAsync($":hourglass::hourglass: {GetUserNickname(player.Username)} you have `3` attempts at an `!exact` call to win your way back into the game (3+ players).");
+                            await SendMessageAsync($":hourglass::hourglass: {player.Player.Nickname} you have `3` attempts at an `!exact` call to win your way back into the game (3+ players).");
                         }
                     }
                 }
@@ -160,19 +162,20 @@ namespace PerudoBot.Modules
             return allDice.Count(x => x == pips || x == 1);
         }
 
-        private Player GetCurrentPlayer(Game game)
+        private GamePlayer GetCurrentPlayer(Game game)
         {
-            return _db.Players
+            return _db.GamePlayers
+                .Include(gp => gp.Player)
                 .AsQueryable()
                 .Single(x => x.Id == game.PlayerTurnId);
         }
 
-        private void SetNextPlayer(Game game, Player currentPlayer)
+        private void SetNextPlayer(Game game, GamePlayer currentPlayer)
         {
-            var playerIds = _db.Players
+            var playerIds = _db.GamePlayers
                 .AsQueryable()
                 .Where(x => x.GameId == game.Id)
-                .Where(x => x.NumberOfDice > 0 || x.Username == currentPlayer.Username) // in case the current user is eliminated and won't show up
+                .Where(x => x.NumberOfDice > 0 || x.Player.Username == currentPlayer.Player.Username) // in case the current user is eliminated and won't show up
                 .OrderBy(x => x.TurnOrder)
                 .Select(x => x.Id)
                 .ToList();

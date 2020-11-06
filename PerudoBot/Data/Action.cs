@@ -8,14 +8,15 @@ namespace PerudoBot.Data
     public abstract class Action
     {
         public int Id { get; set; }
-        public virtual Player Player { get; set; }
-        public int PlayerId { get; set; }
+
+        public virtual GamePlayer GamePlayer
+        { get; set; }
+
+        public int GamePlayerId { get; set; }
 
         public int RoundId { get; set; }
         public Round Round { get; set; }
 
-        //public int GameId { get; set; }
-        //public virtual Game Game { get; set; }
         public int? ParentActionId { get; set; }
 
         [ForeignKey("ParentActionId")]

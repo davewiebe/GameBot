@@ -13,7 +13,7 @@ namespace PerudoBot.Modules
             var game = await GetGameAsync(GameState.InProgress);
 
             var userToKick = Context.Message.MentionedUsers.Single();
-            var player = GetPlayers(game).Where(x => x.NumberOfDice > 0).Where(x => x.Username == userToKick.Username).Single();
+            var player = GetPlayers(game).Where(x => x.NumberOfDice > 0).Where(x => x.Player.Username == userToKick.Username).Single();
 
             int monkey = 0;
             if (int.TryParse(stringArray[0], out monkey))
@@ -41,7 +41,7 @@ namespace PerudoBot.Modules
             await SendMessageAsync($"LOL JK.");
             Thread.Sleep(2000);
 
-            await SendMessageAsync($"But if you do want to kick them, send `!kick {game.Id + player.Id} @{GetUserNickname(player.Username)}`");
+            await SendMessageAsync($"But if you do want to kick them, send `!kick {game.Id + player.Id} @{player.Player.Nickname}`");
         }
     }
 }

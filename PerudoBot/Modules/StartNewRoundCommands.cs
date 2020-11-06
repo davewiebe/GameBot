@@ -23,9 +23,9 @@ namespace PerudoBot.Modules
             bool onlyOnePlayerLeft = activePlayers.Count() == 1;
             if (onlyOnePlayerLeft)
             {
-                await SendMessageAsync($":trophy: {GetUser(activePlayers.Single().Username).Mention} is the winner with `{activePlayers.Single().NumberOfDice}` dice remaining! :trophy:");
+                await SendMessageAsync($":trophy: {GetUser(activePlayers.Single().Player.Username).Mention} is the winner with `{activePlayers.Single().NumberOfDice}` dice remaining! :trophy:");
 
-                var rattles = _db.Rattles.SingleOrDefault(x => x.Username == activePlayers.Single().Username);
+                var rattles = _db.Rattles.SingleOrDefault(x => x.Username == activePlayers.Single().Player.Username);
                 if (rattles != null)
                 {
                     await SendMessageAsync(rattles.Winrattle);
@@ -33,14 +33,14 @@ namespace PerudoBot.Modules
 
                 game.State = (int)GameState.Finished;
                 game.DateFinished = DateTime.Now;
-                game.Winner = activePlayers.Single().Username;
+                game.Winner = activePlayers.Single().Player.Username;
                 _db.SaveChanges();
                 return;
             }
 
             var r = new Random();
 
-            var players2 = _db.Players
+            var players2 = _db.GamePlayers
                 .AsQueryable()
                 .Where(x => x.GameId == game.Id)
                 .Where(x => x.NumberOfDice > 0)
@@ -61,10 +61,10 @@ namespace PerudoBot.Modules
 
                 player.Dice = string.Join(",", dice);
 
-                var user = Context.Guild.Users.Single(x => x.Username == player.Username);
+                var user = Context.Guild.Users.Single(x => x.Username == player.Player.Username);
                 var message = $"Your dice: {string.Join(" ", dice.Select(x => x.GetEmoji()))}";
 
-                var botKey = botKeys.FirstOrDefault(x => x.Username == player.Username);
+                var botKey = botKeys.FirstOrDefault(x => x.Username == player.Player.Username);
 
                 if (botKey == null)
                 {
@@ -76,7 +76,7 @@ namespace PerudoBot.Modules
                     }
                     catch (Exception e)
                     {
-                        await SendEncryptedDiceAsync(player, user, player.Username);
+                        await SendEncryptedDiceAsync(player, user, player.Player.Username);
                     }
                 }
                 else
@@ -107,7 +107,7 @@ namespace PerudoBot.Modules
                 };
 
                 await SendTempMessageAsync("!gif fight");
-                await SendMessageAsync($":face_with_monocle: Faceoff Round :face_with_monocle: {GetUser(GetCurrentPlayer(game).Username).Mention} goes first. Bid on total pips only (eg. `!bid 4`)");
+                await SendMessageAsync($":face_with_monocle: Faceoff Round :face_with_monocle: {GetUser(GetCurrentPlayer(game).Player.Username).Mention} goes first. Bid on total pips only (eg. `!bid 4`)");
             }
             else if (game.NextRoundIsPalifico)
             {
@@ -118,7 +118,7 @@ namespace PerudoBot.Modules
                     StartingPlayerId = GetCurrentPlayer(game).Id
                 };
 
-                await SendMessageAsync($":game_die: Palifico Round :game_die: {GetUser(GetCurrentPlayer(game).Username).Mention} goes first.\n" +
+                await SendMessageAsync($":game_die: Palifico Round :game_die: {GetUser(GetCurrentPlayer(game).Player.Username).Mention} goes first.\n" +
                     $"`!exact` will only reset the round - no bonuses.");
             }
             else
@@ -129,13 +129,13 @@ namespace PerudoBot.Modules
                     RoundNumber = (game.CurrentRound?.RoundNumber ?? 0) + 1,
                     StartingPlayerId = GetCurrentPlayer(game).Id
                 };
-                await SendMessageAsync($"A new round has begun. {GetUser(GetCurrentPlayer(game).Username).Mention} goes first.");
+                await SendMessageAsync($"A new round has begun. {GetUser(GetCurrentPlayer(game).Player.Username).Mention} goes first.");
             }
             _db.Rounds.Add(round);
             await _db.SaveChangesAsync();
         }
 
-        private async Task SendEncryptedDiceAsync(Player player, SocketGuildUser user, string botKey)
+        private async Task SendEncryptedDiceAsync(GamePlayer player, SocketGuildUser user, string botKey)
         {
             var diceText = $"{player.Dice.Replace(",", " ")}";
             var encoded = SimpleAES.AES256.Encrypt(diceText, botKey);

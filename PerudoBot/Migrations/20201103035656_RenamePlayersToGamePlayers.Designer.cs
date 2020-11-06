@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using PerudoBot.Data;
@@ -9,9 +10,10 @@ using PerudoBot.Data;
 namespace PerudoBot.Migrations
 {
     [DbContext(typeof(GameBotDbContext))]
-    partial class GameBotDbContextModelSnapshot : ModelSnapshot
+    [Migration("20201103035656_RenamePlayersToGamePlayers")]
+    partial class RenamePlayersToGamePlayers
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -30,9 +32,6 @@ namespace PerudoBot.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("GamePlayerId")
-                        .HasColumnType("integer");
-
                     b.Property<bool>("IsOutOfTurn")
                         .HasColumnType("boolean");
 
@@ -42,14 +41,17 @@ namespace PerudoBot.Migrations
                     b.Property<int?>("ParentActionId")
                         .HasColumnType("integer");
 
+                    b.Property<int>("PlayerId")
+                        .HasColumnType("integer");
+
                     b.Property<int>("RoundId")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("GamePlayerId");
-
                     b.HasIndex("ParentActionId");
+
+                    b.HasIndex("PlayerId");
 
                     b.HasIndex("RoundId");
 
@@ -116,14 +118,8 @@ namespace PerudoBot.Migrations
                     b.Property<decimal>("GuildId")
                         .HasColumnType("numeric(20,0)");
 
-                    b.Property<int>("HighestPip")
-                        .HasColumnType("integer");
-
                     b.Property<bool>("IsRanked")
                         .HasColumnType("boolean");
-
-                    b.Property<int>("LowestPip")
-                        .HasColumnType("integer");
 
                     b.Property<bool>("NextRoundIsPalifico")
                         .HasColumnType("boolean");
@@ -185,20 +181,21 @@ namespace PerudoBot.Migrations
                     b.Property<int>("GhostAttemptsLeft")
                         .HasColumnType("integer");
 
-                    b.Property<int>("NumberOfDice")
-                        .HasColumnType("integer");
+                    b.Property<bool>("IsBot")
+                        .HasColumnType("boolean");
 
-                    b.Property<int>("PlayerId")
+                    b.Property<int>("NumberOfDice")
                         .HasColumnType("integer");
 
                     b.Property<int>("TurnOrder")
                         .HasColumnType("integer");
 
+                    b.Property<string>("Username")
+                        .HasColumnType("text");
+
                     b.HasKey("Id");
 
                     b.HasIndex("GameId");
-
-                    b.HasIndex("PlayerId");
 
                     b.ToTable("GamePlayers");
                 });
@@ -224,33 +221,6 @@ namespace PerudoBot.Migrations
                     b.HasIndex("GameId");
 
                     b.ToTable("Notes");
-                });
-
-            modelBuilder.Entity("PerudoBot.Data.Player", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
-
-                    b.Property<decimal>("GuildId")
-                        .HasColumnType("numeric(20,0)");
-
-                    b.Property<bool>("IsBot")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("Nickname")
-                        .HasColumnType("text");
-
-                    b.Property<decimal>("UserId")
-                        .HasColumnType("numeric(20,0)");
-
-                    b.Property<string>("Username")
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Players");
                 });
 
             modelBuilder.Entity("PerudoBot.Data.Rattle", b =>
@@ -359,15 +329,15 @@ namespace PerudoBot.Migrations
 
             modelBuilder.Entity("PerudoBot.Data.Action", b =>
                 {
-                    b.HasOne("PerudoBot.Data.GamePlayer", "GamePlayer")
-                        .WithMany()
-                        .HasForeignKey("GamePlayerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("PerudoBot.Data.Action", "ParentAction")
                         .WithMany()
                         .HasForeignKey("ParentActionId");
+
+                    b.HasOne("PerudoBot.Data.GamePlayer", "Player")
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("PerudoBot.Data.Round", "Round")
                         .WithMany("Actions")
@@ -381,12 +351,6 @@ namespace PerudoBot.Migrations
                     b.HasOne("PerudoBot.Data.Game", "Game")
                         .WithMany("Players")
                         .HasForeignKey("GameId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("PerudoBot.Data.Player", "Player")
-                        .WithMany("GamesPlayed")
-                        .HasForeignKey("PlayerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

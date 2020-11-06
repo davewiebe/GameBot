@@ -58,6 +58,28 @@
     <Compile Remove="Migrations\20201002062426_MoreFixing.Designer.cs" />
     <Compile Remove="Migrations\20201007234309_AddRoundsAndActions.cs" />
     <Compile Remove="Migrations\20201007234309_AddRoundsAndActions.Designer.cs" />
+    <Compile Remove="Migrations\20201103032756_NormalizePlayerTable.cs" />
+    <Compile Remove="Migrations\20201103032756_NormalizePlayerTable.Designer.cs" />
+    <Compile Remove="Migrations\20201103033046_NormalizePlayerTable.cs" />
+    <Compile Remove="Migrations\20201103033046_NormalizePlayerTable.Designer.cs" />
+    <Compile Remove="Migrations\20201103033358_NormalizePlayerTable.cs" />
+    <Compile Remove="Migrations\20201103033358_NormalizePlayerTable.Designer.cs" />
+    <Compile Remove="Migrations\20201103033558_RenamePlayersToGamePlayers.cs" />
+    <Compile Remove="Migrations\20201103033558_RenamePlayersToGamePlayers.Designer.cs" />
+    <Compile Remove="Migrations\20201103034706_AddPlayersTable.cs" />
+    <Compile Remove="Migrations\20201103034706_AddPlayersTable.Designer.cs" />
+    <Compile Remove="Migrations\20201103035042_AddPlayersTable.cs" />
+    <Compile Remove="Migrations\20201103035042_AddPlayersTable.Designer.cs" />
+    <Compile Remove="Migrations\20201103035516_RenamePlayersTableAndAddNewOne.cs" />
+    <Compile Remove="Migrations\20201103035516_RenamePlayersTableAndAddNewOne.Designer.cs" />
+    <Compile Remove="Migrations\20201103053607_CleanupAndMigratePlayerData.cs" />
+    <Compile Remove="Migrations\20201103053607_CleanupAndMigratePlayerData.Designer.cs" />
+    <Compile Remove="Migrations\20201105042820_AddUserAndServerIds.cs" />
+    <Compile Remove="Migrations\20201105042820_AddUserAndServerIds.Designer.cs" />
+    <Compile Remove="Migrations\20201105043547_AddUserAndGuildIds.cs" />
+    <Compile Remove="Migrations\20201105043547_AddUserAndGuildIds.Designer.cs" />
+    <Compile Remove="Migrations\20201105051053_d.cs" />
+    <Compile Remove="Migrations\20201105051053_d.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>

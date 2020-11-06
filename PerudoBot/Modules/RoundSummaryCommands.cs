@@ -14,13 +14,13 @@ namespace PerudoBot.Modules
         private async Task SendRoundSummaryForBots(Game game)
         {
             var players = GetPlayers(game);
-            if (!players.Any(x => x.IsBot)) return;
+            if (!players.Any(x => x.Player.IsBot)) return;
 
             var playerDice = players.Where(x => x.NumberOfDice > 0).ToList()
                 .Select(x => new
                 {
-                    Username = GetUserNickname(x.Username),
-                    Dice = x.Dice
+                    Username = x.Player.Nickname,
+                    x.Dice
                 });
 
             await SendMessageAsync($"Round summary for bots: ||{JsonConvert.SerializeObject(playerDice)}||");
@@ -29,7 +29,7 @@ namespace PerudoBot.Modules
         private async Task SendRoundSummary(Game game)
         {
             var players = GetPlayers(game).Where(x => x.Dice != "").Where(x => x.NumberOfDice > 0).ToList();
-            var playerDice = players.Select(x => $"{GetUserNickname(x.Username)}: {string.Join(" ", x.Dice.Split(",").Select(x => int.Parse(x).GetEmoji()))}".TrimEnd());
+            var playerDice = players.Select(x => $"{x.Player.Nickname}: {string.Join(" ", x.Dice.Split(",").Select(x => int.Parse(x).GetEmoji()))}".TrimEnd());
 
             var allDice = players.SelectMany(x => x.Dice.Split(",").Select(x => int.Parse(x)));
             var allDiceGrouped = allDice
