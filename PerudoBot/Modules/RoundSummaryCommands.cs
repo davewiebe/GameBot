@@ -41,7 +41,7 @@ namespace PerudoBot.Modules
             var listOfAllDiceCounts = allDiceGrouped.Select(x => $"`{x.Count()}` ˣ {x.Key.GetEmoji()}");
 
             List<string> totals = new List<string>();
-            for (int i = 2; i <= 6; i++)
+            for (int i = game.LowestPip; i <= game.HighestPip; i++)
             {
                 var countOfX = allDiceGrouped.SingleOrDefault(x => x.Key == i)?.Count();
                 var count1 = countOfOnes ?? 0;

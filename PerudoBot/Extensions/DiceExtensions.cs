@@ -11,6 +11,9 @@
             if (die == 4) return ":four:";
             if (die == 5) return ":five:";
             if (die == 6) return ":six:";
+            if (die == 7) return ":seven:";
+            if (die == 8) return ":eight:";
+            if (die == 9) return ":nine:";
             return die.ToString();
         }
 

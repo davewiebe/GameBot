@@ -41,6 +41,7 @@ namespace PerudoBot.Modules
                     $"5 = `{200 / 6.0:F2}%`\n" +
                     $"6 = `{100 / 6.0:F2}%`";
             }
+            if (game.LowestPip != 1 || game.HighestPip != 6)  quickmaths = "Quickmaths: :upside_down:"; 
 
             var builder = new EmbedBuilder()
                 .WithTitle("Current standings")
