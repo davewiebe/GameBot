@@ -50,23 +50,23 @@ namespace PerudoBot.Modules
             if (game.CanCallLiarAnytime)
             {
                 // get the player making the liar call with at least on die,
-                var player = _db.GamePlayers.AsQueryable()
+                var gamePlayer = _db.GamePlayers.AsQueryable()
                     .Where(x => x.GameId == game.Id)
                     .Where(x => x.NumberOfDice > 0)
                     .Where(x => x.Player.Username == Context.User.Username)
                     .SingleOrDefault();
 
                 // if non found (not in game) exit
-                if (player == null) return;
+                if (gamePlayer == null) return;
 
                 // check if calling player is calling out of turn
-                if (game.PlayerTurnId != player.Id)
+                if (game.PlayerTurnId != gamePlayer.Id)
                 {
                     //player is calling out of turn
 
                     // change the game's current player to the out of turn player
-                    game.PlayerTurnId = player.Id;
-                    liarCall.PlayerId = player.Id;
+                    game.PlayerTurnId = gamePlayer.Id;
+                    liarCall.GamePlayerId = gamePlayer.Id;
 
                     // save changes so game is updated
                     _db.SaveChanges();
