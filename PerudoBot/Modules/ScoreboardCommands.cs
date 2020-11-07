@@ -74,7 +74,7 @@ namespace PerudoBot.Modules
             var options = parameters.Select(o => o.ToLower());
             var gameMode = "All Ranked Games";
 
-            var baseQuery = _db.Players.AsQueryable().AsNoTracking();
+            var baseQuery = _db.GamePlayers.AsQueryable().AsNoTracking();
 
             if (options.Any(o => o == "suddendeath"))
             {

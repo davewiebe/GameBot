@@ -35,7 +35,6 @@ namespace PerudoBot.Modules
                     ghostPlayer.GhostAttemptPips = lastBid.Pips;
                     _db.SaveChanges();
 
-                    
                     var lastBidMessage = await Context.Channel.GetMessageAsync(lastBid.MessageId);
 
                     try
@@ -48,10 +47,9 @@ namespace PerudoBot.Modules
                         var castedMessage = lastBidMessage as IUserMessage;
 
                         await castedMessage.ModifyAsync(msg => msg.Content = $"{castedMessage.Content} :ghost: {GetUserNickname(Context.User.Username)}!");
-
-                    } catch
+                    }
+                    catch
                     {
-
                         try
                         {
                             _ = Task.Run(() => lastBidMessage.DeleteAsync());
@@ -63,7 +61,6 @@ namespace PerudoBot.Modules
                         _db.SaveChanges();
                     }
 
-                    
                     return;
                 }
             }
@@ -78,7 +75,7 @@ namespace PerudoBot.Modules
             var originalBiddingPlayer = GetCurrentPlayer(game);
             if (game.CanCallExactAnytime)
             {
-                var player = _db.Players.AsQueryable().Where(x => x.GameId == game.Id).OrderBy(x => x.TurnOrder)
+                var player = _db.GamePlayers.AsQueryable().Where(x => x.GameId == game.Id).OrderBy(x => x.TurnOrder)
                     .Where(x => x.NumberOfDice > 0)
                     .SingleOrDefault(x => x.Username == Context.User.Username);
                 if (player == null) return;

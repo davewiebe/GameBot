@@ -38,7 +38,7 @@ namespace PerudoBot.Modules
             await HandlePipBid(bidText, game, biddingPlayer);
         }
 
-        private async Task HandleFaceoffBid(string[] bidText, Game game, Player biddingPlayer)
+        private async Task HandleFaceoffBid(string[] bidText, Game game, GamePlayer biddingPlayer)
         {
             int quantity = 0;
             try
@@ -50,7 +50,7 @@ namespace PerudoBot.Modules
                 return;
             }
 
-            if (quantity < game.LowestPip*2 || quantity > game.HighestPip*2 ) return;
+            if (quantity < game.LowestPip * 2 || quantity > game.HighestPip * 2) return;
 
             var bid = new Bid
             {
@@ -81,7 +81,7 @@ namespace PerudoBot.Modules
             await SendMessageAsync(userMessage);
         }
 
-        private async Task HandlePipBid(string[] bidText, Game game, Player biddingPlayer)
+        private async Task HandlePipBid(string[] bidText, Game game, GamePlayer biddingPlayer)
         {
             int quantity = 0;
             int pips = 0;

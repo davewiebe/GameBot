@@ -1,6 +1,8 @@
-﻿namespace PerudoBot.Data
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace PerudoBot.Data
 {
-    public class Player
+    public class GamePlayer
     {
         public int Id { get; set; }
         public virtual Game Game { get; set; }

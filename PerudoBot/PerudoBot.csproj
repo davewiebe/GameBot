@@ -58,6 +58,12 @@
     <Compile Remove="Migrations\20201002062426_MoreFixing.Designer.cs" />
     <Compile Remove="Migrations\20201007234309_AddRoundsAndActions.cs" />
     <Compile Remove="Migrations\20201007234309_AddRoundsAndActions.Designer.cs" />
+    <Compile Remove="Migrations\20201107060205_RenamePlayersTableToGamePlayers.cs" />
+    <Compile Remove="Migrations\20201107060205_RenamePlayersTableToGamePlayers.Designer.cs" />
+    <Compile Remove="Migrations\20201107060327_RenamePlayersModelToGamePlayers.cs" />
+    <Compile Remove="Migrations\20201107060327_RenamePlayersModelToGamePlayers.Designer.cs" />
+    <Compile Remove="Migrations\20201107060456_RenamePlayersToGamePlayers.cs" />
+    <Compile Remove="Migrations\20201107060456_RenamePlayersToGamePlayers.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>

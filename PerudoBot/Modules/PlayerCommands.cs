@@ -11,9 +11,9 @@ namespace PerudoBot.Modules
 {
     public partial class Commands : ModuleBase<SocketCommandContext>
     {
-        private List<Player> GetPlayers(Game game)
+        private List<GamePlayer> GetPlayers(Game game)
         {
-            return _db.Players.AsQueryable()
+            return _db.GamePlayers.AsQueryable()
                 .Where(x => x.GameId == game.Id)
                 .OrderBy(x => x.TurnOrder)
                 .ToList();
@@ -54,7 +54,7 @@ namespace PerudoBot.Modules
             return players.Any(x => x.IsBot);
         }
 
-        private async Task DecrementDieFromPlayer(Player player, int penalty)
+        private async Task DecrementDieFromPlayer(GamePlayer player, int penalty)
         {
             player.NumberOfDice -= penalty;
 
@@ -95,7 +95,7 @@ namespace PerudoBot.Modules
             _db.SaveChanges();
         }
 
-        private async Task DecrementDieFromPlayerAndSetThierTurnAsync(Game game, Player player, int penalty)
+        private async Task DecrementDieFromPlayerAndSetThierTurnAsync(Game game, GamePlayer player, int penalty)
         {
             player.NumberOfDice -= penalty;
 
@@ -160,16 +160,16 @@ namespace PerudoBot.Modules
             return allDice.Count(x => x == pips || x == 1);
         }
 
-        private Player GetCurrentPlayer(Game game)
+        private GamePlayer GetCurrentPlayer(Game game)
         {
-            return _db.Players
+            return _db.GamePlayers
                 .AsQueryable()
                 .Single(x => x.Id == game.PlayerTurnId);
         }
 
-        private void SetNextPlayer(Game game, Player currentPlayer)
+        private void SetNextPlayer(Game game, GamePlayer currentPlayer)
         {
-            var playerIds = _db.Players
+            var playerIds = _db.GamePlayers
                 .AsQueryable()
                 .Where(x => x.GameId == game.Id)
                 .Where(x => x.NumberOfDice > 0 || x.Username == currentPlayer.Username) // in case the current user is eliminated and won't show up

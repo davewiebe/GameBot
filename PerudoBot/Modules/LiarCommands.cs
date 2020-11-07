@@ -50,7 +50,7 @@ namespace PerudoBot.Modules
             if (game.CanCallLiarAnytime)
             {
                 // get the player making the liar call with at least on die,
-                var player = _db.Players.AsQueryable()
+                var player = _db.GamePlayers.AsQueryable()
                     .Where(x => x.GameId == game.Id)
                     .Where(x => x.NumberOfDice > 0)
                     .Where(x => x.Username == Context.User.Username)

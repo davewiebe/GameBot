@@ -44,7 +44,7 @@ namespace PerudoBot.Modules
                 return;
             }
 
-            _db.Players.Add(new Player
+            _db.GamePlayers.Add(new GamePlayer
             {
                 GameId = game.Id,
                 Username = username,
@@ -73,10 +73,10 @@ namespace PerudoBot.Modules
                 return;
             }
 
-            var userToRemove = _db.Players.FirstOrDefault(x => x.GameId == game.Id && x.Username == userToAdd.Username);
+            var userToRemove = _db.GamePlayers.FirstOrDefault(x => x.GameId == game.Id && x.Username == userToAdd.Username);
             if (userToRemove == null) return;
 
-            _db.Players.Remove(userToRemove);
+            _db.GamePlayers.Remove(userToRemove);
             _db.SaveChanges();
 
             await SendMessageAsync($"{GetUserNickname(userToAdd.Username)} removed from game.");

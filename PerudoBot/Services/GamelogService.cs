@@ -18,12 +18,11 @@ namespace PerudoBot.Services
             _db = db;
         }
 
-
         public string GetGamelog(ulong guildId, int page, int gamenumber)
         {
             var skipNumber = (page - 1) * 10;
 
-            var players1 = _db.Players.AsQueryable()
+            var players1 = _db.GamePlayers.AsQueryable()
                 .Where(x => x.Game.IsRanked)
                 .Where(x => x.Game.GuildId == guildId)
                 .Where(x => x.Game.State == (int)(object)GameState.Finished)
@@ -34,8 +33,6 @@ namespace PerudoBot.Services
 
             var players = players1
                  .GroupBy(x => x.Game).ToList();
-
-
 
             var monk = new List<string>();
             var index = 1;
@@ -51,7 +48,6 @@ namespace PerudoBot.Services
                 }
                 var nonWinnerList = string.Join(", ", item.Where(x => x.Username != item.Key.Winner).Select(x => GetUserNickname(x.Username)));
                 monk.Add($"`{index.ToString("D2")}. {item.Key.DateCreated:yyyy-MM-dd}` :trophy: **{GetUserNickname(item.Key.Winner)}**, {nonWinnerList}");
-
 
                 index += 1;
 

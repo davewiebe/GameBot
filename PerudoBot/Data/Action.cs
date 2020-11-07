@@ -8,7 +8,7 @@ namespace PerudoBot.Data
     public abstract class Action
     {
         public int Id { get; set; }
-        public virtual Player Player { get; set; }
+        public virtual GamePlayer Player { get; set; }
         public int PlayerId { get; set; }
 
         public int RoundId { get; set; }

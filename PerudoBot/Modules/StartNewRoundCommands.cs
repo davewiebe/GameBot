@@ -40,7 +40,7 @@ namespace PerudoBot.Modules
 
             var r = new Random();
 
-            var players2 = _db.Players
+            var players2 = _db.GamePlayers
                 .AsQueryable()
                 .Where(x => x.GameId == game.Id)
                 .Where(x => x.NumberOfDice > 0)
@@ -54,7 +54,7 @@ namespace PerudoBot.Modules
                 List<int> dice = new List<int>();
                 for (int i = 0; i < player.NumberOfDice; i++)
                 {
-                    dice.Add(r.Next(game.LowestPip, game.HighestPip+1));
+                    dice.Add(r.Next(game.LowestPip, game.HighestPip + 1));
                 }
 
                 dice.Sort();
@@ -135,7 +135,7 @@ namespace PerudoBot.Modules
             await _db.SaveChangesAsync();
         }
 
-        private async Task SendEncryptedDiceAsync(Player player, SocketGuildUser user, string botKey)
+        private async Task SendEncryptedDiceAsync(GamePlayer player, SocketGuildUser user, string botKey)
         {
             var diceText = $"{player.Dice.Replace(",", " ")}";
             var encoded = SimpleAES.AES256.Encrypt(diceText, botKey);
