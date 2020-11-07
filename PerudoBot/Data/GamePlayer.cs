@@ -8,7 +8,10 @@ namespace PerudoBot.Data
         public virtual Game Game { get; set; }
         public int GameId { get; set; }
 
-        //public ulong UserId { get; set; }
+        // TODO: Make not nullable after migration
+        public int? PlayerId { get; set; }
+
+        public virtual Player Player { get; set; }
         public string Username { get; set; }
 
         public int NumberOfDice { get; set; }

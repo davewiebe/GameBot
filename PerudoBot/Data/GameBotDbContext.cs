@@ -16,6 +16,8 @@ namespace PerudoBot.Data
         public DbSet<Game> Games { get; set; }
         public DbSet<Rattle> Rattles { get; set; }
         public DbSet<Note> Notes { get; set; }
+
+        public DbSet<Player> Players { get; set; }
         public DbSet<GamePlayer> GamePlayers { get; set; }
         public DbSet<BotKey> BotKeys { get; set; }
         public DbSet<Action> Actions { get; set; }

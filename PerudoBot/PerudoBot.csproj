@@ -64,6 +64,8 @@
     <Compile Remove="Migrations\20201107060327_RenamePlayersModelToGamePlayers.Designer.cs" />
     <Compile Remove="Migrations\20201107060456_RenamePlayersToGamePlayers.cs" />
     <Compile Remove="Migrations\20201107060456_RenamePlayersToGamePlayers.Designer.cs" />
+    <Compile Remove="Migrations\20201107061103_CreateNewPlayersTable.cs" />
+    <Compile Remove="Migrations\20201107061103_CreateNewPlayersTable.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>
