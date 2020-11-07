@@ -38,24 +38,33 @@ namespace PerudoBot.Modules
 
         private void AddUserToGame(Game game, SocketGuildUser user)
         {
+            // TODO: Can't add bots with current code
             bool userAlreadyExistsInGame = UserAlreadyExistsInGame(user.Username, game);
             if (userAlreadyExistsInGame)
             {
                 return;
             }
 
-            var player = _db.Players.FirstOrDefault(p => p.Username == user.Username);
+            // get player
+            // TODO: replace Username with UserId lookup when all user Ids are populated
+            var player = _db.Players.AsQueryable()
+                .Where(p => p.GuildId == Context.Guild.Id)
+                .Where(p => p.Username == user.Username)
+                .FirstOrDefault();
 
-            if (player != null)
+            if (player != null) // update player
             {
                 player.Nickname = user.Nickname;
+                player.UserId = user.Id;
             }
-            else
+            else // create a new player
             {
                 player = new Player
                 {
                     Username = user.Username,
                     Nickname = user.Nickname,
+                    GuildId = user.Guild.Id,
+                    UserId = user.Id,
                     IsBot = user.IsBot
                 };
             }
