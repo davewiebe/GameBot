@@ -2,17 +2,10 @@
 
 namespace PerudoBot.Migrations
 {
-    public partial class CleanupAndMigratePlayerData : Migration
+    public partial class CleanupExtraFields : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.Sql(@"UPDATE ""GamePlayers"" as gp
-SET ""PlayerId"" = (SELECT ""Id"" FROM ""Players""
-WHERE ""Username"" = gp.""Username"")");
-
-            migrationBuilder.Sql(@"UPDATE ""Players"" SET ""Nickname"" = ""Username""
-WHERE ""Nickname"" is null or ""Nickname"" = ''");
-
             migrationBuilder.DropForeignKey(
                 name: "FK_Actions_GamePlayers_PlayerId",
                 table: "Actions");
@@ -35,16 +28,8 @@ WHERE ""Nickname"" is null or ""Nickname"" = ''");
 
             migrationBuilder.RenameColumn(
                 name: "PlayerId",
-                newName: "GamePlayerId",
-                table: "Actions");
-
-            migrationBuilder.AlterColumn<int>(
-                name: "PlayerId",
-                table: "GamePlayers",
-                nullable: false,
-                oldClrType: typeof(int),
-                oldType: "integer",
-                oldNullable: true);
+                table: "Actions",
+                newName: "GamePlayerId");
 
             migrationBuilder.AlterColumn<int>(
                 name: "PlayerId",
@@ -90,8 +75,9 @@ WHERE ""Nickname"" is null or ""Nickname"" = ''");
                 name: "IX_Actions_GamePlayerId",
                 table: "Actions");
 
-            migrationBuilder.DropColumn(
+            migrationBuilder.RenameColumn(
                 name: "GamePlayerId",
+                newName: "PlayerId",
                 table: "Actions");
 
             migrationBuilder.AlterColumn<int>(
@@ -113,13 +99,6 @@ WHERE ""Nickname"" is null or ""Nickname"" = ''");
                 table: "GamePlayers",
                 type: "text",
                 nullable: true);
-
-            migrationBuilder.AddColumn<int>(
-                name: "PlayerId",
-                table: "Actions",
-                type: "integer",
-                nullable: false,
-                defaultValue: 0);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Actions_PlayerId",

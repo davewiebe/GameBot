@@ -17,6 +17,9 @@ SET     ""PlayerId"" = (
 	WHERE g.""GuildId"" = p.""GuildId""
 	AND ""GamePlayers"".""Id"" = gp.""Id""
 )");
+
+            migrationBuilder.Sql(@"UPDATE ""Players"" SET ""Nickname"" = ""Username""
+WHERE ""Nickname"" is null or ""Nickname"" = ''");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)

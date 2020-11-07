@@ -30,6 +30,9 @@ namespace PerudoBot.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int>("GamePlayerId")
+                        .HasColumnType("integer");
+
                     b.Property<bool>("IsOutOfTurn")
                         .HasColumnType("boolean");
 
@@ -39,17 +42,14 @@ namespace PerudoBot.Migrations
                     b.Property<int?>("ParentActionId")
                         .HasColumnType("integer");
 
-                    b.Property<int>("PlayerId")
-                        .HasColumnType("integer");
-
                     b.Property<int>("RoundId")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ParentActionId");
+                    b.HasIndex("GamePlayerId");
 
-                    b.HasIndex("PlayerId");
+                    b.HasIndex("ParentActionId");
 
                     b.HasIndex("RoundId");
 
@@ -185,20 +185,14 @@ namespace PerudoBot.Migrations
                     b.Property<int>("GhostAttemptsLeft")
                         .HasColumnType("integer");
 
-                    b.Property<bool>("IsBot")
-                        .HasColumnType("boolean");
-
                     b.Property<int>("NumberOfDice")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("PlayerId")
+                    b.Property<int>("PlayerId")
                         .HasColumnType("integer");
 
                     b.Property<int>("TurnOrder")
                         .HasColumnType("integer");
-
-                    b.Property<string>("Username")
-                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -365,15 +359,15 @@ namespace PerudoBot.Migrations
 
             modelBuilder.Entity("PerudoBot.Data.Action", b =>
                 {
+                    b.HasOne("PerudoBot.Data.GamePlayer", "GamePlayer")
+                        .WithMany()
+                        .HasForeignKey("GamePlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("PerudoBot.Data.Action", "ParentAction")
                         .WithMany()
                         .HasForeignKey("ParentActionId");
-
-                    b.HasOne("PerudoBot.Data.GamePlayer", "Player")
-                        .WithMany()
-                        .HasForeignKey("PlayerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
 
                     b.HasOne("PerudoBot.Data.Round", "Round")
                         .WithMany("Actions")
@@ -392,7 +386,9 @@ namespace PerudoBot.Migrations
 
                     b.HasOne("PerudoBot.Data.Player", "Player")
                         .WithMany("GamesPlayed")
-                        .HasForeignKey("PlayerId");
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("PerudoBot.Data.Note", b =>
