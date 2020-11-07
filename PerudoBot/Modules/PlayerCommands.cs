@@ -164,8 +164,7 @@ namespace PerudoBot.Modules
 
         private GamePlayer GetCurrentPlayer(Game game)
         {
-            return _db.GamePlayers
-                .Include(gp => gp.Player)
+            return _db.Players
                 .AsQueryable()
                 .Single(x => x.Id == game.PlayerTurnId);
         }

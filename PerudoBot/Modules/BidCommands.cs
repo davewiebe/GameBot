@@ -50,7 +50,7 @@ namespace PerudoBot.Modules
                 return;
             }
 
-            if (quantity < game.LowestPip*2 || quantity > game.HighestPip*2 ) return;
+            if (quantity < game.LowestPip * 2 || quantity > game.HighestPip * 2) return;
 
             var bid = new Bid
             {
