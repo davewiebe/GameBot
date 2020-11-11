@@ -106,12 +106,13 @@ namespace PerudoBot.Modules
                     p.Game.DateFinished,
                     p.Player.Username,
                     p.Player.Nickname,
-                    IsWinner = (p.Player.Username == p.Game.Winner) ? 1 : 0,
+                    // TODO: User GameUserId instead, when winner points to GamePlayerId
+                    IsWinner = (p.Player.Username == p.Game.Winner
+                        && p.Player.GuildId == p.Game.GuildId) ? 1 : 0,
                     PlayerCount = p.Game.Players.Count()
                 })
                 .Where(p => p.PlayerCount >= 3 && p.PlayerCount <= 100)
                 .OrderByDescending(p => p.DateFinished)
-                .Take(10)
                 .GroupBy(g => new { g.Username, g.Nickname })
                 .Select(g => new
                 {
