@@ -32,13 +32,19 @@ namespace PerudoBot.Modules
             }
             foreach (var userToAdd in message.MentionedUsers)
             {
-                AddUserToGame(game, userToAdd as SocketGuildUser);
+                var socketGuildUser = Context.Guild.GetUser(userToAdd.Id);
+                AddUserToGame(game, socketGuildUser);
             }
         }
 
         private void AddUserToGame(Game game, SocketGuildUser user)
         {
-            // TODO: Can't add bots with current code
+            if (user == null)
+            {
+                _ = Context.Channel.SendMessageAsync("Can't add user. They aren't online").Result;
+                return;
+            }
+            // TODO: Can't add players if they aren't online (or found in cache)
             bool userAlreadyExistsInGame = UserAlreadyExistsInGame(user.Username, game);
             if (userAlreadyExistsInGame)
             {
@@ -54,7 +60,7 @@ namespace PerudoBot.Modules
 
             if (player != null) // update player
             {
-                player.Nickname = user.Nickname;
+                player.Nickname = user.Nickname ?? user.Username;
                 player.UserId = user.Id;
             }
             else // create a new player
@@ -62,7 +68,7 @@ namespace PerudoBot.Modules
                 player = new Player
                 {
                     Username = user.Username,
-                    Nickname = user.Nickname,
+                    Nickname = user.Nickname ?? user.Username,
                     GuildId = user.Guild.Id,
                     UserId = user.Id,
                     IsBot = user.IsBot
