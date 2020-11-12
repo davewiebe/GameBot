@@ -12,6 +12,7 @@ namespace PerudoBot.Data
         public int RoundNumber { get; set; }
         public virtual Game Game { get; set; }
         public ICollection<Action> Actions { get; set; }
+        public ICollection<RoundPlayer> RoundPlayers { get; set; }
 
         public int StartingPlayerId { get; set; }
 

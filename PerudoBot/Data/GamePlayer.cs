@@ -15,6 +15,8 @@ namespace PerudoBot.Data
 
         public virtual Game Game { get; set; }
 
+        public virtual ICollection<Action> Actions { get; set; }
+
         public int NumberOfDice { get; set; }
         public string Dice { get; set; }
         public int TurnOrder { get; internal set; }
@@ -22,5 +24,7 @@ namespace PerudoBot.Data
         public int GhostAttemptsLeft { get; internal set; }
         public int GhostAttemptQuantity { get; internal set; }
         public int GhostAttemptPips { get; internal set; }
+
+        public int? Place { get; set; }
     }
 }
