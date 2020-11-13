@@ -16,7 +16,8 @@ namespace PerudoBot.Modules
             var players = GetPlayers(game).Where(x => x.NumberOfDice > 0);
             var totalDice = players.Sum(x => x.NumberOfDice);
 
-            var playerList = string.Join("\n", players.Select(x => $"`{x.NumberOfDice}` {GetUserNickname(x.Username)}"));
+            //var playerList = string.Join("\n", players.Select(x => $"`{x.NumberOfDice}` {GetUserNickname(x.Username)}"));
+            var playerList = string.Join("\n", players.Select(x => $"`{x.NumberOfDice}` {GetUserNickname(x.Username)} {(x.GhostAttemptsLeft == -1 ? ":ghost:" : "")}"));
 
             var diceRange = game.HighestPip - game.LowestPip + 1;
             var wildsEnabled = game.LowestPip == 1;
@@ -41,7 +42,7 @@ namespace PerudoBot.Modules
                     $"5 = `{200 / 6.0:F2}%`\n" +
                     $"6 = `{100 / 6.0:F2}%`";
             }
-            if (game.LowestPip != 1 || game.HighestPip != 6)  quickmaths = "Quickmaths: :upside_down:"; 
+            //if (game.LowestPip != 1 || game.HighestPip != 6)  quickmaths = "Quickmaths: :upside_down:"; 
 
             var builder = new EmbedBuilder()
                 .WithTitle("Current standings")
