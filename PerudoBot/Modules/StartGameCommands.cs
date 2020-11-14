@@ -18,7 +18,7 @@ namespace PerudoBot.Modules
             ShufflePlayers(game);
             SetDice(game);
 
-            var players = GetPlayers(game);
+            var players = GetGamePlayers(game);
 
             game.State = (int)GameState.InProgress;
             game.PlayerTurnId = players.First().Id;
@@ -33,7 +33,7 @@ namespace PerudoBot.Modules
 
         private void ShufflePlayers(Game game)
         {
-            var players = GetPlayers(game);
+            var players = GetGamePlayers(game);
             var r = new Random();
             var shuffledPlayers = players.OrderBy(x => Guid.NewGuid()).ToList();
 
@@ -48,7 +48,7 @@ namespace PerudoBot.Modules
 
         private void SetDice(Game game)
         {
-            var players = GetPlayers(game);
+            var players = GetGamePlayers(game);
 
             foreach (var player in players)
             {

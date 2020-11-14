@@ -9,8 +9,7 @@ namespace PerudoBot.Data
     {
         public int Id { get; set; }
 
-        public virtual GamePlayer GamePlayer
-        { get; set; }
+        public virtual GamePlayer GamePlayer { get; set; }
 
         public int GamePlayerId { get; set; }
 

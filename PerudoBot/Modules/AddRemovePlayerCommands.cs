@@ -86,7 +86,7 @@ namespace PerudoBot.Modules
 
         private bool UserAlreadyExistsInGame(string username, Game game)
         {
-            var players = GetPlayers(game);
+            var players = GetGamePlayers(game);
             bool userAlreadyExistsInGame = players.FirstOrDefault(x => x.Player.Username == username) != null;
             return userAlreadyExistsInGame;
         }

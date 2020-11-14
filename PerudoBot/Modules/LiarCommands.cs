@@ -90,7 +90,7 @@ namespace PerudoBot.Modules
             var biddingName = "dice";
 
             // if its faceoff round, and it's enabled, use pips instead
-            if (GetPlayers(game).Sum(x => x.NumberOfDice) == 2 && game.FaceoffEnabled)
+            if (GetGamePlayers(game).Sum(x => x.NumberOfDice) == 2 && game.FaceoffEnabled)
             {
                 biddingObject = ":record_button:";
                 biddingName = "pips";

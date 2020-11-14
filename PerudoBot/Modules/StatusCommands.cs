@@ -14,7 +14,7 @@ namespace PerudoBot.Modules
             var game = await GetGameAsync(GameState.Setup);
             if (game != null)
             {
-                var players = GetPlayers(game);
+                var players = GetGamePlayers(game);
                 var options = GetOptions(game);
                 var playersListString = string.Join("\n", players.Select(x => x.Player.Nickname));
                 if (players.Count() == 0) playersListString = "none";

@@ -20,11 +20,11 @@ namespace PerudoBot.Modules
             var game = await GetGameAsync(GameState.InProgress);
 
             //ghost player rejoin
-            var ghosts = GetPlayers(game).Where(x => x.NumberOfDice == 0);
+            var ghosts = GetGamePlayers(game).Where(x => x.NumberOfDice == 0);
             var ghostPlayer = ghosts.SingleOrDefault(x => x.Player.Username == Context.User.Username);
             if (ghostPlayer != null)
             {
-                if (GetPlayers(game).Where(x => x.NumberOfDice > 0).Count() == 2) return;
+                if (GetGamePlayers(game).Where(x => x.NumberOfDice > 0).Count() == 2) return;
                 if (ghostPlayer.GhostAttemptsLeft > 0 && ghostPlayer.GhostAttemptPips == 0)
                 {
                     var lastBid = GetMostRecentBid(game);
@@ -108,7 +108,7 @@ namespace PerudoBot.Modules
 
             var bidObject = previousBid.Pips.GetEmoji();
             var bidName = "dice";
-            if (game.FaceoffEnabled && GetPlayers(game).Sum(x => x.NumberOfDice) == 2)
+            if (game.FaceoffEnabled && GetGamePlayers(game).Sum(x => x.NumberOfDice) == 2)
             {
                 bidObject = ":record_button:";
                 bidName = "pips";
@@ -125,7 +125,7 @@ namespace PerudoBot.Modules
 
                 exactCall.IsSuccess = true;
 
-                var numPlayersLeft = GetPlayers(game).Where(x => x.NumberOfDice > 0).Count();
+                var numPlayersLeft = GetGamePlayers(game).Where(x => x.NumberOfDice > 0).Count();
                 if (game.ExactCallBonus > 0 && numPlayersLeft >= 3 && !game.NextRoundIsPalifico && originalBiddingPlayer.Id != biddingPlayer.Id)
                 {
                     biddingPlayer.NumberOfDice += game.ExactCallBonus;
@@ -142,7 +142,7 @@ namespace PerudoBot.Modules
                     await SendRoundSummary(game);
                     await CheckGhostAttempts(game);
 
-                    var otherplayers = GetPlayers(game).Where(x => x.NumberOfDice > 0).Where(x => x.Id != biddingPlayer.Id);
+                    var otherplayers = GetGamePlayers(game).Where(x => x.NumberOfDice > 0).Where(x => x.Id != biddingPlayer.Id);
                     foreach (var player in otherplayers)
                     {
                         await DecrementDieFromPlayer(player, game.ExactCallPenalty);

@@ -13,7 +13,7 @@ namespace PerudoBot.Modules
     {
         private async Task DisplayCurrentStandings(Game game)
         {
-            var players = GetPlayers(game).Where(x => x.NumberOfDice > 0);
+            var players = GetGamePlayers(game).Where(x => x.NumberOfDice > 0);
             var totalDice = players.Sum(x => x.NumberOfDice);
 
             var playerList = string.Join("\n", players.Select(x => $"`{x.NumberOfDice}` {x.Player.Nickname}"));
@@ -55,7 +55,7 @@ namespace PerudoBot.Modules
 
         private async Task DisplayCurrentStandingsForBots(Game game)
         {
-            var gamePlayers = GetPlayers(game);
+            var gamePlayers = GetGamePlayers(game);
             if (!gamePlayers.Any(x => x.Player.IsBot)) return;
 
             gamePlayers = gamePlayers.Where(x => x.NumberOfDice > 0).ToList();

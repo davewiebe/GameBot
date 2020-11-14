@@ -13,7 +13,7 @@ namespace PerudoBot.Modules
             var game = await GetGameAsync(GameState.InProgress);
 
             var userToKick = Context.Message.MentionedUsers.Single();
-            var player = GetPlayers(game).Where(x => x.NumberOfDice > 0).Where(x => x.Player.Username == userToKick.Username).Single();
+            var player = GetGamePlayers(game).Where(x => x.NumberOfDice > 0).Where(x => x.Player.Username == userToKick.Username).Single();
 
             int monkey = 0;
             if (int.TryParse(stringArray[0], out monkey))

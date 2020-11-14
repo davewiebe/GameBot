@@ -12,7 +12,7 @@ namespace PerudoBot.Modules
 {
     public partial class Commands : ModuleBase<SocketCommandContext>
     {
-        private List<GamePlayer> GetPlayers(Game game)
+        private List<GamePlayer> GetGamePlayers(Game game)
         {
             return _db.GamePlayers.AsQueryable()
                 .Include(gp => gp.Player)
@@ -41,7 +41,7 @@ namespace PerudoBot.Modules
         {
             game.PlayerTurnId = game.RoundStartPlayerId;
 
-            var thatUser = GetPlayers(game).Single(x => x.Id == game.PlayerTurnId);
+            var thatUser = GetGamePlayers(game).Single(x => x.Id == game.PlayerTurnId);
             if (thatUser.NumberOfDice == 0)
             {
                 SetNextPlayer(game, thatUser);
@@ -52,7 +52,7 @@ namespace PerudoBot.Modules
 
         private bool AreBotsInGame(Game game)
         {
-            var gamePlayers = GetPlayers(game);
+            var gamePlayers = GetGamePlayers(game);
             return gamePlayers.Any(x => x.Player.IsBot);
         }
 
@@ -74,7 +74,7 @@ namespace PerudoBot.Modules
 
                 if (game.CanCallExactToJoinAgain)
                 {
-                    if (GetPlayers(game).Where(x => x.NumberOfDice > 0).Count() > 2)
+                    if (GetGamePlayers(game).Where(x => x.NumberOfDice > 0).Count() > 2)
                     {
                         if (player.GhostAttemptsLeft != -1)
                         {
@@ -123,7 +123,7 @@ namespace PerudoBot.Modules
 
                 if (game.CanCallExactToJoinAgain)
                 {
-                    if (GetPlayers(game).Where(x => x.NumberOfDice > 0).Count() > 2)
+                    if (GetGamePlayers(game).Where(x => x.NumberOfDice > 0).Count() > 2)
                     {
                         if (player.GhostAttemptsLeft != -1)
                         {
@@ -145,7 +145,7 @@ namespace PerudoBot.Modules
 
         private int GetNumberOfDiceMatchingBid(Game game, int pips)
         {
-            var players = GetPlayers(game).Where(x => x.NumberOfDice > 0).ToList();
+            var players = GetGamePlayers(game).Where(x => x.NumberOfDice > 0).ToList();
 
             if (game.FaceoffEnabled && players.Sum(x => x.NumberOfDice) == 2)
             {
