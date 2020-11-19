@@ -165,6 +165,11 @@ namespace PerudoBot.Modules
                 var penalty = Math.Abs(countOfPips - previousBid.Quantity);
                 if (game.Penalty != 0) penalty = game.Penalty;
 
+                if (PlayerEligebleForSafeguard(game.Penalty == 0, biddingPlayer.NumberOfDice, penalty))
+                {
+                    penalty = biddingPlayer.NumberOfDice - 1;
+                }
+
                 await SendMessageAsync($"There was actually `{countOfPips}` {bidName}. :fire: {GetUser(biddingPlayer.Username).Mention} loses {penalty} dice. :fire:");
 
                 await SendRoundSummaryForBots(game);
