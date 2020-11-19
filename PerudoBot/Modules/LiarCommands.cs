@@ -115,6 +115,10 @@ namespace PerudoBot.Modules
                 var penalty = (numberOfDiceMatchingBid - previousBid.Quantity) + 1; // if variable penalty
                 if (game.Penalty != 0) penalty = game.Penalty; // penalty is set to 0 for variable penalty games
 
+                if (PlayerEligebleForSafeguard(game.Penalty == 0, playerWhoShouldGoNext.NumberOfDice, penalty)) {
+                    penalty = playerWhoShouldGoNext.NumberOfDice - 1;
+                }
+
                 // send outcome of unsuccessful liar call
                 await SendMessageAsync($"There was actually `{numberOfDiceMatchingBid}` {biddingName}. :fire: {GetUser(playerWhoShouldGoNext.Username).Mention} loses {penalty} dice. :fire:");
 
@@ -143,6 +147,10 @@ namespace PerudoBot.Modules
                 // do same with penalty as in the if statement
                 var penalty = previousBid.Quantity - numberOfDiceMatchingBid;
                 if (game.Penalty != 0) penalty = game.Penalty;
+
+                if (PlayerEligebleForSafeguard(game.Penalty == 0, previousBid.Player.NumberOfDice, penalty)) {
+                    penalty = previousBid.Player.NumberOfDice - 1;
+                }
 
                 await SendMessageAsync($"There was actually `{numberOfDiceMatchingBid}` {biddingName}. :fire: {GetUser(previousBid.Player.Username).Mention} loses {penalty} dice. :fire:");
 
