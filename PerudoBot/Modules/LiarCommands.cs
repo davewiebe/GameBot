@@ -117,6 +117,8 @@ namespace PerudoBot.Modules
 
                 if (PlayerEligebleForSafeguard(game.Penalty == 0, playerWhoShouldGoNext.NumberOfDice, penalty)) {
                     penalty = playerWhoShouldGoNext.NumberOfDice - 1;
+                    await SendMessageAsync($":shield: Guardian shield activated. :shield:");
+                    Thread.Sleep(2000);
                 }
 
                 // send outcome of unsuccessful liar call
@@ -150,6 +152,8 @@ namespace PerudoBot.Modules
 
                 if (PlayerEligebleForSafeguard(game.Penalty == 0, previousBid.Player.NumberOfDice, penalty)) {
                     penalty = previousBid.Player.NumberOfDice - 1;
+                    await SendMessageAsync($":shield: Guardian shield activated. :shield:");
+                    Thread.Sleep(2000);
                 }
 
                 await SendMessageAsync($"There was actually `{numberOfDiceMatchingBid}` {biddingName}. :fire: {GetUser(previousBid.Player.Username).Mention} loses {penalty} dice. :fire:");

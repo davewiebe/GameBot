@@ -168,6 +168,8 @@ namespace PerudoBot.Modules
                 if (PlayerEligebleForSafeguard(game.Penalty == 0, biddingPlayer.NumberOfDice, penalty))
                 {
                     penalty = biddingPlayer.NumberOfDice - 1;
+                    await SendMessageAsync($":shield: Guardian shield activated. :shield:");
+                    Thread.Sleep(2000);
                 }
 
                 await SendMessageAsync($"There was actually `{countOfPips}` {bidName}. :fire: {GetUser(biddingPlayer.Username).Mention} loses {penalty} dice. :fire:");
