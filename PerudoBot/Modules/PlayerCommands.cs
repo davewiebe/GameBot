@@ -54,9 +54,9 @@ namespace PerudoBot.Modules
             return players.Any(x => x.IsBot);
         }
 
-        public bool PlayerEligebleForSafeguard(bool isVariable, int numberOfDice, int penalty)
+        public bool PlayerEligeebleForSafeguard(bool isVariable, int numberOfDice, int penalty)
         {
-            // eligable if variable mode and player is about to lose all his dice without getting down to 1
+            // eligeeble if variable mode and player is about to lose all his dice without getting down to 1
             if (isVariable && numberOfDice > 1 && penalty >= numberOfDice)
             {
                 return true;

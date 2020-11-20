@@ -165,7 +165,7 @@ namespace PerudoBot.Modules
                 var penalty = Math.Abs(countOfPips - previousBid.Quantity);
                 if (game.Penalty != 0) penalty = game.Penalty;
 
-                if (PlayerEligebleForSafeguard(game.Penalty == 0, biddingPlayer.NumberOfDice, penalty))
+                if (PlayerEligeebleForSafeguard(game.Penalty == 0, biddingPlayer.NumberOfDice, penalty))
                 {
                     penalty = biddingPlayer.NumberOfDice - 1;
                     await SendMessageAsync($":shield: Guardian shield activated. :shield:");
