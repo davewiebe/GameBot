@@ -28,7 +28,7 @@ namespace PerudoBot.Modules
 
                     SetTurnPlayerToRoundStartPlayer(game);
                     Thread.Sleep(2000);
-                    await RollDiceStartNewRound(game);
+                    await RollDiceStartNewRoundAsync(game);
                     return;
                 }
                 return;

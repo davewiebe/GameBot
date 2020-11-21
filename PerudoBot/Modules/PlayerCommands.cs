@@ -16,6 +16,7 @@ namespace PerudoBot.Modules
         {
             return _db.GamePlayers.AsQueryable()
                 .Include(gp => gp.Player)
+                .Include(gp => gp.GamePlayerRounds)
                 .Where(gp => gp.GameId == game.Id)
                 .OrderBy(x => x.TurnOrder)
                 .ToList();
@@ -65,6 +66,8 @@ namespace PerudoBot.Modules
 
             if (player.NumberOfDice <= 0)
             {
+                player.CurrentGamePlayerRound.WasEliminated = true;
+
                 await SendMessageAsync($":fire::skull::fire: {player.Player.Nickname} defeated :fire::skull::fire:");
                 var deathrattle = _db.Rattles.SingleOrDefault(x => x.Username == player.Player.Username);
                 if (deathrattle != null)
@@ -100,7 +103,7 @@ namespace PerudoBot.Modules
         private async Task DecrementDieFromPlayerAndSetThierTurnAsync(Game game, GamePlayer player, int penalty)
         {
             player.NumberOfDice -= penalty;
-
+            player.CurrentGamePlayerRound.Penalty = penalty;
             if (player.NumberOfDice < 0) player.NumberOfDice = 0;
 
             if (player.NumberOfDice == 1 && game.Palifico)
@@ -114,6 +117,8 @@ namespace PerudoBot.Modules
 
             if (player.NumberOfDice <= 0)
             {
+                player.CurrentGamePlayerRound.WasEliminated = true;
+
                 await SendMessageAsync($":fire::skull::fire: {player.Player.Nickname} defeated :fire::skull::fire:");
                 var deathrattle = _db.Rattles.SingleOrDefault(x => x.Username == player.Player.Username);
                 if (deathrattle != null)

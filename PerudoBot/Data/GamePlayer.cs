@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 
 namespace PerudoBot.Data
 {
@@ -16,6 +17,7 @@ namespace PerudoBot.Data
         public virtual Game Game { get; set; }
 
         public virtual ICollection<Action> Actions { get; set; }
+        public virtual ICollection<GamePlayerRound> GamePlayerRounds { get; set; }
 
         public int NumberOfDice { get; set; }
         public string Dice { get; set; }
@@ -25,6 +27,14 @@ namespace PerudoBot.Data
         public int GhostAttemptQuantity { get; internal set; }
         public int GhostAttemptPips { get; internal set; }
 
-        public int? Place { get; set; }
+        public GamePlayerRound CurrentGamePlayerRound
+        {
+            get
+            {
+                return GamePlayerRounds.LastOrDefault();
+            }
+        }
+
+        public int? Rank { get; set; }
     }
 }

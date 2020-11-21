@@ -159,7 +159,7 @@ namespace PerudoBot.Modules
             // wait to start new round
             Thread.Sleep(4000);
 
-            await RollDiceStartNewRound(game);
+            await RollDiceStartNewRoundAsync(game);
         }
     }
 }

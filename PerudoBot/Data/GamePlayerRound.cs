@@ -1,6 +1,9 @@
-﻿namespace PerudoBot.Data
+﻿using System.Collections.Generic;
+using System.Linq;
+
+namespace PerudoBot.Data
 {
-    public class RoundPlayer
+    public class GamePlayerRound
     {
         public int Id { get; set; }
         public int RoundId { get; set; }
@@ -15,5 +18,6 @@
         public int TurnOrder { get; set; }
         public bool IsGhost { get; set; }
         public bool WasEliminated { get; set; }
+        public int Penalty { get; set; }
     }
 }

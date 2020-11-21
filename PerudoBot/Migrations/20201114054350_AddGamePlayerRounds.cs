@@ -3,17 +3,17 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace PerudoBot.Migrations
 {
-    public partial class AddRoundPlayer : Migration
+    public partial class AddGamePlayerRounds : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<int>(
-                name: "Place",
+                name: "Rank",
                 table: "GamePlayers",
                 nullable: true);
 
             migrationBuilder.CreateTable(
-                name: "RoundPlayer",
+                name: "GamePlayerRounds",
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false)
@@ -28,15 +28,15 @@ namespace PerudoBot.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_RoundPlayer", x => x.Id);
+                    table.PrimaryKey("PK_GamePlayerRounds", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_RoundPlayer_GamePlayers_GamePlayerId",
+                        name: "FK_GamePlayerRounds_GamePlayers_GamePlayerId",
                         column: x => x.GamePlayerId,
                         principalTable: "GamePlayers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_RoundPlayer_Rounds_RoundId",
+                        name: "FK_GamePlayerRounds_Rounds_RoundId",
                         column: x => x.RoundId,
                         principalTable: "Rounds",
                         principalColumn: "Id",
@@ -44,23 +44,23 @@ namespace PerudoBot.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_RoundPlayer_GamePlayerId",
-                table: "RoundPlayer",
+                name: "IX_GamePlayerRounds_GamePlayerId",
+                table: "GamePlayerRounds",
                 column: "GamePlayerId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_RoundPlayer_RoundId",
-                table: "RoundPlayer",
+                name: "IX_GamePlayerRounds_RoundId",
+                table: "GamePlayerRounds",
                 column: "RoundId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "RoundPlayer");
+                name: "GamePlayerRounds");
 
             migrationBuilder.DropColumn(
-                name: "Place",
+                name: "Rank",
                 table: "GamePlayers");
         }
     }

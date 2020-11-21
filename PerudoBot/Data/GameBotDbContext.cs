@@ -20,6 +20,8 @@ namespace PerudoBot.Data
         public DbSet<Player> Players { get; set; }
         public DbSet<GamePlayer> GamePlayers { get; set; }
 
+        public DbSet<GamePlayerRound> GamePlayerRounds { get; set; }
+
         public DbSet<BotKey> BotKeys { get; set; }
         public DbSet<Action> Actions { get; set; }
         public DbSet<Bid> Bids { get; set; }

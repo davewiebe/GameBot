@@ -13,8 +13,13 @@ namespace PerudoBot.Modules
 {
     public partial class Commands : ModuleBase<SocketCommandContext>
     {
-        private async Task RollDiceStartNewRound(Game game)
+        private async Task RollDiceStartNewRoundAsync(Game game)
         {
+            // mark the end of the current round
+            if (game.CurrentRound != null)
+            {
+                game.CurrentRound.DateFinished = DateTime.Now;
+            }
             _db.SaveChanges();
             // IF THERE IS ONLY ONE PLAYER LEFT, ANNOUNCE THAT THEY WIN
             var gamePlayers = GetGamePlayers(game);
@@ -100,7 +105,7 @@ namespace PerudoBot.Modules
 
                 dice.Sort();
 
-                var roundPlayer = new RoundPlayer()
+                var gamePlayerRound = new GamePlayerRound()
                 {
                     GamePlayer = gamePlayer,
                     Round = round,
@@ -109,6 +114,8 @@ namespace PerudoBot.Modules
                     NumberOfDice = gamePlayer.NumberOfDice,
                     TurnOrder = -1 // Figure out out to assign turnorder based off starting
                 };
+                gamePlayer.Dice = string.Join(",", dice);
+                _db.Add(gamePlayerRound);
 
                 var user = Context.Guild.Users.Single(x => x.Username == gamePlayer.Player.Username);
                 var message = $"Your dice: {string.Join(" ", dice.Select(x => x.GetEmoji()))}";
@@ -133,7 +140,6 @@ namespace PerudoBot.Modules
                     await SendEncryptedDiceAsync(gamePlayer, user, botKey.BotAesKey);
                 }
             }
-            _db.SaveChanges();
 
             await _db.SaveChangesAsync();
         }

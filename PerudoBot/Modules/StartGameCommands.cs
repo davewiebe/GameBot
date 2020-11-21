@@ -26,7 +26,7 @@ namespace PerudoBot.Modules
 
             await SendMessageAsync($"Starting the game!\nUse `!bid 2 2s` or `!exact` or `!liar` to play.");
 
-            await RollDiceStartNewRound(game);
+            await RollDiceStartNewRoundAsync(game);
 
             _db.SaveChanges();
         }

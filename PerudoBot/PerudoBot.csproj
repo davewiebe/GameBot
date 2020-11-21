@@ -70,6 +70,12 @@
     <Compile Remove="Migrations\20201112060420_AddedRoundPlayer.Designer.cs" />
     <Compile Remove="Migrations\20201112060746_AddedRoundPlayer.cs" />
     <Compile Remove="Migrations\20201112060746_AddedRoundPlayer.Designer.cs" />
+    <Compile Remove="Migrations\20201112060918_AddRoundPlayer.cs" />
+    <Compile Remove="Migrations\20201112060918_AddRoundPlayer.Designer.cs" />
+    <Compile Remove="Migrations\20201114054137_AddGamePlayerRound.cs" />
+    <Compile Remove="Migrations\20201114054137_AddGamePlayerRound.Designer.cs" />
+    <Compile Remove="Migrations\20201121034400_AddMoreTimestampsToGameRoundAndActions.cs" />
+    <Compile Remove="Migrations\20201121034400_AddMoreTimestampsToGameRoundAndActions.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>

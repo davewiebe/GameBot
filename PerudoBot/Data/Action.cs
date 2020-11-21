@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text;
 
@@ -7,6 +8,11 @@ namespace PerudoBot.Data
 {
     public abstract class Action
     {
+        public Action()
+        {
+            TimeStamp = DateTime.Now;
+        }
+
         public int Id { get; set; }
 
         public virtual GamePlayer GamePlayer { get; set; }
@@ -24,6 +30,7 @@ namespace PerudoBot.Data
         public bool IsSuccess { get; set; }
         public bool IsOutOfTurn { get; set; }
         public string ActionType { get; private set; }
+        public DateTime TimeStamp { get; set; }
     }
 
     public class Bid : Action

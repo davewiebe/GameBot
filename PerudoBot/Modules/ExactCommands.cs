@@ -172,7 +172,7 @@ namespace PerudoBot.Modules
             }
 
             Thread.Sleep(4000);
-            await RollDiceStartNewRound(game);
+            await RollDiceStartNewRoundAsync(game);
         }
     }
 }

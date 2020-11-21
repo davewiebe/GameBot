@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using PerudoBot.Data;
@@ -9,9 +10,10 @@ using PerudoBot.Data;
 namespace PerudoBot.Migrations
 {
     [DbContext(typeof(GameBotDbContext))]
-    partial class GameBotDbContextModelSnapshot : ModelSnapshot
+    [Migration("20201114054350_AddGamePlayerRounds")]
+    partial class AddGamePlayerRounds
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -44,9 +46,6 @@ namespace PerudoBot.Migrations
 
                     b.Property<int>("RoundId")
                         .HasColumnType("integer");
-
-                    b.Property<DateTime>("TimeStamp")
-                        .HasColumnType("timestamp without time zone");
 
                     b.HasKey("Id");
 
@@ -105,9 +104,6 @@ namespace PerudoBot.Migrations
                         .HasColumnType("timestamp without time zone");
 
                     b.Property<DateTime>("DateFinished")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<DateTime>("DateStarted")
                         .HasColumnType("timestamp without time zone");
 
                     b.Property<int>("ExactCallBonus")
@@ -231,9 +227,6 @@ namespace PerudoBot.Migrations
                     b.Property<int>("NumberOfDice")
                         .HasColumnType("integer");
 
-                    b.Property<int>("Penalty")
-                        .HasColumnType("integer");
-
                     b.Property<int>("RoundId")
                         .HasColumnType("integer");
 
@@ -332,12 +325,6 @@ namespace PerudoBot.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
                         .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
-
-                    b.Property<DateTime>("DateFinished")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<DateTime>("DateStarted")
-                        .HasColumnType("timestamp without time zone");
 
                     b.Property<int>("GameId")
                         .HasColumnType("integer");

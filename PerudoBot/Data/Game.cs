@@ -34,11 +34,14 @@ namespace PerudoBot.Data
         public bool FaceoffEnabled { get; internal set; }
 
         public virtual List<Note> Notes { get; set; }
+
+        public DateTime DateStarted { get; set; }
+
         public DateTime DateFinished { get; internal set; }
         public bool CanCallExactToJoinAgain { get; internal set; }
         public ulong StatusMessage { get; internal set; }
 
-        public virtual ICollection<GamePlayer> Players { get; set; }
+        public virtual ICollection<GamePlayer> GamePlayers { get; set; }
 
         public virtual ICollection<Round> Rounds { get; set; }
 
@@ -48,16 +51,12 @@ namespace PerudoBot.Data
         }
 
         [NotMapped]
-        public Round CurrentRound
-        {
-            get
-            {
-                return Rounds.LastOrDefault();
-            }
-        }
+        public Round CurrentRound => Rounds.LastOrDefault();
 
         public int LowestPip { get; internal set; }
         public int HighestPip { get; internal set; }
+
+        public int CurrentRoundNumber => CurrentRound?.RoundNumber ?? 0;
 
         public int GetCurrentRoundNumber()
         {
