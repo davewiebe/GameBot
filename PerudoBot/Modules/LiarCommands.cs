@@ -21,9 +21,9 @@ namespace PerudoBot.Modules
 
             // get latest bid and make sure not null or 0 (because liar or exact from last round
             //will have quant&pips of 0&0
-            var previousBid = game.GetLatestRound().GetLatestAction() as Bid;
+            var previousBid = game.CurrentRound.LatestAction as Bid;
 
-            var lastAction = game.GetLatestRound().GetLatestAction();
+            var lastAction = game.CurrentRound.LatestAction;
             //_db.Actions
             //    .AsQueryable()
             //    .Where(g => g.GameId == game.Id)
@@ -40,8 +40,9 @@ namespace PerudoBot.Modules
             // create liar call object
             var liarCall = new LiarCall()
             {
-                GamePlayerId = playerWhoShouldGoNext.Id,
-                Round = game.GetLatestRound(),
+                GamePlayer = playerWhoShouldGoNext,
+                Round = game.CurrentRound,
+                GamePlayerRound = playerWhoShouldGoNext.CurrentGamePlayerRound,
                 ParentAction = previousBid,
                 IsSuccess = true,
                 IsOutOfTurn = false

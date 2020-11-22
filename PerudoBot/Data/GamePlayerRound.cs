@@ -12,6 +12,8 @@ namespace PerudoBot.Data
         public int GamePlayerId { get; set; }
         public GamePlayer GamePlayer { get; set; }
 
+        public ICollection<Action> Actions { get; set; }
+
         public int NumberOfDice { get; set; }
         public string Dice { get; set; }
 

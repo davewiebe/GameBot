@@ -56,8 +56,9 @@ namespace PerudoBot.Modules
             {
                 Pips = 0,
                 Quantity = quantity,
-                GamePlayerId = biddingPlayer.Id,
-                RoundId = game.GetLatestRound().Id
+                Round = game.CurrentRound,
+                GamePlayer = biddingPlayer,
+                GamePlayerRound = biddingPlayer.CurrentGamePlayerRound
             };
 
             if (await VerifyBid(bid) == false) return;
@@ -103,7 +104,8 @@ namespace PerudoBot.Modules
                 Pips = pips,
                 Quantity = quantity,
                 GamePlayer = biddingPlayer,
-                RoundId = game.GetLatestRound().Id,
+                Round = game.CurrentRound,
+                GamePlayerRound = biddingPlayer.CurrentGamePlayerRound,
                 IsSuccess = true
             };
 
@@ -194,9 +196,9 @@ namespace PerudoBot.Modules
                 return false;
             }
 
-            if (game.GetLatestRound() is PalificoRound)
+            if (game.CurrentRound is PalificoRound)
             {
-                if (game.GetLatestRound().Actions.Count == 0) return true;
+                if (game.CurrentRound.Actions.Count == 0) return true;
                 if (bid.GamePlayer.NumberOfDice != 1 && bid.Pips != mostRecentBid.Pips)
                 {
                     await SendMessageAsync("Only players at 1 die can change pips in Palifico round.");
@@ -293,7 +295,7 @@ namespace PerudoBot.Modules
 
         private Bid GetMostRecentBid(Game game)
         {
-            return game.GetLatestRound()
+            return game.CurrentRound
                 .Actions.OfType<Bid>()
                 .LastOrDefault();
         }

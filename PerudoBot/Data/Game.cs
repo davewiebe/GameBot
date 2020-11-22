@@ -45,22 +45,12 @@ namespace PerudoBot.Data
 
         public virtual ICollection<Round> Rounds { get; set; }
 
-        public Round GetLatestRound()
-        {
-            return Rounds.LastOrDefault();
-        }
+        public int LowestPip { get; internal set; }
+        public int HighestPip { get; internal set; }
 
         [NotMapped]
         public Round CurrentRound => Rounds.LastOrDefault();
 
-        public int LowestPip { get; internal set; }
-        public int HighestPip { get; internal set; }
-
         public int CurrentRoundNumber => CurrentRound?.RoundNumber ?? 0;
-
-        public int GetCurrentRoundNumber()
-        {
-            return GetLatestRound()?.RoundNumber ?? 0;
-        }
     }
 }

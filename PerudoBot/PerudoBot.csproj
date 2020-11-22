@@ -76,6 +76,10 @@
     <Compile Remove="Migrations\20201114054137_AddGamePlayerRound.Designer.cs" />
     <Compile Remove="Migrations\20201121034400_AddMoreTimestampsToGameRoundAndActions.cs" />
     <Compile Remove="Migrations\20201121034400_AddMoreTimestampsToGameRoundAndActions.Designer.cs" />
+    <Compile Remove="Migrations\20201122035354_LinkActionToGamePlayerRound.cs" />
+    <Compile Remove="Migrations\20201122035354_LinkActionToGamePlayerRound.Designer.cs" />
+    <Compile Remove="Migrations\20201122040106_LinkActionToGamePlayerRound.cs" />
+    <Compile Remove="Migrations\20201122040106_LinkActionToGamePlayerRound.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>

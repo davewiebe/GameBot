@@ -19,6 +19,11 @@ namespace PerudoBot.Data
 
         public int GamePlayerId { get; set; }
 
+        public virtual GamePlayerRound GamePlayerRound { get; set; }
+
+        // has to be nullable as there's no way to assign historical data
+        public int? GamePlayerRoundId { get; set; }
+
         public int RoundId { get; set; }
         public Round Round { get; set; }
 

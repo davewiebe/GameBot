@@ -95,9 +95,10 @@ namespace PerudoBot.Modules
 
             var exactCall = new ExactCall
             {
-                GamePlayerId = game.PlayerTurnId.Value,
-                RoundId = game.GetLatestRound().Id,
-                ParentActionId = previousBid.Id,
+                GamePlayer = biddingPlayer,
+                Round = game.CurrentRound,
+                GamePlayerRound = biddingPlayer.CurrentGamePlayerRound,
+                ParentAction = previousBid,
                 IsOutOfTurn = isOutOfTurn,
                 IsSuccess = false
             };

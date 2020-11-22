@@ -171,6 +171,7 @@ namespace PerudoBot.Modules
         {
             return _db.GamePlayers
                 .Include(gp => gp.Player)
+                .Include(gp => gp.GamePlayerRounds)
                 .AsQueryable()
                 .Single(x => x.Id == game.PlayerTurnId);
         }

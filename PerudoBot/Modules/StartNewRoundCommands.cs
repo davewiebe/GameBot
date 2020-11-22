@@ -124,6 +124,7 @@ namespace PerudoBot.Modules
 
                 if (botKey == null)
                 {
+                    // TODO: use IsBot property to determine if DM can be sent
                     try
                     {
                         var requestOptions = new RequestOptions()
