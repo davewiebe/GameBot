@@ -3,6 +3,7 @@ using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
 using PerudoBot.Data;
 using PerudoBot.Extensions;
+using PerudoBot.Services;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -98,6 +99,9 @@ namespace PerudoBot.Modules
                 game.NextRoundIsPalifico = false;
             }
             _db.SaveChanges();
+
+            var gameService = new PerudoGameService(_db);
+            await gameService.UpdateGamePlayerRanksAsync(game.Id);
         }
 
         private async Task DecrementDieFromPlayerAndSetThierTurnAsync(Game game, GamePlayer player, int penalty)
