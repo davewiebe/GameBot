@@ -48,6 +48,8 @@ namespace PerudoBot.Data
         public int LowestPip { get; internal set; }
         public int HighestPip { get; internal set; }
 
+        public double? DurationInSeconds { get; set; }
+
         [NotMapped]
         public Round CurrentRound => Rounds.LastOrDefault();
 

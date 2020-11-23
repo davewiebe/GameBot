@@ -18,7 +18,7 @@ namespace PerudoBot.Modules
             // mark the end of the current round
             if (game.CurrentRound != null)
             {
-                game.CurrentRound.DateFinished = DateTime.Now;
+                game.CurrentRound.EndRound();
             }
             _db.SaveChanges();
             // IF THERE IS ONLY ONE PLAYER LEFT, ANNOUNCE THAT THEY WIN
