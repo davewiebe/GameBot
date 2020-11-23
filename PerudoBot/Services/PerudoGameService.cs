@@ -57,6 +57,7 @@ namespace PerudoBot.Services
             {
                 var playersEliminated = round.GamePlayerRounds
                     .Where(gpr => gpr.WasEliminated)
+                    .Where(gpr => !gpr.IsGhost)
                     .Select(gpr => gpr.GamePlayer).ToList();
 
                 foreach (var gamePlayer in playersEliminated)

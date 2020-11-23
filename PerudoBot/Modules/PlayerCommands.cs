@@ -61,6 +61,7 @@ namespace PerudoBot.Modules
         private async Task DecrementDieFromPlayer(GamePlayer player, int penalty)
         {
             player.NumberOfDice -= penalty;
+            player.CurrentGamePlayerRound.Penalty = penalty;
 
             var game = await GetGameAsync(GameState.InProgress);
             if (player.NumberOfDice < 0) player.NumberOfDice = 0;

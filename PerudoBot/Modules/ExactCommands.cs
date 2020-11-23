@@ -130,6 +130,7 @@ namespace PerudoBot.Modules
                 if (game.ExactCallBonus > 0 && numPlayersLeft >= 3 && !game.NextRoundIsPalifico && originalBiddingPlayer.Id != biddingPlayer.Id)
                 {
                     biddingPlayer.NumberOfDice += game.ExactCallBonus;
+                    biddingPlayer.CurrentGamePlayerRound.Penalty = -1;
                     if (biddingPlayer.NumberOfDice > game.NumberOfDice) biddingPlayer.NumberOfDice = game.NumberOfDice;
                     _db.SaveChanges();
                     await SendMessageAsync($"\n:crossed_swords: As a bonus, they gain `{game.ExactCallBonus}` dice :crossed_swords:");
