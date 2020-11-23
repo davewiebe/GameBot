@@ -102,7 +102,7 @@ namespace PerudoBot.Modules
                 IsOutOfTurn = isOutOfTurn,
                 IsSuccess = false
             };
-
+            exactCall.SetDuration();
             _db.Actions.Add(exactCall);
 
             DeleteCommandFromDiscord();

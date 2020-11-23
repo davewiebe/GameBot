@@ -153,7 +153,7 @@ namespace PerudoBot.Modules
                 await CheckGhostAttempts(game);
                 await DecrementDieFromPlayerAndSetThierTurnAsync(game, previousBid.GamePlayer, penalty);
             }
-
+            liarCall.SetDuration();
             _db.Actions.Add(liarCall);
             _db.SaveChanges();
 

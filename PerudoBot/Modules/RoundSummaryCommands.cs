@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
 using Newtonsoft.Json;
+using PerudoBot.Data;
 using PerudoBot.Extensions;
 using System.Collections.Generic;
 using System.Linq;
@@ -50,10 +51,13 @@ namespace PerudoBot.Modules
             }
 
             var builder = new EmbedBuilder()
-                .WithTitle("Round Summary")
+                .WithTitle($"Round {game.CurrentRound.RoundNumber} Summary")
                 .AddField("Players", $"{string.Join("\n", playerDice)}", inline: true)
-                .AddField("Dice", $"{string.Join("\n", listOfAllDiceCounts)}", inline: true)
-                .AddField("Totals", $"{string.Join("\n", totals)}", inline: true);
+                .AddField("Dice", $"{string.Join("\n", listOfAllDiceCounts)}", inline: true);
+
+            if (game.CurrentRound is StandardRound)
+                builder.AddField("Totals", $"{string.Join("\n", totals)}", inline: true);
+
             var embed = builder.Build();
 
             await Context.Channel.SendMessageAsync(

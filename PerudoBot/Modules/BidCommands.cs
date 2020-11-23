@@ -58,6 +58,7 @@ namespace PerudoBot.Modules
                 Quantity = quantity,
                 Round = game.CurrentRound,
                 GamePlayer = biddingPlayer,
+                ParentAction = game.CurrentRound.LatestAction,
                 GamePlayerRound = biddingPlayer.CurrentGamePlayerRound
             };
 
@@ -105,6 +106,7 @@ namespace PerudoBot.Modules
                 Quantity = quantity,
                 GamePlayer = biddingPlayer,
                 Round = game.CurrentRound,
+                ParentAction = game.CurrentRound.LatestAction,
                 GamePlayerRound = biddingPlayer.CurrentGamePlayerRound,
                 IsSuccess = true
             };
@@ -136,6 +138,7 @@ namespace PerudoBot.Modules
 
                 _db.SaveChanges();
             }
+            bid.SetDuration();
 
             _db.Bids.Add(bid);
 

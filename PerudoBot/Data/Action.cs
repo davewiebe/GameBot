@@ -37,6 +37,21 @@ namespace PerudoBot.Data
         public string ActionType { get; private set; }
         public DateTime TimeStamp { get; set; }
         public double? DurationInSeconds { get; set; }
+
+        public void SetDuration()
+        {
+            if (ParentAction == null && ParentActionId != null)
+                throw new Exception("Parent Action must be loaded to calculate duration");
+
+            if (ParentAction != null)
+            {
+                DurationInSeconds = (TimeStamp - ParentAction.TimeStamp).TotalSeconds;
+            }
+            else
+            {
+                DurationInSeconds = (TimeStamp - Round.DateStarted).TotalSeconds;
+            }
+        }
     }
 
     public class Bid : Action
