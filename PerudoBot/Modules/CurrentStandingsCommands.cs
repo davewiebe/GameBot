@@ -15,8 +15,7 @@ namespace PerudoBot.Modules
         {
             var players = GetGamePlayers(game).Where(x => x.NumberOfDice > 0);
             var totalDice = players.Sum(x => x.NumberOfDice);
-
-            var playerList = string.Join("\n", players.Select(x => $"`{x.NumberOfDice}` {x.Player.Nickname}"));
+            var playerList = string.Join("\n", players.Select(x => $"`{x.NumberOfDice}` {GetUserNickname(x.Username)} {(x.GhostAttemptsLeft == -1 ? ":ghost:" : "")}"));
 
             var diceRange = game.HighestPip - game.LowestPip + 1;
             var wildsEnabled = game.LowestPip == 1;
@@ -29,7 +28,7 @@ namespace PerudoBot.Modules
                 probabilityString = $"{probability:F0}";
             }
 
-                var quickmaths = $"Quick maths: {totalDice}/{probabilityString} = `{totalDice / probability:F2}`";
+            var quickmaths = $"Quick maths: {totalDice}/{probabilityString} = `{totalDice / probability:F2}`";
             if (game.NextRoundIsPalifico) quickmaths = $"Quick maths: {totalDice}/{diceRange} = `{totalDice / (diceRange * 1.0):F2}`";
             if (players.Sum(x => x.NumberOfDice) == 2 && game.FaceoffEnabled)
             {
@@ -41,7 +40,7 @@ namespace PerudoBot.Modules
                     $"5 = `{200 / 6.0:F2}%`\n" +
                     $"6 = `{100 / 6.0:F2}%`";
             }
-            if (game.LowestPip != 1 || game.HighestPip != 6)  quickmaths = "Quickmaths: :upside_down:"; 
+            //if (game.LowestPip != 1 || game.HighestPip != 6)  quickmaths = "Quickmaths: :upside_down:";
 
             var builder = new EmbedBuilder()
                 .WithTitle("Current standings")

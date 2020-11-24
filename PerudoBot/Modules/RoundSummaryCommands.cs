@@ -46,6 +46,7 @@ namespace PerudoBot.Modules
             {
                 var countOfX = allDiceGrouped.SingleOrDefault(x => x.Key == i)?.Count();
                 var count1 = countOfOnes ?? 0;
+                if (i == 1) count1 = 0;
                 var countX = countOfX ?? 0;
                 totals.Add($"`{count1 + countX }` ˣ {i.GetEmoji()}");
             }
