@@ -116,7 +116,8 @@ namespace PerudoBot.Modules
                 var penalty = (numberOfDiceMatchingBid - previousBid.Quantity) + 1; // if variable penalty
                 if (game.Penalty != 0) penalty = game.Penalty; // penalty is set to 0 for variable penalty games
 
-                if (PlayerEligebleForSafeguard(game.Penalty == 0, playerWhoShouldGoNext.NumberOfDice, penalty)) {
+                if (PlayerEligebleForSafeguard(game.Penalty == 0, playerWhoShouldGoNext.NumberOfDice, penalty))
+                {
                     penalty = playerWhoShouldGoNext.NumberOfDice - 1;
                     await SendMessageAsync($":shield: Guardian shield activated. :shield:");
                     Thread.Sleep(2000);
@@ -151,13 +152,14 @@ namespace PerudoBot.Modules
                 var penalty = previousBid.Quantity - numberOfDiceMatchingBid;
                 if (game.Penalty != 0) penalty = game.Penalty;
 
-                if (PlayerEligebleForSafeguard(game.Penalty == 0, previousBid.Player.NumberOfDice, penalty)) {
-                    penalty = previousBid.Player.NumberOfDice - 1;
+                if (PlayerEligebleForSafeguard(game.Penalty == 0, previousBid.GamePlayer.NumberOfDice, penalty))
+                {
+                    penalty = previousBid.GamePlayer.NumberOfDice - 1;
                     await SendMessageAsync($":shield: Guardian shield activated. :shield:");
                     Thread.Sleep(2000);
                 }
 
-                await SendMessageAsync($"There was actually `{numberOfDiceMatchingBid}` {biddingName}. :fire: {GetUser(previousBid.Player.Username).Mention} loses {penalty} dice. :fire:");
+                await SendMessageAsync($"There was actually `{numberOfDiceMatchingBid}` {biddingName}. :fire: {GetUser(previousBid.GamePlayer.Player.Username).Mention} loses {penalty} dice. :fire:");
 
                 await SendRoundSummaryForBots(game);
                 await SendRoundSummary(game);

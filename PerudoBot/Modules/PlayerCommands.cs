@@ -69,7 +69,7 @@ namespace PerudoBot.Modules
             return false;
         }
 
-        private async Task DecrementDieFromPlayer(Player player, int penalty)
+        private async Task DecrementDieFromPlayer(GamePlayer player, int penalty)
         {
             player.NumberOfDice -= penalty;
             player.CurrentGamePlayerRound.Penalty = penalty;
