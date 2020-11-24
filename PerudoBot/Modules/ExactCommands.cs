@@ -164,14 +164,14 @@ namespace PerudoBot.Modules
                 var penalty = Math.Abs(countOfPips - previousBid.Quantity);
                 if (game.Penalty != 0) penalty = game.Penalty;
 
-                if (PlayerEligebleForSafeguard(game.Penalty == 0, biddingPlayer.NumberOfDice, penalty))
+                if (PlayerEligibleForSafeguard(game.Penalty == 0, biddingPlayer.NumberOfDice, penalty))
                 {
                     penalty = biddingPlayer.NumberOfDice - 1;
                     await SendMessageAsync($":shield: Guardian shield activated. :shield:");
                     Thread.Sleep(2000);
                 }
 
-                await SendMessageAsync($"There was actually `{countOfPips}` {bidName}. :fire: {GetUser(biddingPlayer.Username).Mention} loses {penalty} dice. :fire:");
+                await SendMessageAsync($"There was actually `{countOfPips}` {bidName}. :fire: {GetUser(biddingPlayer.Player.Username).Mention} loses {penalty} dice. :fire:");
 
                 await SendRoundSummaryForBots(game);
                 await SendRoundSummary(game);

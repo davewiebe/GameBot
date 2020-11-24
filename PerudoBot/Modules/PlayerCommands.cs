@@ -58,9 +58,9 @@ namespace PerudoBot.Modules
             return gamePlayers.Any(x => x.Player.IsBot);
         }
 
-        public bool PlayerEligebleForSafeguard(bool isVariable, int numberOfDice, int penalty)
+        public bool PlayerEligibleForSafeguard(bool isVariable, int numberOfDice, int penalty)
         {
-            // eligable if variable mode and player is about to lose all his dice without getting down to 1
+            // eligible if variable mode and player is about to lose all his dice without getting down to 1
             if (isVariable && numberOfDice > 1 && penalty >= numberOfDice)
             {
                 return true;
@@ -69,7 +69,7 @@ namespace PerudoBot.Modules
             return false;
         }
 
-        private async Task DecrementDieFromPlayer(Player player, int penalty)
+        private async Task DecrementDieFromPlayer(GamePlayer player, int penalty)
         {
             player.NumberOfDice -= penalty;
             player.CurrentGamePlayerRound.Penalty = penalty;
