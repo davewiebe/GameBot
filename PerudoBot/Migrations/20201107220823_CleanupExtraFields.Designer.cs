@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using PerudoBot.Data;
@@ -9,9 +10,10 @@ using PerudoBot.Data;
 namespace PerudoBot.Migrations
 {
     [DbContext(typeof(GameBotDbContext))]
-    partial class GameBotDbContextModelSnapshot : ModelSnapshot
+    [Migration("20201107220823_CleanupExtraFields")]
+    partial class CleanupExtraFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -30,13 +32,7 @@ namespace PerudoBot.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<double?>("DurationInSeconds")
-                        .HasColumnType("double precision");
-
                     b.Property<int>("GamePlayerId")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("GamePlayerRoundId")
                         .HasColumnType("integer");
 
                     b.Property<bool>("IsOutOfTurn")
@@ -51,14 +47,9 @@ namespace PerudoBot.Migrations
                     b.Property<int>("RoundId")
                         .HasColumnType("integer");
 
-                    b.Property<DateTime>("TimeStamp")
-                        .HasColumnType("timestamp without time zone");
-
                     b.HasKey("Id");
 
                     b.HasIndex("GamePlayerId");
-
-                    b.HasIndex("GamePlayerRoundId");
 
                     b.HasIndex("ParentActionId");
 
@@ -114,12 +105,6 @@ namespace PerudoBot.Migrations
 
                     b.Property<DateTime>("DateFinished")
                         .HasColumnType("timestamp without time zone");
-
-                    b.Property<DateTime>("DateStarted")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<double?>("DurationInSeconds")
-                        .HasColumnType("double precision");
 
                     b.Property<int>("ExactCallBonus")
                         .HasColumnType("integer");
@@ -208,9 +193,6 @@ namespace PerudoBot.Migrations
                     b.Property<int>("PlayerId")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("Rank")
-                        .HasColumnType("integer");
-
                     b.Property<int>("TurnOrder")
                         .HasColumnType("integer");
 
@@ -221,46 +203,6 @@ namespace PerudoBot.Migrations
                     b.HasIndex("PlayerId");
 
                     b.ToTable("GamePlayers");
-                });
-
-            modelBuilder.Entity("PerudoBot.Data.GamePlayerRound", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
-
-                    b.Property<string>("Dice")
-                        .HasColumnType("text");
-
-                    b.Property<int>("GamePlayerId")
-                        .HasColumnType("integer");
-
-                    b.Property<bool>("IsGhost")
-                        .HasColumnType("boolean");
-
-                    b.Property<int>("NumberOfDice")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Penalty")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("RoundId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("TurnOrder")
-                        .HasColumnType("integer");
-
-                    b.Property<bool>("WasEliminated")
-                        .HasColumnType("boolean");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("GamePlayerId");
-
-                    b.HasIndex("RoundId");
-
-                    b.ToTable("GamePlayerRounds");
                 });
 
             modelBuilder.Entity("PerudoBot.Data.Note", b =>
@@ -344,15 +286,6 @@ namespace PerudoBot.Migrations
                         .HasColumnType("integer")
                         .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
-                    b.Property<DateTime>("DateFinished")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<DateTime>("DateStarted")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<double?>("DurationInSeconds")
-                        .HasColumnType("double precision");
-
                     b.Property<int>("GameId")
                         .HasColumnType("integer");
 
@@ -429,14 +362,10 @@ namespace PerudoBot.Migrations
             modelBuilder.Entity("PerudoBot.Data.Action", b =>
                 {
                     b.HasOne("PerudoBot.Data.GamePlayer", "GamePlayer")
-                        .WithMany("Actions")
+                        .WithMany()
                         .HasForeignKey("GamePlayerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("PerudoBot.Data.GamePlayerRound", "GamePlayerRound")
-                        .WithMany("Actions")
-                        .HasForeignKey("GamePlayerRoundId");
 
                     b.HasOne("PerudoBot.Data.Action", "ParentAction")
                         .WithMany()
@@ -452,7 +381,7 @@ namespace PerudoBot.Migrations
             modelBuilder.Entity("PerudoBot.Data.GamePlayer", b =>
                 {
                     b.HasOne("PerudoBot.Data.Game", "Game")
-                        .WithMany("GamePlayers")
+                        .WithMany("Players")
                         .HasForeignKey("GameId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -460,21 +389,6 @@ namespace PerudoBot.Migrations
                     b.HasOne("PerudoBot.Data.Player", "Player")
                         .WithMany("GamesPlayed")
                         .HasForeignKey("PlayerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("PerudoBot.Data.GamePlayerRound", b =>
-                {
-                    b.HasOne("PerudoBot.Data.GamePlayer", "GamePlayer")
-                        .WithMany("GamePlayerRounds")
-                        .HasForeignKey("GamePlayerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("PerudoBot.Data.Round", "Round")
-                        .WithMany("GamePlayerRounds")
-                        .HasForeignKey("RoundId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

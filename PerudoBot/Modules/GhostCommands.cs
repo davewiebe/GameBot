@@ -10,7 +10,7 @@ namespace PerudoBot.Modules
     {
         private async Task CheckGhostAttempts(Data.Game game)
         {
-            var ghosts = GetPlayers(game)
+            var ghosts = GetGamePlayers(game)
                 .Where(x => x.NumberOfDice == 0)
                 .Where(x => x.GhostAttemptsLeft > 0).ToList();
 
@@ -26,18 +26,18 @@ namespace PerudoBot.Modules
 
                     if (ghost.GhostAttemptsLeft > 0)
                     {
-                        await SendMessageAsync($":hourglass: {GetUserNickname(ghost.Username)} has {ghost.GhostAttemptsLeft} attempt left.");
+                        await SendMessageAsync($":hourglass: {ghost.Player.Nickname} has {ghost.GhostAttemptsLeft} attempt left.");
                     }
                     else
                     {
-                        await SendMessageAsync($":runner: {GetUserNickname(ghost.Username)} fled.");
+                        await SendMessageAsync($":runner: {ghost.Player.Nickname} fled.");
                     }
 
                     continue;
                 }
 
                 var quantity = GetNumberOfDiceMatchingBid(game, ghost.GhostAttemptPips);
-                
+
                 if (quantity == ghost.GhostAttemptQuantity)
                 {
                     ghost.GhostAttemptsLeft = -1;
@@ -47,7 +47,7 @@ namespace PerudoBot.Modules
                     ghost.Dice = "";
                     _db.SaveChanges();
 
-                    await SendMessageAsync($":boom: A wild {GetUserNickname(ghost.Username)} appeared!");
+                    await SendMessageAsync($":boom: A wild {ghost.Player.Nickname} appeared!");
                 }
                 else if (ghost.GhostAttemptQuantity > 0)
                 {
@@ -58,11 +58,11 @@ namespace PerudoBot.Modules
 
                     if (ghost.GhostAttemptsLeft > 0)
                     {
-                        await SendMessageAsync($":hourglass: {GetUserNickname(ghost.Username)} has {ghost.GhostAttemptsLeft} attempt left.");
+                        await SendMessageAsync($":hourglass: {ghost.Player.Nickname} has {ghost.GhostAttemptsLeft} attempt left.");
                     }
                     else
                     {
-                        await SendMessageAsync($":runner: {GetUserNickname(ghost.Username)} fled.");
+                        await SendMessageAsync($":runner: {ghost.Player.Nickname} fled.");
                     }
                 }
             }

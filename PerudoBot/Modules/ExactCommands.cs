@@ -20,11 +20,11 @@ namespace PerudoBot.Modules
             var game = await GetGameAsync(GameState.InProgress);
 
             //ghost player rejoin
-            var ghosts = GetPlayers(game).Where(x => x.NumberOfDice == 0);
-            var ghostPlayer = ghosts.SingleOrDefault(x => x.Username == Context.User.Username);
+            var ghosts = GetGamePlayers(game).Where(x => x.NumberOfDice == 0);
+            var ghostPlayer = ghosts.SingleOrDefault(x => x.Player.Username == Context.User.Username);
             if (ghostPlayer != null)
             {
-                if (GetPlayers(game).Where(x => x.NumberOfDice > 0).Count() == 2) return;
+                if (GetGamePlayers(game).Where(x => x.NumberOfDice > 0).Count() == 2) return;
                 if (ghostPlayer.GhostAttemptsLeft > 0 && ghostPlayer.GhostAttemptPips == 0)
                 {
                     var lastBid = GetMostRecentBid(game);
@@ -35,7 +35,6 @@ namespace PerudoBot.Modules
                     ghostPlayer.GhostAttemptPips = lastBid.Pips;
                     _db.SaveChanges();
 
-                    
                     var lastBidMessage = await Context.Channel.GetMessageAsync(lastBid.MessageId);
 
                     try
@@ -48,10 +47,9 @@ namespace PerudoBot.Modules
                         var castedMessage = lastBidMessage as IUserMessage;
 
                         await castedMessage.ModifyAsync(msg => msg.Content = $"{castedMessage.Content} :ghost: {GetUserNickname(Context.User.Username)}!");
-
-                    } catch
+                    }
+                    catch
                     {
-
                         try
                         {
                             _ = Task.Run(() => lastBidMessage.DeleteAsync());
@@ -63,7 +61,6 @@ namespace PerudoBot.Modules
                         _db.SaveChanges();
                     }
 
-                    
                     return;
                 }
             }
@@ -78,9 +75,9 @@ namespace PerudoBot.Modules
             var originalBiddingPlayer = GetCurrentPlayer(game);
             if (game.CanCallExactAnytime)
             {
-                var player = _db.Players.AsQueryable().Where(x => x.GameId == game.Id).OrderBy(x => x.TurnOrder)
+                var player = _db.GamePlayers.AsQueryable().Where(x => x.GameId == game.Id).OrderBy(x => x.TurnOrder)
                     .Where(x => x.NumberOfDice > 0)
-                    .SingleOrDefault(x => x.Username == Context.User.Username);
+                    .SingleOrDefault(x => x.Player.Username == Context.User.Username);
                 if (player == null) return;
 
                 isOutOfTurn = true;
@@ -91,32 +88,33 @@ namespace PerudoBot.Modules
 
             var biddingPlayer = GetCurrentPlayer(game);
 
-            if (biddingPlayer.Username != Context.User.Username)
+            if (biddingPlayer.Player.Username != Context.User.Username)
             {
                 return;
             }
 
             var exactCall = new ExactCall
             {
-                PlayerId = game.PlayerTurnId.Value,
-                RoundId = game.GetLatestRound().Id,
-                ParentActionId = previousBid.Id,
+                GamePlayer = biddingPlayer,
+                Round = game.CurrentRound,
+                GamePlayerRound = biddingPlayer.CurrentGamePlayerRound,
+                ParentAction = previousBid,
                 IsOutOfTurn = isOutOfTurn,
                 IsSuccess = false
             };
-
+            exactCall.SetDuration();
             _db.Actions.Add(exactCall);
 
             DeleteCommandFromDiscord();
 
             var bidObject = previousBid.Pips.GetEmoji();
             var bidName = "dice";
-            if (game.FaceoffEnabled && GetPlayers(game).Sum(x => x.NumberOfDice) == 2)
+            if (game.FaceoffEnabled && GetGamePlayers(game).Sum(x => x.NumberOfDice) == 2)
             {
                 bidObject = ":record_button:";
                 bidName = "pips";
             }
-            await SendMessageAsync($"{GetUserNickname(biddingPlayer.Username)} called **exact** on `{previousBid.Quantity}` ˣ {bidObject}.");
+            await SendMessageAsync($"{biddingPlayer.Player.Nickname} called **exact** on `{previousBid.Quantity}` ˣ {bidObject}.");
 
             Thread.Sleep(4000);
 
@@ -128,10 +126,11 @@ namespace PerudoBot.Modules
 
                 exactCall.IsSuccess = true;
 
-                var numPlayersLeft = GetPlayers(game).Where(x => x.NumberOfDice > 0).Count();
+                var numPlayersLeft = GetGamePlayers(game).Where(x => x.NumberOfDice > 0).Count();
                 if (game.ExactCallBonus > 0 && numPlayersLeft >= 3 && !game.NextRoundIsPalifico && originalBiddingPlayer.Id != biddingPlayer.Id)
                 {
                     biddingPlayer.NumberOfDice += game.ExactCallBonus;
+                    biddingPlayer.CurrentGamePlayerRound.Penalty = -1;
                     if (biddingPlayer.NumberOfDice > game.NumberOfDice) biddingPlayer.NumberOfDice = game.NumberOfDice;
                     _db.SaveChanges();
                     await SendMessageAsync($"\n:crossed_swords: As a bonus, they gain `{game.ExactCallBonus}` dice :crossed_swords:");
@@ -145,7 +144,7 @@ namespace PerudoBot.Modules
                     await SendRoundSummary(game);
                     await CheckGhostAttempts(game);
 
-                    var otherplayers = GetPlayers(game).Where(x => x.NumberOfDice > 0).Where(x => x.Id != biddingPlayer.Id);
+                    var otherplayers = GetGamePlayers(game).Where(x => x.NumberOfDice > 0).Where(x => x.Id != biddingPlayer.Id);
                     foreach (var player in otherplayers)
                     {
                         await DecrementDieFromPlayer(player, game.ExactCallPenalty);
@@ -165,14 +164,14 @@ namespace PerudoBot.Modules
                 var penalty = Math.Abs(countOfPips - previousBid.Quantity);
                 if (game.Penalty != 0) penalty = game.Penalty;
 
-                if (PlayerEligebleForSafeguard(game.Penalty == 0, biddingPlayer.NumberOfDice, penalty))
+                if (PlayerEligibleForSafeguard(game.Penalty == 0, biddingPlayer.NumberOfDice, penalty))
                 {
                     penalty = biddingPlayer.NumberOfDice - 1;
                     await SendMessageAsync($":shield: Guardian shield activated. :shield:");
                     Thread.Sleep(2000);
                 }
 
-                await SendMessageAsync($"There was actually `{countOfPips}` {bidName}. :fire: {GetUser(biddingPlayer.Username).Mention} loses {penalty} dice. :fire:");
+                await SendMessageAsync($"There was actually `{countOfPips}` {bidName}. :fire: {GetUser(biddingPlayer.Player.Username).Mention} loses {penalty} dice. :fire:");
 
                 await SendRoundSummaryForBots(game);
                 await SendRoundSummary(game);
@@ -182,7 +181,7 @@ namespace PerudoBot.Modules
             }
 
             Thread.Sleep(4000);
-            await RollDiceStartNewRound(game);
+            await RollDiceStartNewRoundAsync(game);
         }
     }
 }

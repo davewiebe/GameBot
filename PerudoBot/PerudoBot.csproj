@@ -58,6 +58,28 @@
     <Compile Remove="Migrations\20201002062426_MoreFixing.Designer.cs" />
     <Compile Remove="Migrations\20201007234309_AddRoundsAndActions.cs" />
     <Compile Remove="Migrations\20201007234309_AddRoundsAndActions.Designer.cs" />
+    <Compile Remove="Migrations\20201107060205_RenamePlayersTableToGamePlayers.cs" />
+    <Compile Remove="Migrations\20201107060205_RenamePlayersTableToGamePlayers.Designer.cs" />
+    <Compile Remove="Migrations\20201107060327_RenamePlayersModelToGamePlayers.cs" />
+    <Compile Remove="Migrations\20201107060327_RenamePlayersModelToGamePlayers.Designer.cs" />
+    <Compile Remove="Migrations\20201107060456_RenamePlayersToGamePlayers.cs" />
+    <Compile Remove="Migrations\20201107060456_RenamePlayersToGamePlayers.Designer.cs" />
+    <Compile Remove="Migrations\20201107061103_CreateNewPlayersTable.cs" />
+    <Compile Remove="Migrations\20201107061103_CreateNewPlayersTable.Designer.cs" />
+    <Compile Remove="Migrations\20201112060420_AddedRoundPlayer.cs" />
+    <Compile Remove="Migrations\20201112060420_AddedRoundPlayer.Designer.cs" />
+    <Compile Remove="Migrations\20201112060746_AddedRoundPlayer.cs" />
+    <Compile Remove="Migrations\20201112060746_AddedRoundPlayer.Designer.cs" />
+    <Compile Remove="Migrations\20201112060918_AddRoundPlayer.cs" />
+    <Compile Remove="Migrations\20201112060918_AddRoundPlayer.Designer.cs" />
+    <Compile Remove="Migrations\20201114054137_AddGamePlayerRound.cs" />
+    <Compile Remove="Migrations\20201114054137_AddGamePlayerRound.Designer.cs" />
+    <Compile Remove="Migrations\20201121034400_AddMoreTimestampsToGameRoundAndActions.cs" />
+    <Compile Remove="Migrations\20201121034400_AddMoreTimestampsToGameRoundAndActions.Designer.cs" />
+    <Compile Remove="Migrations\20201122035354_LinkActionToGamePlayerRound.cs" />
+    <Compile Remove="Migrations\20201122035354_LinkActionToGamePlayerRound.Designer.cs" />
+    <Compile Remove="Migrations\20201122040106_LinkActionToGamePlayerRound.cs" />
+    <Compile Remove="Migrations\20201122040106_LinkActionToGamePlayerRound.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>

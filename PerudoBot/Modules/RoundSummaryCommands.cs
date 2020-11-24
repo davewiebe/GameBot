@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
 using Newtonsoft.Json;
+using PerudoBot.Data;
 using PerudoBot.Extensions;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,14 +14,14 @@ namespace PerudoBot.Modules
     {
         private async Task SendRoundSummaryForBots(Game game)
         {
-            var players = GetPlayers(game);
-            if (!players.Any(x => x.IsBot)) return;
+            var players = GetGamePlayers(game);
+            if (!players.Any(x => x.Player.IsBot)) return;
 
             var playerDice = players.Where(x => x.NumberOfDice > 0).ToList()
                 .Select(x => new
                 {
-                    Username = GetUserNickname(x.Username),
-                    Dice = x.Dice
+                    Username = x.Player.Nickname,
+                    x.Dice
                 });
 
             await SendMessageAsync($"Round summary for bots: ||{JsonConvert.SerializeObject(playerDice)}||");
@@ -28,8 +29,8 @@ namespace PerudoBot.Modules
 
         private async Task SendRoundSummary(Game game)
         {
-            var players = GetPlayers(game).Where(x => x.Dice != "").Where(x => x.NumberOfDice > 0).ToList();
-            var playerDice = players.Select(x => $"{GetUserNickname(x.Username)}: {string.Join(" ", x.Dice.Split(",").Select(x => int.Parse(x).GetEmoji()))}".TrimEnd());
+            var players = GetGamePlayers(game).Where(x => x.Dice != "").Where(x => x.NumberOfDice > 0).ToList();
+            var playerDice = players.Select(x => $"{x.Player.Nickname}: {string.Join(" ", x.Dice.Split(",").Select(x => int.Parse(x).GetEmoji()))}".TrimEnd());
 
             var allDice = players.SelectMany(x => x.Dice.Split(",").Select(x => int.Parse(x)));
             var allDiceGrouped = allDice
@@ -51,10 +52,13 @@ namespace PerudoBot.Modules
             }
 
             var builder = new EmbedBuilder()
-                .WithTitle("Round Summary")
+                .WithTitle($"Round {game.CurrentRound.RoundNumber} Summary")
                 .AddField("Players", $"{string.Join("\n", playerDice)}", inline: true)
-                .AddField("Dice", $"{string.Join("\n", listOfAllDiceCounts)}", inline: true)
-                .AddField("Totals", $"{string.Join("\n", totals)}", inline: true);
+                .AddField("Dice", $"{string.Join("\n", listOfAllDiceCounts)}", inline: true);
+
+            if (game.CurrentRound is StandardRound)
+                builder.AddField("Totals", $"{string.Join("\n", totals)}", inline: true);
+
             var embed = builder.Build();
 
             await Context.Channel.SendMessageAsync(

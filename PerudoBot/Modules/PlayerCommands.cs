@@ -1,7 +1,9 @@
 ﻿using Discord.Commands;
 using Discord.WebSocket;
+using Microsoft.EntityFrameworkCore;
 using PerudoBot.Data;
 using PerudoBot.Extensions;
+using PerudoBot.Services;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -11,10 +13,12 @@ namespace PerudoBot.Modules
 {
     public partial class Commands : ModuleBase<SocketCommandContext>
     {
-        private List<Player> GetPlayers(Game game)
+        private List<GamePlayer> GetGamePlayers(Game game)
         {
-            return _db.Players.AsQueryable()
-                .Where(x => x.GameId == game.Id)
+            return _db.GamePlayers.AsQueryable()
+                .Include(gp => gp.Player)
+                .Include(gp => gp.GamePlayerRounds)
+                .Where(gp => gp.GameId == game.Id)
                 .OrderBy(x => x.TurnOrder)
                 .ToList();
         }
@@ -39,7 +43,7 @@ namespace PerudoBot.Modules
         {
             game.PlayerTurnId = game.RoundStartPlayerId;
 
-            var thatUser = GetPlayers(game).Single(x => x.Id == game.PlayerTurnId);
+            var thatUser = GetGamePlayers(game).Single(x => x.Id == game.PlayerTurnId);
             if (thatUser.NumberOfDice == 0)
             {
                 SetNextPlayer(game, thatUser);
@@ -50,13 +54,13 @@ namespace PerudoBot.Modules
 
         private bool AreBotsInGame(Game game)
         {
-            var players = GetPlayers(game);
-            return players.Any(x => x.IsBot);
+            var gamePlayers = GetGamePlayers(game);
+            return gamePlayers.Any(x => x.Player.IsBot);
         }
 
-        public bool PlayerEligebleForSafeguard(bool isVariable, int numberOfDice, int penalty)
+        public bool PlayerEligibleForSafeguard(bool isVariable, int numberOfDice, int penalty)
         {
-            // eligable if variable mode and player is about to lose all his dice without getting down to 1
+            // eligible if variable mode and player is about to lose all his dice without getting down to 1
             if (isVariable && numberOfDice > 1 && penalty >= numberOfDice)
             {
                 return true;
@@ -65,17 +69,20 @@ namespace PerudoBot.Modules
             return false;
         }
 
-        private async Task DecrementDieFromPlayer(Player player, int penalty)
+        private async Task DecrementDieFromPlayer(GamePlayer player, int penalty)
         {
             player.NumberOfDice -= penalty;
+            player.CurrentGamePlayerRound.Penalty = penalty;
 
             var game = await GetGameAsync(GameState.InProgress);
             if (player.NumberOfDice < 0) player.NumberOfDice = 0;
 
             if (player.NumberOfDice <= 0)
             {
-                await SendMessageAsync($":fire::skull::fire: {GetUserNickname(player.Username)} defeated :fire::skull::fire:");
-                var deathrattle = _db.Rattles.SingleOrDefault(x => x.Username == player.Username);
+                player.CurrentGamePlayerRound.WasEliminated = true;
+
+                await SendMessageAsync($":fire::skull::fire: {player.Player.Nickname} defeated :fire::skull::fire:");
+                var deathrattle = _db.Rattles.SingleOrDefault(x => x.Username == player.Player.Username);
                 if (deathrattle != null)
                 {
                     await SendMessageAsync(deathrattle.Deathrattle);
@@ -83,13 +90,13 @@ namespace PerudoBot.Modules
 
                 if (game.CanCallExactToJoinAgain)
                 {
-                    if (GetPlayers(game).Where(x => x.NumberOfDice > 0).Count() > 2)
+                    if (GetGamePlayers(game).Where(x => x.NumberOfDice > 0).Count() > 2)
                     {
                         if (player.GhostAttemptsLeft != -1)
                         {
                             player.GhostAttemptsLeft = 3;
                             _db.SaveChanges();
-                            await SendMessageAsync($":hourglass::hourglass: {GetUserNickname(player.Username)} you have `3` attempts at an `!exact` call to win your way back into the game (3+ players).");
+                            await SendMessageAsync($":hourglass::hourglass: {GetUserNickname(player.Player.Username)} you have `3` attempts at an `!exact` call to win your way back into the game (3+ players).");
                         }
                     }
                 }
@@ -104,12 +111,15 @@ namespace PerudoBot.Modules
                 game.NextRoundIsPalifico = false;
             }
             _db.SaveChanges();
+
+            var gameService = new PerudoGameService(_db);
+            await gameService.UpdateGamePlayerRanksAsync(game.Id);
         }
 
-        private async Task DecrementDieFromPlayerAndSetThierTurnAsync(Game game, Player player, int penalty)
+        private async Task DecrementDieFromPlayerAndSetThierTurnAsync(Game game, GamePlayer player, int penalty)
         {
             player.NumberOfDice -= penalty;
-
+            player.CurrentGamePlayerRound.Penalty = penalty;
             if (player.NumberOfDice < 0) player.NumberOfDice = 0;
 
             if (player.NumberOfDice == 1 && game.Palifico)
@@ -123,8 +133,10 @@ namespace PerudoBot.Modules
 
             if (player.NumberOfDice <= 0)
             {
-                await SendMessageAsync($":fire::skull::fire: {GetUserNickname(player.Username)} defeated :fire::skull::fire:");
-                var deathrattle = _db.Rattles.SingleOrDefault(x => x.Username == player.Username);
+                player.CurrentGamePlayerRound.WasEliminated = true;
+
+                await SendMessageAsync($":fire::skull::fire: {player.Player.Nickname} defeated :fire::skull::fire:");
+                var deathrattle = _db.Rattles.SingleOrDefault(x => x.Username == player.Player.Username);
                 if (deathrattle != null)
                 {
                     await SendMessageAsync(deathrattle.Deathrattle);
@@ -132,13 +144,13 @@ namespace PerudoBot.Modules
 
                 if (game.CanCallExactToJoinAgain)
                 {
-                    if (GetPlayers(game).Where(x => x.NumberOfDice > 0).Count() > 2)
+                    if (GetGamePlayers(game).Where(x => x.NumberOfDice > 0).Count() > 2)
                     {
                         if (player.GhostAttemptsLeft != -1)
                         {
                             player.GhostAttemptsLeft = 3;
                             _db.SaveChanges();
-                            await SendMessageAsync($":hourglass::hourglass: {GetUserNickname(player.Username)} you have `3` attempts at an `!exact` call to win your way back into the game (3+ players).");
+                            await SendMessageAsync($":hourglass::hourglass: {player.Player.Nickname} you have `3` attempts at an `!exact` call to win your way back into the game (3+ players).");
                         }
                     }
                 }
@@ -154,7 +166,7 @@ namespace PerudoBot.Modules
 
         private int GetNumberOfDiceMatchingBid(Game game, int pips)
         {
-            var players = GetPlayers(game).Where(x => x.NumberOfDice > 0).ToList();
+            var players = GetGamePlayers(game).Where(x => x.NumberOfDice > 0).ToList();
 
             if (game.FaceoffEnabled && players.Sum(x => x.NumberOfDice) == 2)
             {
@@ -171,19 +183,21 @@ namespace PerudoBot.Modules
             return allDice.Count(x => x == pips || x == 1);
         }
 
-        private Player GetCurrentPlayer(Game game)
+        private GamePlayer GetCurrentPlayer(Game game)
         {
-            return _db.Players
+            return _db.GamePlayers
+                .Include(gp => gp.Player)
+                .Include(gp => gp.GamePlayerRounds)
                 .AsQueryable()
                 .Single(x => x.Id == game.PlayerTurnId);
         }
 
-        private void SetNextPlayer(Game game, Player currentPlayer)
+        private void SetNextPlayer(Game game, GamePlayer currentPlayer)
         {
-            var playerIds = _db.Players
+            var playerIds = _db.GamePlayers
                 .AsQueryable()
                 .Where(x => x.GameId == game.Id)
-                .Where(x => x.NumberOfDice > 0 || x.Username == currentPlayer.Username) // in case the current user is eliminated and won't show up
+                .Where(x => x.NumberOfDice > 0 || x.Player.Username == currentPlayer.Player.Username) // in case the current user is eliminated and won't show up
                 .OrderBy(x => x.TurnOrder)
                 .Select(x => x.Id)
                 .ToList();

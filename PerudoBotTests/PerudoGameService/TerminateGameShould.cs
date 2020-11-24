@@ -2,7 +2,6 @@
 using PerudoBot.Data;
 using PerudoBot.Modules;
 using PerudoBot.Services;
-using PerudoBotTests;
 using Shouldly;
 using System.Threading.Tasks;
 

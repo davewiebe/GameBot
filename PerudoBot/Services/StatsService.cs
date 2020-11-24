@@ -29,9 +29,10 @@ namespace PerudoBot.Services
         {
             var topActionCountsInAGame = _db.Actions.AsQueryable()
                 .AsNoTracking()
-                .Include(x => x.Player)
+                .Include(x => x.GamePlayer)
+                    .ThenInclude(gp => gp.Player)
                 .Include(x => x.Round)
-                .ThenInclude(x => x.Game)
+                    .ThenInclude(x => x.Game)
                 .Where(a => a.Round.Game.IsRanked)
                 .Where(a => a.Round.Game.GuildId == guildId)
                 .Where(a => (a.ActionType == nameof(Bid) && a.IsSuccess == true) || a.ActionType != nameof(Bid))
@@ -39,7 +40,7 @@ namespace PerudoBot.Services
                 .GroupBy(x => new
                 {
                     x.Round.GameId,
-                    x.Player.Username,
+                    x.GamePlayer.Player.Username,
                     x.IsSuccess,
                     x.IsOutOfTurn,
                     x.ActionType,

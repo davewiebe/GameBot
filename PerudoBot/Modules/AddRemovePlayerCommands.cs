@@ -10,7 +10,7 @@ namespace PerudoBot.Modules
     public partial class Commands : ModuleBase<SocketCommandContext>
     {
         [Command("add")]
-        public async Task AddUserToGame(params string[] stringArray)
+        public async Task AddUserToGameAsync(params string[] stringArray)
         {
             var game = await GetGameAsync(GameState.Setup);
             if (game == null)
@@ -28,27 +28,57 @@ namespace PerudoBot.Modules
         {
             if (message.MentionedUsers.Count == 0)
             {
-                AddUserToGame(game, message.Author.Username);
+                AddUserToGame(game, (SocketGuildUser)message.Author);
             }
             foreach (var userToAdd in message.MentionedUsers)
             {
-                AddUserToGame(game, userToAdd.Username);
+                var socketGuildUser = Context.Guild.GetUser(userToAdd.Id);
+                AddUserToGame(game, socketGuildUser);
             }
         }
 
-        private void AddUserToGame(Game game, string username)
+        private void AddUserToGame(Game game, SocketGuildUser user)
         {
-            bool userAlreadyExistsInGame = UserAlreadyExistsInGame(username, game);
+            if (user == null)
+            {
+                _ = Context.Channel.SendMessageAsync("Can't add user. They aren't online").Result;
+                return;
+            }
+            // TODO: Can't add players if they aren't online (or found in cache)
+            bool userAlreadyExistsInGame = UserAlreadyExistsInGame(user.Username, game);
             if (userAlreadyExistsInGame)
             {
                 return;
             }
 
-            _db.Players.Add(new Player
+            // get player
+            // TODO: replace Username with UserId lookup when all user Ids are populated
+            var player = _db.Players.AsQueryable()
+                .Where(p => p.GuildId == Context.Guild.Id)
+                .Where(p => p.Username == user.Username)
+                .FirstOrDefault();
+
+            if (player != null) // update player
             {
-                GameId = game.Id,
-                Username = username,
-                IsBot = GetUser(username).IsBot
+                player.Nickname = user.Nickname ?? user.Username;
+                player.UserId = user.Id;
+            }
+            else // create a new player
+            {
+                player = new Player
+                {
+                    Username = user.Username,
+                    Nickname = user.Nickname ?? user.Username,
+                    GuildId = user.Guild.Id,
+                    UserId = user.Id,
+                    IsBot = user.IsBot
+                };
+            }
+
+            _db.GamePlayers.Add(new GamePlayer
+            {
+                Game = game,
+                Player = player
             });
 
             _db.SaveChanges();
@@ -56,8 +86,8 @@ namespace PerudoBot.Modules
 
         private bool UserAlreadyExistsInGame(string username, Game game)
         {
-            var players = GetPlayers(game);
-            bool userAlreadyExistsInGame = players.FirstOrDefault(x => x.Username == username) != null;
+            var players = GetGamePlayers(game);
+            bool userAlreadyExistsInGame = players.FirstOrDefault(x => x.Player.Username == username) != null;
             return userAlreadyExistsInGame;
         }
 
@@ -73,10 +103,10 @@ namespace PerudoBot.Modules
                 return;
             }
 
-            var userToRemove = _db.Players.FirstOrDefault(x => x.GameId == game.Id && x.Username == userToAdd.Username);
+            var userToRemove = _db.GamePlayers.FirstOrDefault(x => x.GameId == game.Id && x.Player.Username == userToAdd.Username);
             if (userToRemove == null) return;
 
-            _db.Players.Remove(userToRemove);
+            _db.GamePlayers.Remove(userToRemove);
             _db.SaveChanges();
 
             await SendMessageAsync($"{GetUserNickname(userToAdd.Username)} removed from game.");

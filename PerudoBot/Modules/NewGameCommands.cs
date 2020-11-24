@@ -24,7 +24,7 @@ namespace PerudoBot.Modules
                 return;
             }
 
-            _db.Games.Add(new Game
+            var game = new Game
             {
                 ChannelId = Context.Channel.Id,
                 State = 0,
@@ -47,7 +47,8 @@ namespace PerudoBot.Modules
                 StatusMessage = 0,
                 LowestPip = 1,
                 HighestPip = 6
-            });
+            };
+            _db.Games.Add(game);
             _db.SaveChanges();
 
             var commands =
@@ -57,12 +58,11 @@ namespace PerudoBot.Modules
                 $"`!start` to start the game.";
 
             var builder = new EmbedBuilder()
-                            .WithTitle("New game created")
+                            .WithTitle($"New game #{game.Id} created")
                             .AddField("Commands", commands, inline: false);
             var embed = builder.Build();
             await Context.Channel.SendMessageAsync(embed: embed).ConfigureAwait(false);
 
-            var game = await GetGameAsync(GameState.Setup);
             AddUsers(game, Context.Message);
             try
             {

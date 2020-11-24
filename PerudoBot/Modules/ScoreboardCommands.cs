@@ -74,7 +74,7 @@ namespace PerudoBot.Modules
             var options = parameters.Select(o => o.ToLower());
             var gameMode = "All Ranked Games";
 
-            var baseQuery = _db.Players.AsQueryable().AsNoTracking();
+            var baseQuery = _db.GamePlayers.AsQueryable().AsNoTracking();
 
             if (options.Any(o => o == "suddendeath"))
             {
@@ -97,21 +97,27 @@ namespace PerudoBot.Modules
             var result = baseQuery.Where(p => p.Game.IsRanked)
                 .Where(p => p.Game.State == 3)
                 .Where(p => p.Game.GuildId == Context.Guild.Id)
-                .Where(p => !p.IsBot)
+                .Where(p => !p.Player.IsBot)
                 .Select(p => new
                 {
                     GameId = p.Game.Id,
                     p.Game.IsRanked,
                     p.Game.State,
-                    p.Username,
-                    IsWinner = (p.Username == p.Game.Winner) ? 1 : 0,
-                    PlayerCount = p.Game.Players.Count()
+                    p.Game.DateFinished,
+                    p.Player.Username,
+                    p.Player.Nickname,
+                    // TODO: User GameUserId instead, when winner points to GamePlayerId
+                    IsWinner = (p.Player.Username == p.Game.Winner
+                        && p.Player.GuildId == p.Game.GuildId) ? 1 : 0,
+                    PlayerCount = p.Game.GamePlayers.Count()
                 })
                 .Where(p => p.PlayerCount >= 3 && p.PlayerCount <= 100)
-                .GroupBy(g => g.Username)
+                .OrderByDescending(p => p.DateFinished)
+                .GroupBy(g => new { g.Username, g.Nickname })
                 .Select(g => new
                 {
-                    Username = g.Key,
+                    g.Key.Username,
+                    g.Key.Nickname,
                     GamesPlayed = g.Count(),
                     Wins = g.Sum(x => x.IsWinner),
                     WinPercentage = ((double)g.Sum(x => x.IsWinner) / (double)g.Count()) * 100
@@ -129,21 +135,7 @@ namespace PerudoBot.Modules
 
             foreach (var item in result)
             {
-                var guildUser = Context.Guild.Users
-                    .FirstOrDefault(u => u.Username == item.Username);
-
-                var username = "";
-                if (guildUser == null)
-                {
-                    username = item.Username;
-                }
-                else
-                {
-                    username = (guildUser.Nickname != null ? guildUser.Nickname : item.Username);
-                }
-
-                username = username.PadLeft(usernamePadding);
-
+                var username = item.Nickname.PadLeft(usernamePadding);
                 var gamesPlayed = item.GamesPlayed.ToString().PadLeft(gamesPlayedPadding);
                 var wins = item.Wins.ToString().PadLeft(winsPadding);
                 var winPercentage = item.WinPercentage.ToString("0.0").PadLeft(winPercentagePadding);

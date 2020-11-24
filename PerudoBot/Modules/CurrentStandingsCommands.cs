@@ -13,11 +13,9 @@ namespace PerudoBot.Modules
     {
         private async Task DisplayCurrentStandings(Game game)
         {
-            var players = GetPlayers(game).Where(x => x.NumberOfDice > 0);
+            var players = GetGamePlayers(game).Where(x => x.NumberOfDice > 0);
             var totalDice = players.Sum(x => x.NumberOfDice);
-
-            //var playerList = string.Join("\n", players.Select(x => $"`{x.NumberOfDice}` {GetUserNickname(x.Username)}"));
-            var playerList = string.Join("\n", players.Select(x => $"`{x.NumberOfDice}` {GetUserNickname(x.Username)} {(x.GhostAttemptsLeft == -1 ? ":ghost:" : "")}"));
+            var playerList = string.Join("\n", players.Select(x => $"`{x.NumberOfDice}` {x.Player.Nickname} {(x.GhostAttemptsLeft == -1 ? ":ghost:" : "")}"));
 
             var diceRange = game.HighestPip - game.LowestPip + 1;
             var wildsEnabled = game.LowestPip == 1;
@@ -30,7 +28,7 @@ namespace PerudoBot.Modules
                 probabilityString = $"{probability:F0}";
             }
 
-                var quickmaths = $"Quick maths: {totalDice}/{probabilityString} = `{totalDice / probability:F2}`";
+            var quickmaths = $"Quick maths: {totalDice}/{probabilityString} = `{totalDice / probability:F2}`";
             if (game.NextRoundIsPalifico) quickmaths = $"Quick maths: {totalDice}/{diceRange} = `{totalDice / (diceRange * 1.0):F2}`";
             if (players.Sum(x => x.NumberOfDice) == 2 && game.FaceoffEnabled)
             {
@@ -42,7 +40,7 @@ namespace PerudoBot.Modules
                     $"5 = `{200 / 6.0:F2}%`\n" +
                     $"6 = `{100 / 6.0:F2}%`";
             }
-            //if (game.LowestPip != 1 || game.HighestPip != 6)  quickmaths = "Quickmaths: :upside_down:"; 
+            //if (game.LowestPip != 1 || game.HighestPip != 6)  quickmaths = "Quickmaths: :upside_down:";
 
             var builder = new EmbedBuilder()
                 .WithTitle("Current standings")
@@ -56,16 +54,16 @@ namespace PerudoBot.Modules
 
         private async Task DisplayCurrentStandingsForBots(Game game)
         {
-            var players = GetPlayers(game);
-            if (!players.Any(x => x.IsBot)) return;
+            var gamePlayers = GetGamePlayers(game);
+            if (!gamePlayers.Any(x => x.Player.IsBot)) return;
 
-            players = players.Where(x => x.NumberOfDice > 0).ToList();
-            var totalDice = players.Sum(x => x.NumberOfDice);
+            gamePlayers = gamePlayers.Where(x => x.NumberOfDice > 0).ToList();
+            var totalDice = gamePlayers.Sum(x => x.NumberOfDice);
 
             var currentStandings = new
             {
-                Players = players.Select(x => new { Username = GetUserNickname(x.Username), DiceCount = x.NumberOfDice }),
-                TotalPlayers = players.Count(),
+                Players = gamePlayers.Select(x => new { Username = x.Player.Nickname, DiceCount = x.NumberOfDice }),
+                TotalPlayers = gamePlayers.Count(),
                 TotalDice = totalDice
             };
 

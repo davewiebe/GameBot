@@ -21,14 +21,14 @@ namespace PerudoBot.Modules
 
             var currentPlayer = GetCurrentPlayer(game);
 
-            if (!game.CanBidAnytime && currentPlayer.Username != Context.User.Username)
+            if (!game.CanBidAnytime && currentPlayer.Player.Username != Context.User.Username)
             {
                 return;
             }
 
-            var biddingPlayer = GetPlayers(game).Where(x => x.NumberOfDice > 0).Single(x => x.Username == Context.User.Username);
+            var biddingPlayer = GetGamePlayers(game).Where(x => x.NumberOfDice > 0).Single(x => x.Player.Username == Context.User.Username);
 
-            var numberOfDiceLeft = GetPlayers(game).Sum(x => x.NumberOfDice);
+            var numberOfDiceLeft = GetGamePlayers(game).Sum(x => x.NumberOfDice);
             if (game.FaceoffEnabled && numberOfDiceLeft == 2)
             {
                 await HandleFaceoffBid(bidText, game, biddingPlayer);
@@ -38,7 +38,7 @@ namespace PerudoBot.Modules
             await HandlePipBid(bidText, game, biddingPlayer);
         }
 
-        private async Task HandleFaceoffBid(string[] bidText, Game game, Player biddingPlayer)
+        private async Task HandleFaceoffBid(string[] bidText, Game game, GamePlayer biddingPlayer)
         {
             int quantity = 0;
             try
@@ -50,14 +50,16 @@ namespace PerudoBot.Modules
                 return;
             }
 
-            if (quantity < game.LowestPip*2 || quantity > game.HighestPip*2 ) return;
+            if (quantity < game.LowestPip * 2 || quantity > game.HighestPip * 2) return;
 
             var bid = new Bid
             {
                 Pips = 0,
                 Quantity = quantity,
-                PlayerId = biddingPlayer.Id,
-                RoundId = game.GetLatestRound().Id
+                Round = game.CurrentRound,
+                GamePlayer = biddingPlayer,
+                ParentAction = game.CurrentRound.LatestAction,
+                GamePlayerRound = biddingPlayer.CurrentGamePlayerRound
             };
 
             if (await VerifyBid(bid) == false) return;
@@ -73,15 +75,15 @@ namespace PerudoBot.Modules
             var nextPlayer = GetCurrentPlayer(game);
 
             DeleteCommandFromDiscord();
-            var bidderNickname = GetUserNickname(biddingPlayer.Username);
-            var nextPlayerMention = GetUser(nextPlayer.Username).Mention;
+            var bidderNickname = biddingPlayer.Player.Nickname;
+            var nextPlayerMention = GetUser(nextPlayer.Player.Username).Mention;
 
             var userMessage = $"{ bidderNickname } bids `{ quantity}` ˣ :record_button:. { nextPlayerMention } is up.";
 
             await SendMessageAsync(userMessage);
         }
 
-        private async Task HandlePipBid(string[] bidText, Game game, Player biddingPlayer)
+        private async Task HandlePipBid(string[] bidText, Game game, GamePlayer biddingPlayer)
         {
             int quantity = 0;
             int pips = 0;
@@ -102,25 +104,27 @@ namespace PerudoBot.Modules
             {
                 Pips = pips,
                 Quantity = quantity,
-                Player = biddingPlayer,
-                RoundId = game.GetLatestRound().Id,
+                GamePlayer = biddingPlayer,
+                Round = game.CurrentRound,
+                ParentAction = game.CurrentRound.LatestAction,
+                GamePlayerRound = biddingPlayer.CurrentGamePlayerRound,
                 IsSuccess = true
             };
 
             if (await VerifyBid(bid) == false) return;
 
-            if (game.CanBidAnytime && GetCurrentPlayer(game).Username != Context.User.Username)
+            if (game.CanBidAnytime && GetCurrentPlayer(game).Player.Username != Context.User.Username)
             {
                 var prevCurrentPlayer = GetCurrentPlayer(game);
 
-                var currentPlayer = GetPlayers(game)
+                var currentPlayer = GetGamePlayers(game)
                     .Where(x => x.NumberOfDice > 0)
-                    .SingleOrDefault(x => x.Username == Context.User.Username);
+                    .SingleOrDefault(x => x.Player.Username == Context.User.Username);
                 if (currentPlayer == null) return;
                 game.PlayerTurnId = currentPlayer.Id;
 
                 // reset turn order
-                var players = GetPlayers(game).Where(x => x.NumberOfDice > 0).Where(x => x.Id != currentPlayer.Id).ToList();
+                var players = GetGamePlayers(game).Where(x => x.NumberOfDice > 0).Where(x => x.Id != currentPlayer.Id).ToList();
 
                 var insertIndex = players.FindIndex(x => x.Id == prevCurrentPlayer.Id);
 
@@ -134,6 +138,7 @@ namespace PerudoBot.Modules
 
                 _db.SaveChanges();
             }
+            bid.SetDuration();
 
             _db.Bids.Add(bid);
 
@@ -144,8 +149,8 @@ namespace PerudoBot.Modules
             var nextPlayer = GetCurrentPlayer(game);
 
             DeleteCommandFromDiscord();
-            var bidderNickname = GetUserNickname(biddingPlayer.Username);
-            var nextPlayerMention = GetUser(nextPlayer.Username).Mention;
+            var bidderNickname = biddingPlayer.Player.Nickname;
+            var nextPlayerMention = GetUser(nextPlayer.Player.Username).Mention;
 
             var userMessage = $"{ bidderNickname } bids `{ quantity}` ˣ { pips.GetEmoji()}. { nextPlayerMention } is up.";
             IUserMessage sentMessage;
@@ -174,7 +179,7 @@ namespace PerudoBot.Modules
             var game = await GetGameAsync(GameState.InProgress);
             var mostRecentBid = GetMostRecentBid(game);
 
-            var players = GetPlayers(game);
+            var players = GetGamePlayers(game);
 
             if (game.FaceoffEnabled && players.Sum(x => x.NumberOfDice) == 2)
             {
@@ -194,10 +199,10 @@ namespace PerudoBot.Modules
                 return false;
             }
 
-            if (game.GetLatestRound() is PalificoRound)
+            if (game.CurrentRound is PalificoRound)
             {
-                if (game.GetLatestRound().Actions.Count == 0) return true;
-                if (bid.Player.NumberOfDice != 1 && bid.Pips != mostRecentBid.Pips)
+                if (game.CurrentRound.Actions.Count == 0) return true;
+                if (bid.GamePlayer.NumberOfDice != 1 && bid.Pips != mostRecentBid.Pips)
                 {
                     await SendMessageAsync("Only players at 1 die can change pips in Palifico round.");
                     return false;
@@ -293,7 +298,7 @@ namespace PerudoBot.Modules
 
         private Bid GetMostRecentBid(Game game)
         {
-            return game.GetLatestRound()
+            return game.CurrentRound
                 .Actions.OfType<Bid>()
                 .LastOrDefault();
         }
