@@ -17,7 +17,7 @@ namespace PerudoBot.Data
         public virtual Game Game { get; set; }
 
         public virtual ICollection<Action> Actions { get; set; }
-        public virtual ICollection<GamePlayerRound> GamePlayerRounds { get; set; }
+        public virtual ICollection<GamePlayerRound> GamePlayerRounds { get; set; }// = new List<GamePlayerRound>();
 
         public int NumberOfDice { get; set; }
         public string Dice { get; set; }
@@ -31,7 +31,7 @@ namespace PerudoBot.Data
         {
             get
             {
-                return GamePlayerRounds.LastOrDefault();
+                return GamePlayerRounds?.LastOrDefault();
             }
         }
 

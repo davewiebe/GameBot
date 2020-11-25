@@ -18,57 +18,93 @@ namespace PerudoBot.Services
             _db = db;
         }
 
-        public string GetGamelog(ulong guildId, int page, int gamenumber)
+        public string GetGamelog(ulong guildId, int page, int gameId)
         {
-            var skipNumber = (page - 1) * 10;
+            var pageSize = 20;
+            var skipNumber = (page - 1) * pageSize;
 
-            var players1 = _db.GamePlayers.AsQueryable()
-                .Where(x => x.Game.IsRanked)
-                .Where(x => x.Game.GuildId == guildId)
-                .Where(x => x.Game.State == (int)(object)GameState.Finished)
-                .Where(x => x.Game.Winner != null)
-                .Include(x => x.Game.Notes)
-                .OrderBy(x => x.Game.DateCreated)
-                .ToList();
+            var gamesQuery = _db.Games.AsQueryable()
+            .Where(x => x.IsRanked)
+            .Where(x => x.GuildId == guildId)
+            .Where(x => x.State == (int)GameState.Finished);
 
-            var players = players1
-                 .GroupBy(x => x.Game).ToList();
+            if (gameId != -1)
+                gamesQuery = gamesQuery.Where(g => g.Id == gameId);
 
-            var monk = new List<string>();
-            var index = 1;
-            foreach (var item in players)
+            var games = gamesQuery
+            .OrderByDescending(g => g.DateFinished)
+            .Skip(skipNumber)
+            .Take(pageSize)
+            .Select(g => new
             {
-                if (gamenumber > -1)
-                {
-                    if (index != gamenumber)
+                g.Id,
+                g.DateFinished,
+                Players = g.GamePlayers
+                    .Select(gp => new
                     {
-                        index += 1;
-                        continue;
-                    }
-                }
-                var nonWinnerList = string.Join(", ", item.Where(x => x.Player.Username != item.Key.Winner).Select(x => x.Player.Username));
-                monk.Add($"`{index.ToString("D2")}. {item.Key.DateCreated:yyyy-MM-dd}` :trophy: **{GetUserNickname(item.Key.Winner)}**, {nonWinnerList}");
-
-                index += 1;
-
-                if (gamenumber > -1)
-                {
-                    monk.AddRange(item.Key.Notes.Select(x => $"**{GetUserNickname(x.Username)}**: {x.Text}"));
-                }
-            }
-
-            if (gamenumber == -1)
+                        gp.Player.Username,
+                        gp.Player.Nickname,
+                        IsGhost = gp.GhostAttemptsLeft == -1,
+                        IsWinner = gp.Player.Username == g.Winner,
+                        gp.Rank
+                    })
+            })
+            .Select(g => new
             {
-                monk = monk.OrderByDescending(x => x).ToList();
-            }
-            var monkey = string.Join("\n", monk.Skip(skipNumber).Take(10));
+                g.Id,
+                g.DateFinished,
+                Winner = g.Players.Where(p => p.IsWinner).Single(),
+                NonWinners = g.Players.Where(p => !p.IsWinner).OrderBy(p => p.Rank).ToList(),
+            })
+            .ToList();
 
-            return string.Join("\n", monkey);
+            var output = "";
+
+            //only show a max number of non-winners, unless a specific gameId is given
+            var maxNonWinnersToList = 4;
+            if (gameId != -1)
+            {
+                maxNonWinnersToList = int.MaxValue;
+            }
+
+            foreach (var game in games)
+            {
+                var nonWinnerList = string.Join(", ",
+                    game.NonWinners.Take(maxNonWinnersToList).Select(nw =>
+                        $"{(nw.IsGhost ? ":ghost:" : "")} {nw.Nickname}")
+                    );
+
+                if (game.NonWinners.Count() > maxNonWinnersToList)
+                {
+                    nonWinnerList += $", *+{game.NonWinners.Count() - maxNonWinnersToList} more*";
+                }
+
+                output += $"`{game.Id:D3}. {game.DateFinished:yyyy-MM-dd}` " +
+                    $":trophy: **{(game.Winner.IsGhost ? ":ghost:" : "")} " +
+                    $"{game.Winner.Nickname}**, {nonWinnerList}\n";
+
+                if (gameId != -1)
+                {
+                    var notes = _db.Notes.AsQueryable()
+                        .Where(n => n.GameId == gameId)
+                        .ToList()
+                        // TODO: Link notes to GamePlayer/Player table to avoid this nonsense
+                        .Select(n => $"**{GetUserNickname(n.Username)}**: {n.Text}")
+                        ;
+
+                    output += "\n" + string.Join("\n", notes);
+                }
+            }
+
+            return output;
         }
 
         private string GetUserNickname(string username)
         {
-            return username;
+            return _db.Players.AsQueryable()
+                .Where(p => p.Username == username)
+                .FirstOrDefault()
+                .Nickname;
         }
 
         public void Dispose()

@@ -35,16 +35,9 @@ namespace PerudoBot.Modules
 
             var embedString = gamelogService.GetGamelog(Context.Guild.Id, newPage, -1);
 
-            var guildUsers = await Context.Guild.GetUsersAsync();
-            foreach (var guildUser in guildUsers)
-            {
-                if (guildUser.Nickname == null) continue;
-                embedString = embedString.Replace(guildUser.Username, guildUser.Nickname);
-            }
-
             var builder = new EmbedBuilder()
                                 .WithTitle($"Game logs - Page {newPage}")
-                                .AddField("Games", embedString, inline: false);
+                                .WithDescription(embedString);
             var embed = builder.Build();
 
             await message.RemoveAllReactionsAsync();
@@ -55,9 +48,8 @@ namespace PerudoBot.Modules
                 await message.AddReactionAsync(new Emoji("⬅️"));
             }
             if (!embedString.Contains("01."))
-            {
-                _ = message.AddReactionAsync(new Emoji("➡️"));
-            }
+            { }
+            await message.AddReactionAsync(new Emoji("➡️"));
         }
 
         private static int GetCurrentPage(IUserMessage message)
@@ -85,16 +77,10 @@ namespace PerudoBot.Modules
 
             var embedString = gamelogService.GetGamelog(Context.Guild.Id, newPage, -1);
 
-            var guildUsers = await Context.Guild.GetUsersAsync();
-            foreach (var guildUser in guildUsers)
-            {
-                if (guildUser.Nickname == null) continue;
-                embedString = embedString.Replace(guildUser.Username, guildUser.Nickname);
-            }
-
             var builder = new EmbedBuilder()
                                 .WithTitle($"Game logs - Page {newPage}")
-                                .AddField("Games", embedString, inline: false);
+                                .WithDescription(embedString);
+
             var embed = builder.Build();
 
             await message.RemoveAllReactionsAsync();
@@ -106,9 +92,8 @@ namespace PerudoBot.Modules
             }
 
             if (!embedString.Contains("01."))
-            {
-                _ = message.AddReactionAsync(new Emoji("➡️"));
-            }
+            { }
+            await message.AddReactionAsync(new Emoji("➡️"));
         }
     }
 
