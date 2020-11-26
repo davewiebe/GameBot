@@ -79,7 +79,7 @@ namespace PerudoBot.Modules
 
             if (player.NumberOfDice <= 0)
             {
-                player.CurrentGamePlayerRound.WasEliminated = true;
+                player.CurrentGamePlayerRound.IsEliminated = true;
 
                 await SendMessageAsync($":fire::skull::fire: {player.Player.Nickname} defeated :fire::skull::fire:");
                 var deathrattle = _db.Rattles.SingleOrDefault(x => x.Username == player.Player.Username);
@@ -133,7 +133,7 @@ namespace PerudoBot.Modules
 
             if (player.NumberOfDice <= 0)
             {
-                player.CurrentGamePlayerRound.WasEliminated = true;
+                player.CurrentGamePlayerRound.IsEliminated = true;
 
                 await SendMessageAsync($":fire::skull::fire: {player.Player.Nickname} defeated :fire::skull::fire:");
                 var deathrattle = _db.Rattles.SingleOrDefault(x => x.Username == player.Player.Username);

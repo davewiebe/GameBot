@@ -19,7 +19,7 @@ namespace PerudoBot.Data
 
         public int TurnOrder { get; set; }
         public bool IsGhost { get; set; }
-        public bool WasEliminated { get; set; }
+        public bool IsEliminated { get; set; }
         public int Penalty { get; set; }
         public bool IsAutoLiarSet { get; set; }
     }

@@ -50,7 +50,7 @@ namespace PerudoBot.Modules
 
             if (playerWhoseTurnItIs.CurrentGamePlayerRound.IsAutoLiarSet)
             {
-                liarCall.WasAutoAction = true;
+                liarCall.IsAutoAction = true;
             }
             else if (game.CanCallLiarAnytime)
             {
