@@ -37,6 +37,7 @@ namespace PerudoBot.Data
         public string ActionType { get; private set; }
         public DateTime TimeStamp { get; set; }
         public double? DurationInSeconds { get; set; }
+        public bool WasAutoAction { get; set; }
 
         public void SetDuration()
         {

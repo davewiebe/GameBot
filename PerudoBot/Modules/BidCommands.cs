@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using PerudoBot.Data;
 using PerudoBot.Extensions;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Game = PerudoBot.Data.Game;
 
@@ -75,6 +76,7 @@ namespace PerudoBot.Modules
             var nextPlayer = GetCurrentPlayer(game);
 
             DeleteCommandFromDiscord();
+
             var bidderNickname = biddingPlayer.Player.Nickname;
             var nextPlayerMention = GetUser(nextPlayer.Player.Username).Mention;
 
@@ -149,10 +151,12 @@ namespace PerudoBot.Modules
             var nextPlayer = GetCurrentPlayer(game);
 
             DeleteCommandFromDiscord();
+
             var bidderNickname = biddingPlayer.Player.Nickname;
             var nextPlayerMention = GetUser(nextPlayer.Player.Username).Mention;
 
             var userMessage = $"{ bidderNickname } bids `{ quantity}` ˣ { pips.GetEmoji()}. { nextPlayerMention } is up.";
+
             IUserMessage sentMessage;
 
             if (AreBotsInGame(game))
@@ -172,6 +176,14 @@ namespace PerudoBot.Modules
 
             bid.MessageId = sentMessage.Id;
             _db.SaveChanges();
+
+            if (nextPlayer.CurrentGamePlayerRound.IsAutoLiarSet)
+            {
+                Thread.Sleep(1000);
+                await SendMessageAsync($":lock: Auto **liar** engaged!");
+                Thread.Sleep(1000);
+                await LiarAsync();
+            }
         }
 
         private async Task<bool> VerifyBid(Bid bid)

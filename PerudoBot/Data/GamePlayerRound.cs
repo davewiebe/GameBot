@@ -21,5 +21,6 @@ namespace PerudoBot.Data
         public bool IsGhost { get; set; }
         public bool WasEliminated { get; set; }
         public int Penalty { get; set; }
+        public bool IsAutoLiarSet { get; set; }
     }
 }

@@ -35,20 +35,24 @@ namespace PerudoBot.Modules
             if (previousBid.Quantity == 0) return;
 
             //get the player who's turn it is right now
-            var playerWhoShouldGoNext = GetCurrentPlayer(game);
+            var playerWhoseTurnItIs = GetCurrentPlayer(game);
 
             // create liar call object
             var liarCall = new LiarCall()
             {
-                GamePlayer = playerWhoShouldGoNext,
+                GamePlayer = playerWhoseTurnItIs,
                 Round = game.CurrentRound,
-                GamePlayerRound = playerWhoShouldGoNext.CurrentGamePlayerRound,
+                GamePlayerRound = playerWhoseTurnItIs.CurrentGamePlayerRound,
                 ParentAction = previousBid,
                 IsSuccess = true,
                 IsOutOfTurn = false
             };
 
-            if (game.CanCallLiarAnytime)
+            if (playerWhoseTurnItIs.CurrentGamePlayerRound.IsAutoLiarSet)
+            {
+                liarCall.WasAutoAction = true;
+            }
+            else if (game.CanCallLiarAnytime)
             {
                 // get the player making the liar call with at least on die,
                 var gamePlayer = _db.GamePlayers.AsQueryable()
@@ -57,7 +61,7 @@ namespace PerudoBot.Modules
                     .Where(x => x.Player.Username == Context.User.Username)
                     .SingleOrDefault();
 
-                // if non found (not in game) exit
+                // if none found (not in game) exit
                 if (gamePlayer == null) return;
 
                 // check if calling player is calling out of turn
@@ -73,14 +77,14 @@ namespace PerudoBot.Modules
                     _db.SaveChanges();
 
                     // biddingPlayer
-                    playerWhoShouldGoNext = GetCurrentPlayer(game);
+                    playerWhoseTurnItIs = GetCurrentPlayer(game);
                     liarCall.IsOutOfTurn = true;
                 }
             }
-            else
+            else // not liar anytime
             {
                 // make sure player calling liar is the player who should go next
-                if (playerWhoShouldGoNext.Player.Username != Context.User.Username)
+                if (playerWhoseTurnItIs.Player.Username != Context.User.Username)
                 {
                     return;
                 }
@@ -99,7 +103,7 @@ namespace PerudoBot.Modules
 
             DeleteCommandFromDiscord();
             // send message that liar has been called, w/ details
-            await SendMessageAsync($"{playerWhoShouldGoNext.Player.Nickname} called **liar** on `{previousBid.Quantity}` ˣ {biddingObject}.");
+            await SendMessageAsync($"{playerWhoseTurnItIs.Player.Nickname} called **liar** on `{previousBid.Quantity}` ˣ {biddingObject}.");
 
             // for the dramatic affect
             Thread.Sleep(4000);
@@ -116,15 +120,15 @@ namespace PerudoBot.Modules
                 var penalty = (numberOfDiceMatchingBid - previousBid.Quantity) + 1; // if variable penalty
                 if (game.Penalty != 0) penalty = game.Penalty; // penalty is set to 0 for variable penalty games
 
-                if (PlayerEligibleForSafeguard(game.Penalty == 0, playerWhoShouldGoNext.NumberOfDice, penalty))
+                if (PlayerEligibleForSafeguard(game.Penalty == 0, playerWhoseTurnItIs.NumberOfDice, penalty))
                 {
-                    penalty = playerWhoShouldGoNext.NumberOfDice - 1;
+                    penalty = playerWhoseTurnItIs.NumberOfDice - 1;
                     await SendMessageAsync($":shield: Guardian shield activated. :shield:");
                     Thread.Sleep(2000);
                 }
 
                 // send outcome of unsuccessful liar call
-                await SendMessageAsync($"There was actually `{numberOfDiceMatchingBid}` {biddingName}. :fire: {GetUser(playerWhoShouldGoNext.Player.Username).Mention} loses {penalty} dice. :fire:");
+                await SendMessageAsync($"There was actually `{numberOfDiceMatchingBid}` {biddingName}. :fire: {GetUser(playerWhoseTurnItIs.Player.Username).Mention} loses {penalty} dice. :fire:");
 
                 // if matching dice is exactly what previous bid was, send that taunt!
                 if (numberOfDiceMatchingBid == previousBid.Quantity)
@@ -142,7 +146,7 @@ namespace PerudoBot.Modules
                 await CheckGhostAttempts(game);
 
                 // make player with unsuccessful liar call the next to go
-                await DecrementDieFromPlayerAndSetThierTurnAsync(game, playerWhoShouldGoNext, penalty);
+                await DecrementDieFromPlayerAndSetThierTurnAsync(game, playerWhoseTurnItIs, penalty);
             }
             else
             {
