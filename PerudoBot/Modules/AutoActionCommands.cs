@@ -15,6 +15,8 @@ namespace PerudoBot.Modules
         [Alias("auto, al")]
         public async Task AutoLiarCallAsync()
         {
+            DeleteCommandFromDiscord(Context.Message.Id);
+
             var game = await GetGameAsync(GameState.InProgress);
 
             var gamePlayer = _db.GamePlayers.AsQueryable()

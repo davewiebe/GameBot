@@ -83,6 +83,8 @@ namespace PerudoBot.Modules
             var userMessage = $"{ bidderNickname } bids `{ quantity}` ˣ :record_button:. { nextPlayerMention } is up.";
 
             await SendMessageAsync(userMessage);
+
+            await CheckIfNextPlayerHasAutoLiarSetAsync(nextPlayer);
         }
 
         private async Task HandlePipBid(string[] bidText, Game game, GamePlayer biddingPlayer)
@@ -177,11 +179,16 @@ namespace PerudoBot.Modules
             bid.MessageId = sentMessage.Id;
             _db.SaveChanges();
 
+            await CheckIfNextPlayerHasAutoLiarSetAsync(nextPlayer);
+        }
+
+        private async Task CheckIfNextPlayerHasAutoLiarSetAsync(GamePlayer nextPlayer)
+        {
             if (nextPlayer.CurrentGamePlayerRound.IsAutoLiarSet)
             {
                 Thread.Sleep(1000);
-                await SendMessageAsync($":lock: Auto **liar** engaged!");
-                Thread.Sleep(1000);
+                await SendMessageAsync($":lock: Auto **liar** activated. :lock:");
+                Thread.Sleep(2000);
                 await LiarAsync();
             }
         }
