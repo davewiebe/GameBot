@@ -89,7 +89,7 @@ namespace PerudoBot.Services
                         .Where(n => n.GameId == gameId)
                         .ToList()
                         // TODO: Link notes to GamePlayer/Player table to avoid this nonsense
-                        .Select(n => $"**{GetUserNickname(n.Username)}**: {n.Text}")
+                        .Select(n => $"**{GetUserNickname(n.Username, guildId)}**: {n.Text}")
                         ;
 
                     output += "\n" + string.Join("\n", notes);
@@ -99,10 +99,11 @@ namespace PerudoBot.Services
             return output;
         }
 
-        private string GetUserNickname(string username)
+        private string GetUserNickname(string username, ulong guildId)
         {
             return _db.Players.AsQueryable()
                 .Where(p => p.Username == username)
+                .Where(p => p.GuildId == guildId)
                 .FirstOrDefault()
                 .Nickname;
         }
