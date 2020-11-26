@@ -16,7 +16,7 @@ namespace PerudoBot.Modules
             var players = GetGamePlayers(game).Where(x => x.NumberOfDice > 0);
             var totalDice = players.Sum(x => x.NumberOfDice);
             var playerList = string.Join("\n", players.Select(x =>
-                $"`{x.NumberOfDice}` {x.Player.Nickname} {(x.GhostAttemptsLeft == -1 ? ":ghost:" : "")} {(x.CurrentGamePlayerRound.IsAutoLiarSet ? ":lock::lying_face:" : "")}"));
+                $"`{x.NumberOfDice}` {x.Player.Nickname} {(x.GhostAttemptsLeft == -1 ? ":ghost:" : "")}"));
 
             var diceRange = game.HighestPip - game.LowestPip + 1;
             var wildsEnabled = game.LowestPip == 1;
