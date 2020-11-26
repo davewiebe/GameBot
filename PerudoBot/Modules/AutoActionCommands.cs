@@ -12,8 +12,7 @@ namespace PerudoBot.Modules
     public partial class Commands : ModuleBase<SocketCommandContext>
     {
         [Command("autoliar")]
-        [Alias("auto")]
-        [Alias("al")]
+        [Alias("auto, al")]
         public async Task AutoLiarCallAsync()
         {
             var game = await GetGameAsync(GameState.InProgress);
