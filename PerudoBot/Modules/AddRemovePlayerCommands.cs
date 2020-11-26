@@ -10,6 +10,7 @@ namespace PerudoBot.Modules
     public partial class Commands : ModuleBase<SocketCommandContext>
     {
         [Command("add")]
+        [Alias("join")]
         public async Task AddUserToGameAsync(params string[] stringArray)
         {
             var game = await GetGameAsync(GameState.Setup);
