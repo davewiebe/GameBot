@@ -12,7 +12,7 @@ namespace PerudoBot.Modules
     public partial class Commands : ModuleBase<SocketCommandContext>
     {
         [Command("autoliar")]
-        [Alias("auto, al")]
+        [Alias("auto", "al")]
         public async Task AutoLiarCallAsync()
         {
             DeleteCommandFromDiscord(Context.Message.Id);
@@ -32,7 +32,7 @@ namespace PerudoBot.Modules
 
             gamePlayer.CurrentGamePlayerRound.IsAutoLiarSet = true;
 
-            await SendMessageAsync($":lock: {gamePlayer.Player.Nickname} has locked in a **liar** call.");
+            await SendMessageAsync($":lock: {gamePlayer.Player.Nickname} has locked in a **liar** call for their upcoming turn (this round).");
 
             _db.SaveChanges();
         }
