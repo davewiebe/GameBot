@@ -64,7 +64,7 @@ namespace PerudoBot.Modules
                 round = new FaceoffRound()
                 {
                     GameId = game.Id,
-                    RoundNumber = game.CurrentRound.RoundNumber + 1,
+                    RoundNumber = (game.CurrentRound?.RoundNumber ?? 0) + 1,
                     StartingPlayerId = GetCurrentPlayer(game).Id
                 };
 
@@ -76,7 +76,7 @@ namespace PerudoBot.Modules
                 round = new PalificoRound()
                 {
                     GameId = game.Id,
-                    RoundNumber = game.CurrentRound.RoundNumber + 1,
+                    RoundNumber = (game.CurrentRound?.RoundNumber ?? 0) + 1,
                     StartingPlayerId = GetCurrentPlayer(game).Id
                 };
 
