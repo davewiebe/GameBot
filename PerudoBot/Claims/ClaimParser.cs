@@ -8,7 +8,7 @@ namespace PerudoBot.Claims
     {
         public static Claim Parse(string claimText)
         {
-            var claimParts = claimText.Split(" ");
+            var claimParts = claimText.ToLower().Trim().Split(" ");
 
             if (claimParts.Length != 2)
                 throw new ArgumentException(ClaimExceptionMessages.InvalidClaimFormat);
@@ -36,12 +36,24 @@ namespace PerudoBot.Claims
                     op = Operator.Exactly;
                 }
 
-                bool includeWilds = false;
-                if (claimParts[1].EndsWith('*'))
+                bool includeWilds = true;
+
+                string[] wildExclusions = { "!", "nowilds" };
+                foreach (var wildExclusion in wildExclusions)
                 {
-                    includeWilds = true;
-                    claimParts[1] = claimParts[1].Trim('*');
+                    if (claimParts[1].EndsWith(wildExclusion))
+                    {
+                        includeWilds = false;
+                        claimParts[1] = claimParts[1].Replace(wildExclusion, "");
+                    }
                 }
+
+                // strip the s
+                if (claimParts[1].EndsWith('s'))
+                {
+                    claimParts[1] = claimParts[1].Trim('s');
+                }
+
                 return new Claim(op, int.Parse(claimParts[0]), int.Parse(claimParts[1]), includeWilds);
             }
             catch (IndexOutOfRangeException)
