@@ -28,9 +28,7 @@ namespace PerudoBot.Modules
 
             var game = await GetGameAsync(GameState.InProgress);
 
-            var gamePlayer = _db.GamePlayers.AsNoTracking().AsQueryable()
-                    .Include(gp => gp.Player)
-                    .Where(gp => gp.GameId == game.Id)
+            var gamePlayer = game.GamePlayers
                     .Where(x => x.NumberOfDice > 0)
                     .Where(x => x.Player.Username == Context.User.Username)
                     .SingleOrDefault();
@@ -43,8 +41,8 @@ namespace PerudoBot.Modules
             {
                 claim = ClaimParser.Parse(claimText);
 
-                var message = await SendMessageAsync($":loudspeaker: {gamePlayer.Player.Nickname} is claiming to have " +
-                    $"{claim.Operator.ToReadableString()} `{claim.Quantity}` x {claim.Pips.GetEmoji()}, {(claim.IncludeWilds ? "including wilds" : "excluding wilds")}...");
+                var message = await SendMessageAsync($":loudspeaker: {gamePlayer.Player.Nickname} claims " +
+                    $"{claim.Operator.ToReadableString()} `{claim.Quantity}` x {claim.Pips.GetEmoji()}, {(claim.IncludeWilds ? "" : "(no wilds)")}...");
 
                 Thread.Sleep(2000);
 
