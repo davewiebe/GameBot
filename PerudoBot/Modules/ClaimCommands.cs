@@ -14,6 +14,7 @@ namespace PerudoBot.Modules
     public partial class Commands : ModuleBase<SocketCommandContext>
     {
         [Command("claim")]
+        [Alias("c")]
         public async Task ClaimDiceAsync([Remainder] string claimText)
         {
             if (claimText.Contains("help"))
@@ -36,13 +37,19 @@ namespace PerudoBot.Modules
             if (gamePlayer == null)
                 return;
 
+            if (!(game.CurrentRound is StandardRound))
+            {
+                await SendMessageAsync("Sorry, claims are only currently supported in standard rounds.");
+                return;
+            }
+
             Claim claim;
             try
             {
                 claim = ClaimParser.Parse(claimText);
 
                 var message = await SendMessageAsync($":loudspeaker: {gamePlayer.Player.Nickname} claims " +
-                    $"{claim.Operator.ToReadableString()} `{claim.Quantity}` x {claim.Pips.GetEmoji()}, {(claim.IncludeWilds ? "" : "(no wilds)")}...");
+                    $"{claim.Operator.ToReadableString()} `{claim.Quantity}` x {claim.Pips.GetEmoji()}{(claim.IncludeWilds ? "" : " (no wilds)")} ...");
 
                 Thread.Sleep(2000);
 
@@ -52,9 +59,9 @@ namespace PerudoBot.Modules
 
                 await message.ModifyAsync(msg => msg.Content = $"{message.Content} {validationMessage}");
             }
-            catch (ArgumentException argumentException)
+            catch (ArgumentException)
             {
-                await SendMessageAsync(argumentException.Message);
+                await SendMessageAsync($"Sorry, your claim doesn't jive. Try `!claim help` for help.");
             }
         }
 
@@ -62,11 +69,15 @@ namespace PerudoBot.Modules
         public async Task ClaimHelpAsync()
         {
             var embed = new EmbedBuilder()
-                .WithTitle("Claim Help")
-                .AddField("Claim Exact Count, no wilds", "[quantity] [pips] => 2 4")
-                .AddField("Claim Greater Than, including wilds", ">[quantity] [pips]* ex. >2 4*")
-                .AddField("Claim Less Than, including wilds", "<[quantity] [pips]* ex. <2 4*")
-                .AddField("Claim Approximate (+/-1), no wilds", "~[quantity] [pips] ex. ~2 4")
+                .WithTitle(":loudspeaker: Claim Help")
+                .WithDescription("Claims are the hot new feature that allow you claim something about your hand that can be " +
+                "verified by the Perudo game bot.\nClaims follow the same syntax structure as bids and are called with `!claim` or `!c`, " +
+                "with the following options:")
+                .AddField("Claim Exact", "`!claim [quantity] [pips]` ex. `!claim 2 4`")
+                .AddField("Claim More Than (`>`)", "`!claim >[quantity] [pips]` ex. `!claim >2 4`")
+                .AddField("Claim Less Than (`<`)", "`!claim <[quantity] [pips]*` ex. `!claim <2 4`")
+                .AddField("Claim Approximate (+/-1) (`~`)", "`!c ~[quantity] [pips]` ex. `!c ~2 4`")
+                .AddField("Claim Excluding Wilds (`!`)", "`!c [quantity] [pips]!` ex. `!c 2 4!`")
                 .Build();
 
             await Context.Channel.SendMessageAsync(embed: embed);
