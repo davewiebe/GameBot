@@ -14,10 +14,10 @@
         {
             return op switch
             {
-                Operator.GreaterThan => "greater than",
+                Operator.GreaterThan => "more than",
                 Operator.LessThan => "less than",
                 Operator.Exactly => "exactly",
-                Operator.Approximately => "approximately (+/- 1)",
+                Operator.Approximately => "approximately (+/-1)",
                 _ => "",
             };
         }
