@@ -34,11 +34,17 @@ namespace PerudoBot.Modules
                 return;
             }
 
+            // make sure the player who's turn it is can't put in auto liar
+            if (game.PlayerTurnId == gamePlayer.Id)
+            {
+                return;
+            }
+
             DeleteCommandFromDiscord(Context.Message.Id);
 
             gamePlayer.CurrentGamePlayerRound.IsAutoLiarSet = true;
 
-            await SendMessageAsync($":lock: {gamePlayer.Player.Nickname} has locked in a **liar** call for their upcoming turn (this round).");
+            await SendMessageAsync($":lock: {gamePlayer.Player.Nickname} has locked in a **liar** call.");
 
             _db.SaveChanges();
         }
