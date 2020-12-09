@@ -187,7 +187,7 @@ namespace PerudoBot.Modules
             if (nextPlayer.CurrentGamePlayerRound.IsAutoLiarSet)
             {
                 Thread.Sleep(1000);
-                await SendMessageAsync($":lock: Auto **liar** activated. :lock:");
+                await SendMessageAsync($":unlock: Auto **liar** activated. :unlock:");
                 Thread.Sleep(2000);
                 await LiarAsync();
             }
