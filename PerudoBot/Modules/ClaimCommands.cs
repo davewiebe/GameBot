@@ -25,8 +25,6 @@ namespace PerudoBot.Modules
 
             claimText = claimText.Replace("❤️", "<3");
 
-            DeleteCommandFromDiscord(Context.Message.Id);
-
             var game = await GetGameAsync(GameState.InProgress);
 
             var gamePlayer = game.GamePlayers
@@ -36,6 +34,12 @@ namespace PerudoBot.Modules
 
             if (gamePlayer == null)
                 return;
+
+            // make sure claim calls from previous rounds don't carry over if called too late
+            if (Context.Message.Timestamp.ToLocalTime() < game.CurrentRound.DateStarted)
+            {
+                return;
+            }
 
             if (!(game.CurrentRound is StandardRound))
             {
@@ -47,6 +51,8 @@ namespace PerudoBot.Modules
             try
             {
                 claim = ClaimParser.Parse(claimText);
+
+                DeleteCommandFromDiscord(Context.Message.Id);
 
                 var message = await SendMessageAsync($":loudspeaker: {gamePlayer.Player.Nickname} claims " +
                     $"{claim.Operator.ToReadableString()} `{claim.Quantity}` x {claim.Pips.GetEmoji()}{(claim.IncludeWilds ? "" : " (no wilds)")} ...");
@@ -75,7 +81,7 @@ namespace PerudoBot.Modules
                 "with the following options:")
                 .AddField("Claim Exact", "`!claim [quantity] [pips]` ex. `!claim 2 4`")
                 .AddField("Claim More Than (`>`)", "`!claim >[quantity] [pips]` ex. `!claim >2 4`")
-                .AddField("Claim Less Than (`<`)", "`!claim <[quantity] [pips]*` ex. `!claim <2 4`")
+                .AddField("Claim Less Than (`<`)", "`!claim <[quantity] [pips]` ex. `!claim <2 4`")
                 .AddField("Claim Approximate (+/-1) (`~`)", "`!c ~[quantity] [pips]` ex. `!c ~2 4`")
                 .AddField("Claim Excluding Wilds (`!`)", "`!c [quantity] [pips]!` ex. `!c 2 4!`")
                 .Build();
