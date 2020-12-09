@@ -15,8 +15,6 @@ namespace PerudoBot.Modules
         [Alias("auto", "al")]
         public async Task AutoLiarCallAsync()
         {
-            DeleteCommandFromDiscord(Context.Message.Id);
-
             var game = await GetGameAsync(GameState.InProgress);
 
             var gamePlayer = _db.GamePlayers.AsQueryable()
@@ -29,6 +27,14 @@ namespace PerudoBot.Modules
 
             if (gamePlayer == null)
                 return;
+
+            // make sure auto liar calls from previous rounds don't carry over if called too late
+            if (Context.Message.Timestamp.ToLocalTime() < game.CurrentRound.DateStarted)
+            {
+                return;
+            }
+
+            DeleteCommandFromDiscord(Context.Message.Id);
 
             gamePlayer.CurrentGamePlayerRound.IsAutoLiarSet = true;
 
