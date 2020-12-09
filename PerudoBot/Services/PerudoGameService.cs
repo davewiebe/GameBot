@@ -36,6 +36,8 @@ namespace PerudoBot.Services
             return await _db.Games.AsQueryable()
                 .Include(g => g.Rounds)
                     .ThenInclude(r => r.Actions)
+                .Include(g => g.GamePlayers)
+                    .ThenInclude(gp => gp.Player)
                 .Where(x => x.ChannelId == channelId)
                 .Where(x => gameStateIds.Contains(x.State))
                 .SingleOrDefaultAsync();
