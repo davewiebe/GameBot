@@ -103,7 +103,7 @@ namespace PerudoBot.Modules
 
             DeleteCommandFromDiscord();
             // send message that liar has been called, w/ details
-            await SendMessageAsync($"{playerWhoseTurnItIs.Player.Nickname} called **liar** {(liarCall.IsOutOfTurn ? "(out of turn)" : "")} on `{previousBid.Quantity}` ˣ {biddingObject}.");
+            await SendMessageAsync($"{playerWhoseTurnItIs.Player.Nickname} called **liar**{(liarCall.IsOutOfTurn ? " (out of turn)" : "")} on `{previousBid.Quantity}` ˣ {biddingObject}.");
 
             // for the dramatic affect
             Thread.Sleep(4000);
