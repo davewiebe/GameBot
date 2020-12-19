@@ -326,7 +326,7 @@ namespace PerudoBot.Modules
                 if (game.NumberOfDice < 10)
                 {
                     var fire = "";
-                    if (game.NumberOfDice >= 1) fire += ":fire:";
+                    if (game.NumberOfDice >= 1) fire += ":candle:";
                     if (game.NumberOfDice >= 2) fire += ":grey_question:";
                     if (game.NumberOfDice >= 3) fire += ":grey_question:";
                     if (game.NumberOfDice >= 4) fire += ":grey_question:";
@@ -346,19 +346,19 @@ namespace PerudoBot.Modules
                 {
                     var penalty = System.Math.Min(game.NumberOfDice, game.Penalty);
                     var fire = "";
-                    if (penalty >= 1) fire += ":fire:";
-                    if (penalty >= 2) fire += ":fire:";
-                    if (penalty >= 3) fire += ":fire:";
-                    if (penalty >= 4) fire += ":fire:";
-                    if (penalty >= 5) fire += ":fire:";
-                    if (penalty >= 6) fire += ":fire:";
-                    if (penalty >= 7) fire += ":fire:";
-                    if (penalty >= 8) fire += ":fire:";
-                    if (penalty >= 9) fire += ":fire:";
+                    if (penalty >= 1) fire += ":candle:";
+                    if (penalty >= 2) fire += ":candle:";
+                    if (penalty >= 3) fire += ":candle:";
+                    if (penalty >= 4) fire += ":candle:";
+                    if (penalty >= 5) fire += ":candle:";
+                    if (penalty >= 6) fire += ":candle:";
+                    if (penalty >= 7) fire += ":candle:";
+                    if (penalty >= 8) fire += ":candle:";
+                    if (penalty >= 9) fire += ":candle:";
                     options.Add(fire);
                 }
                 else
-                    options.Add($":fire: ˣ `{game.NumberOfDice}`");
+                    options.Add($":candle: ˣ `{game.NumberOfDice}`");
             }
             if (game.LowestPip != 1 || game.HighestPip != 6) options.Add($"{game.LowestPip.GetEmoji()} :left_right_arrow: {game.HighestPip.GetEmoji()}");
 

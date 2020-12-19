@@ -52,7 +52,7 @@ namespace PerudoBot.Modules
             }
 
             var builder = new EmbedBuilder()
-                .WithTitle($"Round {game.CurrentRound.RoundNumber} Summary")
+                .WithTitle($":snowflake: Round {game.CurrentRound.RoundNumber} Summary :snowflake:")
                 .AddField("Players", $"{string.Join("\n", playerDice)}", inline: true)
                 .AddField("Dice", $"{string.Join("\n", listOfAllDiceCounts)}", inline: true);
 

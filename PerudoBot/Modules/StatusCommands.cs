@@ -16,7 +16,7 @@ namespace PerudoBot.Modules
             {
                 var players = GetGamePlayers(game);
                 var options = GetOptions(game);
-                var playersListString = string.Join("\n", players.Select(x => x.Player.Nickname));
+                var playersListString = string.Join("\n", players.Select(x => $"{x.PlayerId.GetChristmasEmoji(game.Id)} {x.Player.Nickname}"));
                 if (players.Count() == 0) playersListString = "none";
 
                 var builder = new EmbedBuilder()

@@ -122,7 +122,7 @@ namespace PerudoBot.Modules
             {
                 Thread.Sleep(3000);
 
-                await SendMessageAsync($":zany_face: The madman did it! It was exact! :zany_face:");
+                await SendMessageAsync($":santa: The madman did it! It was exact! :santa:");
 
                 exactCall.IsSuccess = true;
 
@@ -167,11 +167,11 @@ namespace PerudoBot.Modules
                 if (PlayerEligibleForSafeguard(game.Penalty == 0, biddingPlayer.NumberOfDice, penalty))
                 {
                     penalty = biddingPlayer.NumberOfDice - 1;
-                    await SendMessageAsync($":shield: Guardian shield activated. :shield:");
+                    await SendMessageAsync($":shield: Snowball shield activated. :shield:");
                     Thread.Sleep(2000);
                 }
 
-                await SendMessageAsync($"There was actually `{countOfPips}` {bidName}. :fire: {GetUser(biddingPlayer.Player.Username).Mention} loses {penalty} dice. :fire:");
+                await SendMessageAsync($"There was actually `{countOfPips}` {bidName}. :candle: {GetUser(biddingPlayer.Player.Username).Mention} loses {penalty} dice. :candle:");
 
                 await SendRoundSummaryForBots(game);
                 await SendRoundSummary(game);

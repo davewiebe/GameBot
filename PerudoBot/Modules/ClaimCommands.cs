@@ -17,6 +17,9 @@ namespace PerudoBot.Modules
         [Alias("c")]
         public async Task ClaimDiceAsync([Remainder] string claimText)
         {
+            //await SendMessageAsync("I thought you wanted to be on the nice list?");
+            return;
+
             if (claimText.Contains("help"))
             {
                 await ClaimHelpAsync();

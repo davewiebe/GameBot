@@ -80,7 +80,7 @@ namespace PerudoBot.Services
                 }
 
                 output += $"`{game.Id:D3}. {game.DateFinished:yyyy-MM-dd}` " +
-                    $":trophy: **{(game.Winner.IsGhost ? ":ghost:" : "")} " +
+                    $":gift: **{(game.Winner.IsGhost ? ":ghost:" : "")} " +
                     $"{game.Winner.Nickname}**, {nonWinnerList}\n";
 
                 if (gameId != -1)

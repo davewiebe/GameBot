@@ -11,6 +11,7 @@ namespace PerudoBot.Modules
     public partial class Commands : ModuleBase<SocketCommandContext>
     {
         [Command("liar")]
+        [Alias("naughty")]
         public async Task LiarAsync()
         {
             // check if game is in progress
@@ -103,7 +104,7 @@ namespace PerudoBot.Modules
 
             DeleteCommandFromDiscord();
             // send message that liar has been called, w/ details
-            await SendMessageAsync($"{playerWhoseTurnItIs.Player.Nickname} called **liar**{(liarCall.IsOutOfTurn ? " (out of turn)" : "")} on `{previousBid.Quantity}` ˣ {biddingObject}.");
+            await SendMessageAsync($"{playerWhoseTurnItIs.Player.Nickname} called **naughty**{(liarCall.IsOutOfTurn ? " (out of turn)" : "")} on `{previousBid.Quantity}` ˣ {biddingObject}.");
 
             // for the dramatic affect
             Thread.Sleep(4000);
@@ -123,12 +124,12 @@ namespace PerudoBot.Modules
                 if (PlayerEligibleForSafeguard(game.Penalty == 0, playerWhoseTurnItIs.NumberOfDice, penalty))
                 {
                     penalty = playerWhoseTurnItIs.NumberOfDice - 1;
-                    await SendMessageAsync($":shield: Guardian shield activated. :shield:");
+                    await SendMessageAsync($":shield: Snowball shield activated. :shield:");
                     Thread.Sleep(2000);
                 }
 
                 // send outcome of unsuccessful liar call
-                await SendMessageAsync($"There was actually `{numberOfDiceMatchingBid}` {biddingName}. :fire: {GetUser(playerWhoseTurnItIs.Player.Username).Mention} loses {penalty} dice. :fire:");
+                await SendMessageAsync($"There was actually `{numberOfDiceMatchingBid}` {biddingName}. :candle: {GetUser(playerWhoseTurnItIs.Player.Username).Mention} loses {penalty} dice. :candle:");
 
                 // if matching dice is exactly what previous bid was, send that taunt!
                 if (numberOfDiceMatchingBid == previousBid.Quantity)
@@ -159,11 +160,11 @@ namespace PerudoBot.Modules
                 if (PlayerEligibleForSafeguard(game.Penalty == 0, previousBid.GamePlayer.NumberOfDice, penalty))
                 {
                     penalty = previousBid.GamePlayer.NumberOfDice - 1;
-                    await SendMessageAsync($":shield: Guardian shield activated. :shield:");
+                    await SendMessageAsync($":shield: Snowball shield activated. :shield:");
                     Thread.Sleep(2000);
                 }
 
-                await SendMessageAsync($"There was actually `{numberOfDiceMatchingBid}` {biddingName}. :fire: {GetUser(previousBid.GamePlayer.Player.Username).Mention} loses {penalty} dice. :fire:");
+                await SendMessageAsync($"There was actually `{numberOfDiceMatchingBid}` {biddingName}. :candle: {GetUser(previousBid.GamePlayer.Player.Username).Mention} loses {penalty} dice. :candle:");
 
                 await SendRoundSummaryForBots(game);
                 await SendRoundSummary(game);

@@ -28,7 +28,7 @@ namespace PerudoBot.Modules
             bool onlyOnePlayerLeft = activeGamePlayers.Count() == 1;
             if (onlyOnePlayerLeft)
             {
-                await SendMessageAsync($":trophy: {GetUser(activeGamePlayers.Single().Player.Username).Mention} is the winner with `{activeGamePlayers.Single().NumberOfDice}` dice remaining! :trophy:");
+                await SendMessageAsync($":gift: {GetUser(activeGamePlayers.Single().Player.Username).Mention} is the winner with `{activeGamePlayers.Single().NumberOfDice}` dice remaining! :gift:");
 
                 var rattles = _db.Rattles.SingleOrDefault(x => x.Username == activeGamePlayers.Single().Player.Username);
                 if (rattles != null)
@@ -68,8 +68,8 @@ namespace PerudoBot.Modules
                     StartingPlayerId = GetCurrentPlayer(game).Id
                 };
 
-                await SendTempMessageAsync("!gif fight");
-                await SendMessageAsync($":face_with_monocle: Faceoff Round :face_with_monocle: {GetUser(GetCurrentPlayer(game).Player.Username).Mention} goes first. Bid on total pips only (eg. `!bid 4`)");
+                await SendTempMessageAsync("!gif snowball fight");
+                await SendMessageAsync($":deer: Faceoff Round :deer: {GetUser(GetCurrentPlayer(game).Player.Username).Mention} goes first. Bid on total pips only (eg. `!bid 4`)");
             }
             else if (game.NextRoundIsPalifico)
             {
@@ -80,7 +80,7 @@ namespace PerudoBot.Modules
                     StartingPlayerId = GetCurrentPlayer(game).Id
                 };
 
-                await SendMessageAsync($":game_die: Palifico Round :game_die: {GetUser(GetCurrentPlayer(game).Player.Username).Mention} goes first.\n" +
+                await SendMessageAsync($":snowflake: Snowflake Round :snowflake: {GetUser(GetCurrentPlayer(game).Player.Username).Mention} goes first.\n" +
                     $"`!exact` will only reset the round - no bonuses.");
             }
             else

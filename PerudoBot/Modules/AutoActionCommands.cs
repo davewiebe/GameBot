@@ -12,7 +12,7 @@ namespace PerudoBot.Modules
     public partial class Commands : ModuleBase<SocketCommandContext>
     {
         [Command("autoliar")]
-        [Alias("auto", "al")]
+        [Alias("auto", "al", "autonaughty")]
         public async Task AutoLiarCallAsync()
         {
             var game = await GetGameAsync(GameState.InProgress);
@@ -44,7 +44,7 @@ namespace PerudoBot.Modules
 
             gamePlayer.CurrentGamePlayerRound.IsAutoLiarSet = true;
 
-            await SendMessageAsync($":lock: {gamePlayer.Player.Nickname} has locked in a **liar** call.");
+            await SendMessageAsync($":ice_cube::ice_cube: {gamePlayer.Player.Nickname} has locked in a **naughty** call.");
 
             _db.SaveChanges();
         }

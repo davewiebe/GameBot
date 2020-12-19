@@ -187,7 +187,7 @@ namespace PerudoBot.Modules
             if (nextPlayer.CurrentGamePlayerRound.IsAutoLiarSet)
             {
                 Thread.Sleep(1000);
-                await SendMessageAsync($":unlock: Auto **liar** activated.");
+                await SendMessageAsync($":ice_cube::droplet: Auto **naughty** activated.");
                 Thread.Sleep(2000);
                 await LiarAsync();
             }
@@ -223,7 +223,7 @@ namespace PerudoBot.Modules
                 if (game.CurrentRound.Actions.Count == 0) return true;
                 if (bid.GamePlayer.NumberOfDice != 1 && bid.Pips != mostRecentBid.Pips)
                 {
-                    await SendMessageAsync("Only players at 1 die can change pips in Palifico round.");
+                    await SendMessageAsync("Only players at 1 die can change pips in Snowflake round.");
                     return false;
                 }
 
