@@ -80,7 +80,10 @@ namespace PerudoBot.Modules
             var bidderNickname = biddingPlayer.Player.Nickname;
             var nextPlayerMention = GetUser(nextPlayer.Player.Username).Mention;
 
-            var userMessage = $"{ bidderNickname } bids `{ quantity}` ˣ :record_button:. { nextPlayerMention } is up.";
+            var snowflakeRound = "";
+            if (game.CurrentRound is PalificoRound) snowflakeRound = ":snowflake: ";
+
+            var userMessage = $"{snowflakeRound}{ bidderNickname } bids `{ quantity}` ˣ :record_button:. { nextPlayerMention } is up.";
 
             await SendMessageAsync(userMessage);
 
@@ -157,7 +160,11 @@ namespace PerudoBot.Modules
             var bidderNickname = biddingPlayer.Player.Nickname;
             var nextPlayerMention = GetUser(nextPlayer.Player.Username).Mention;
 
-            var userMessage = $"{ bidderNickname } bids `{ quantity}` ˣ { pips.GetEmoji()}. { nextPlayerMention } is up.";
+
+            var snowflakeRound = "";
+            if (game.CurrentRound is PalificoRound) snowflakeRound = ":snowflake: ";
+
+            var userMessage = $"{snowflakeRound}{ bidderNickname } bids `{ quantity}` ˣ { pips.GetEmoji()}. { nextPlayerMention } is up.";
 
             IUserMessage sentMessage;
 
@@ -187,7 +194,7 @@ namespace PerudoBot.Modules
             if (nextPlayer.CurrentGamePlayerRound.IsAutoLiarSet)
             {
                 Thread.Sleep(1000);
-                await SendMessageAsync($":ice_cube::droplet: Auto **naughty** activated.");
+                await SendMessageAsync($":pick: Auto **liar** activated.");
                 Thread.Sleep(2000);
                 await LiarAsync();
             }
@@ -223,7 +230,7 @@ namespace PerudoBot.Modules
                 if (game.CurrentRound.Actions.Count == 0) return true;
                 if (bid.GamePlayer.NumberOfDice != 1 && bid.Pips != mostRecentBid.Pips)
                 {
-                    await SendMessageAsync("Only players at 1 die can change pips in Snowflake round.");
+                    await SendMessageAsync("Only players at 1 die can change pips in the Special Snowflake round.");
                     return false;
                 }
 

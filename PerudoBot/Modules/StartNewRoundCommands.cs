@@ -80,7 +80,7 @@ namespace PerudoBot.Modules
                     StartingPlayerId = GetCurrentPlayer(game).Id
                 };
 
-                await SendMessageAsync($":snowflake: Snowflake Round :snowflake: {GetUser(GetCurrentPlayer(game).Player.Username).Mention} goes first.\n" +
+                await SendMessageAsync($":snowflake: Special Snowflake Round :snowflake: {GetUser(GetCurrentPlayer(game).Player.Username).Mention} goes first.\n" +
                     $"`!exact` will only reset the round - no bonuses.");
             }
             else

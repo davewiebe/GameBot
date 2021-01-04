@@ -44,7 +44,7 @@ namespace PerudoBot.Modules
 
             gamePlayer.CurrentGamePlayerRound.IsAutoLiarSet = true;
 
-            await SendMessageAsync($":ice_cube::ice_cube: {gamePlayer.Player.Nickname} has locked in a **naughty** call.");
+            await SendMessageAsync($":ice_cube: {gamePlayer.Player.Nickname} has locked in a **liar** call.");
 
             _db.SaveChanges();
         }

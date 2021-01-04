@@ -13,6 +13,7 @@ namespace PerudoBot.Modules
     public partial class Commands : ModuleBase<SocketCommandContext>
     {
         [Command("exact")]
+        [Alias("nice")]
         public async Task Exact()
         {
             if (await ValidateStateAsync(GameState.InProgress) == false) return;
@@ -122,7 +123,7 @@ namespace PerudoBot.Modules
             {
                 Thread.Sleep(3000);
 
-                await SendMessageAsync($":santa: The madman did it! It was exact! :santa:");
+                await SendMessageAsync($":snowboarder: The madman did it! It was exact! :snowboarder:");
 
                 exactCall.IsSuccess = true;
 
