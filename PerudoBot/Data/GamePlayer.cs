@@ -26,6 +26,9 @@ namespace PerudoBot.Data
         public int GhostAttemptsLeft { get; internal set; }
         public int GhostAttemptQuantity { get; internal set; }
         public int GhostAttemptPips { get; internal set; }
+        public int? Rank { get; set; }
+
+        public int? EloRatingChange { get; set; }
 
         public GamePlayerRound CurrentGamePlayerRound
         {

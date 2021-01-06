@@ -21,6 +21,12 @@ namespace PerudoBot.Data
 
         public bool IsBot { get; internal set; }
 
+        public int? EloRatingStandard { get; set; }
+
+        public int? EloRatingSuddenDeath { get; set; }
+
+        public int? EloRatingVariable { get; set; }
+
         public ICollection<GamePlayer> GamesPlayed { get; set; }
     }
 }

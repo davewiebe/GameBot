@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using PerudoBot.Data;
@@ -9,9 +10,10 @@ using PerudoBot.Data;
 namespace PerudoBot.Migrations
 {
     [DbContext(typeof(GameBotDbContext))]
-    partial class GameBotDbContextModelSnapshot : ModelSnapshot
+    [Migration("20210105190301_AddEloRatingColumns")]
+    partial class AddEloRatingColumns
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -121,9 +123,6 @@ namespace PerudoBot.Migrations
                     b.Property<DateTime>("DateStarted")
                         .HasColumnType("timestamp without time zone");
 
-                    b.Property<int>("DealCurrentGamePlayerId")
-                        .HasColumnType("integer");
-
                     b.Property<double?>("DurationInSeconds")
                         .HasColumnType("double precision");
 
@@ -160,9 +159,6 @@ namespace PerudoBot.Migrations
                     b.Property<int>("Penalty")
                         .HasColumnType("integer");
 
-                    b.Property<bool>("PenaltyGainDice")
-                        .HasColumnType("boolean");
-
                     b.Property<int?>("PlayerTurnId")
                         .HasColumnType("integer");
 
@@ -177,9 +173,6 @@ namespace PerudoBot.Migrations
 
                     b.Property<decimal>("StatusMessage")
                         .HasColumnType("numeric(20,0)");
-
-                    b.Property<bool>("TerminatorMode")
-                        .HasColumnType("boolean");
 
                     b.Property<bool>("WildsEnabled")
                         .HasColumnType("boolean");
@@ -217,14 +210,8 @@ namespace PerudoBot.Migrations
                     b.Property<int>("GhostAttemptsLeft")
                         .HasColumnType("integer");
 
-                    b.Property<bool>("HasActiveDeal")
-                        .HasColumnType("boolean");
-
                     b.Property<int>("NumberOfDice")
                         .HasColumnType("integer");
-
-                    b.Property<string>("PendingUserDealIds")
-                        .HasColumnType("text");
 
                     b.Property<int>("PlayerId")
                         .HasColumnType("integer");
@@ -234,9 +221,6 @@ namespace PerudoBot.Migrations
 
                     b.Property<int>("TurnOrder")
                         .HasColumnType("integer");
-
-                    b.Property<string>("UserDealIds")
-                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
