@@ -2,6 +2,7 @@
 using Discord.Commands;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Schema;
+using PerudoBot.Extensions;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -13,10 +14,16 @@ namespace PerudoBot.Modules
     {
         private async Task DisplayCurrentStandings(Game game)
         {
-            var players = GetGamePlayers(game).Where(x => x.NumberOfDice > 0);
+            var players = _perudoGameService.GetGamePlayers(game).Where(x => x.NumberOfDice > 0);
             var totalDice = players.Sum(x => x.NumberOfDice);
+
+
+
+
             var playerList = string.Join("\n", players.Select(x =>
-                $"`{x.NumberOfDice}` {x.Player.Nickname} {(x.GhostAttemptsLeft == -1 ? ":ghost:" : "")}"));
+                $"`{x.NumberOfDice}` {x.PlayerId.GetChristmasEmoji(game.Id)} {x.Player.Nickname} {(x.GhostAttemptsLeft == -1 ? ":ghost:" : "")}"));
+
+
 
             var diceRange = game.HighestPip - game.LowestPip + 1;
             var wildsEnabled = game.LowestPip == 1;
@@ -44,7 +51,7 @@ namespace PerudoBot.Modules
             //if (game.LowestPip != 1 || game.HighestPip != 6)  quickmaths = "Quickmaths: :upside_down:";
 
             var builder = new EmbedBuilder()
-                .WithTitle("Current standings")
+                .WithTitle(":snowflake: Current standings :snowflake:")
                 .AddField("Players", $"{playerList}\n\nTotal dice left: `{totalDice}`\n{quickmaths}", inline: false);
             var embed = builder.Build();
 
@@ -55,7 +62,7 @@ namespace PerudoBot.Modules
 
         private async Task DisplayCurrentStandingsForBots(Game game)
         {
-            var gamePlayers = GetGamePlayers(game);
+            var gamePlayers = _perudoGameService.GetGamePlayers(game);
             if (!gamePlayers.Any(x => x.Player.IsBot)) return;
 
             gamePlayers = gamePlayers.Where(x => x.NumberOfDice > 0).ToList();

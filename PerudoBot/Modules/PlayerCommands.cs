@@ -13,16 +13,6 @@ namespace PerudoBot.Modules
 {
     public partial class Commands : ModuleBase<SocketCommandContext>
     {
-        private List<GamePlayer> GetGamePlayers(Game game)
-        {
-            return _db.GamePlayers.AsQueryable()
-                .Include(gp => gp.Player)
-                .Include(gp => gp.GamePlayerRounds)
-                .Where(gp => gp.GameId == game.Id)
-                .OrderBy(x => x.TurnOrder)
-                .ToList();
-        }
-
         private SocketGuildUser GetUser(string username)
         {
             return Context.Guild.Users.FirstOrDefault(x => x.Username == username);
@@ -43,7 +33,7 @@ namespace PerudoBot.Modules
         {
             game.PlayerTurnId = game.RoundStartPlayerId;
 
-            var thatUser = GetGamePlayers(game).Single(x => x.Id == game.PlayerTurnId);
+            var thatUser = _perudoGameService.GetGamePlayers(game).Single(x => x.Id == game.PlayerTurnId);
             if (thatUser.NumberOfDice == 0)
             {
                 SetNextPlayer(game, thatUser);
@@ -54,14 +44,17 @@ namespace PerudoBot.Modules
 
         private bool AreBotsInGame(Game game)
         {
-            var gamePlayers = GetGamePlayers(game);
+            var gamePlayers = _perudoGameService.GetGamePlayers(game);
             return gamePlayers.Any(x => x.Player.IsBot);
         }
 
-        public bool PlayerEligibleForSafeguard(bool isVariable, int numberOfDice, int penalty)
+        public bool PlayerEligibleForSafeguard(Game game, int numberOfDice, int penalty)
         {
+            if (game.PenaltyGainDice && game.Penalty == 0 && numberOfDice < 5 && penalty + numberOfDice > 5) return true;
+            if (game.PenaltyGainDice) return false;
+
             // eligible if variable mode and player is about to lose all his dice without getting down to 1
-            if (isVariable && numberOfDice > 1 && penalty >= numberOfDice)
+            if (game.Penalty == 0 && numberOfDice > 1 && penalty >= numberOfDice)
             {
                 return true;
             }
@@ -81,7 +74,7 @@ namespace PerudoBot.Modules
             {
                 player.CurrentGamePlayerRound.IsEliminated = true;
 
-                await SendMessageAsync($":fire::skull::fire: {player.Player.Nickname} defeated :fire::skull::fire:");
+                await SendMessageAsync($":candle::droplet::candle: {player.Player.Nickname} melted :candle::droplet::candle:");
                 var deathrattle = _db.Rattles.SingleOrDefault(x => x.Username == player.Player.Username);
                 if (deathrattle != null)
                 {
@@ -90,7 +83,7 @@ namespace PerudoBot.Modules
 
                 if (game.CanCallExactToJoinAgain)
                 {
-                    if (GetGamePlayers(game).Where(x => x.NumberOfDice > 0).Count() > 2)
+                    if (_perudoGameService.GetGamePlayers(game).Where(x => x.NumberOfDice > 0).Count() > 2)
                     {
                         if (player.GhostAttemptsLeft != -1)
                         {
@@ -118,7 +111,16 @@ namespace PerudoBot.Modules
 
         private async Task DecrementDieFromPlayerAndSetThierTurnAsync(Game game, GamePlayer player, int penalty)
         {
-            player.NumberOfDice -= penalty;
+            if (game.PenaltyGainDice)
+            {
+                player.NumberOfDice += penalty;
+                if (player.NumberOfDice > game.NumberOfDice) player.NumberOfDice = 0;
+            }
+            else
+            {
+                player.NumberOfDice -= penalty;
+            }
+            
             player.CurrentGamePlayerRound.Penalty = penalty;
             if (player.NumberOfDice < 0) player.NumberOfDice = 0;
 
@@ -135,7 +137,7 @@ namespace PerudoBot.Modules
             {
                 player.CurrentGamePlayerRound.IsEliminated = true;
 
-                await SendMessageAsync($":fire::skull::fire: {player.Player.Nickname} defeated :fire::skull::fire:");
+                await SendMessageAsync($":candle::droplet::candle: {player.Player.Nickname} melted :candle::droplet::candle:");
                 var deathrattle = _db.Rattles.SingleOrDefault(x => x.Username == player.Player.Username);
                 if (deathrattle != null)
                 {
@@ -144,7 +146,7 @@ namespace PerudoBot.Modules
 
                 if (game.CanCallExactToJoinAgain)
                 {
-                    if (GetGamePlayers(game).Where(x => x.NumberOfDice > 0).Count() > 2)
+                    if (_perudoGameService.GetGamePlayers(game).Where(x => x.NumberOfDice > 0).Count() > 2)
                     {
                         if (player.GhostAttemptsLeft != -1)
                         {
@@ -166,7 +168,7 @@ namespace PerudoBot.Modules
 
         private int GetNumberOfDiceMatchingBid(Game game, int pips)
         {
-            var players = GetGamePlayers(game).Where(x => x.NumberOfDice > 0).ToList();
+            var players = _perudoGameService.GetGamePlayers(game).Where(x => x.NumberOfDice > 0).ToList();
 
             if (game.FaceoffEnabled && players.Sum(x => x.NumberOfDice) == 2)
             {

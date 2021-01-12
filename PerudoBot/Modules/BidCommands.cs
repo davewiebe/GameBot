@@ -27,9 +27,9 @@ namespace PerudoBot.Modules
                 return;
             }
 
-            var biddingPlayer = GetGamePlayers(game).Where(x => x.NumberOfDice > 0).Single(x => x.Player.Username == Context.User.Username);
+            var biddingPlayer = _perudoGameService.GetGamePlayers(game).Where(x => x.NumberOfDice > 0).Single(x => x.Player.Username == Context.User.Username);
 
-            var numberOfDiceLeft = GetGamePlayers(game).Sum(x => x.NumberOfDice);
+            var numberOfDiceLeft = _perudoGameService.GetGamePlayers(game).Sum(x => x.NumberOfDice);
             if (game.FaceoffEnabled && numberOfDiceLeft == 2)
             {
                 await HandleFaceoffBid(bidText, game, biddingPlayer);
@@ -80,7 +80,10 @@ namespace PerudoBot.Modules
             var bidderNickname = biddingPlayer.Player.Nickname;
             var nextPlayerMention = GetUser(nextPlayer.Player.Username).Mention;
 
-            var userMessage = $"{ bidderNickname } bids `{ quantity}` ˣ :record_button:. { nextPlayerMention } is up.";
+            var snowflakeRound = "";
+            if (game.CurrentRound is PalificoRound) snowflakeRound = ":snowflake: ";
+
+            var userMessage = $"{snowflakeRound}{ bidderNickname } bids `{ quantity}` ˣ :record_button:. { nextPlayerMention } is up.";
 
             await SendMessageAsync(userMessage);
 
@@ -121,14 +124,14 @@ namespace PerudoBot.Modules
             {
                 var prevCurrentPlayer = GetCurrentPlayer(game);
 
-                var currentPlayer = GetGamePlayers(game)
+                var currentPlayer = _perudoGameService.GetGamePlayers(game)
                     .Where(x => x.NumberOfDice > 0)
                     .SingleOrDefault(x => x.Player.Username == Context.User.Username);
                 if (currentPlayer == null) return;
                 game.PlayerTurnId = currentPlayer.Id;
 
                 // reset turn order
-                var players = GetGamePlayers(game).Where(x => x.NumberOfDice > 0).Where(x => x.Id != currentPlayer.Id).ToList();
+                var players = _perudoGameService.GetGamePlayers(game).Where(x => x.NumberOfDice > 0).Where(x => x.Id != currentPlayer.Id).ToList();
 
                 var insertIndex = players.FindIndex(x => x.Id == prevCurrentPlayer.Id);
 
@@ -157,7 +160,11 @@ namespace PerudoBot.Modules
             var bidderNickname = biddingPlayer.Player.Nickname;
             var nextPlayerMention = GetUser(nextPlayer.Player.Username).Mention;
 
-            var userMessage = $"{ bidderNickname } bids `{ quantity}` ˣ { pips.GetEmoji()}. { nextPlayerMention } is up.";
+
+            var snowflakeRound = "";
+            if (game.CurrentRound is PalificoRound) snowflakeRound = ":snowflake: ";
+
+            var userMessage = $"{snowflakeRound}{ bidderNickname } bids `{ quantity}` ˣ { pips.GetEmoji()}. { nextPlayerMention } is up.";
 
             IUserMessage sentMessage;
 
@@ -187,7 +194,7 @@ namespace PerudoBot.Modules
             if (nextPlayer.CurrentGamePlayerRound.IsAutoLiarSet)
             {
                 Thread.Sleep(1000);
-                await SendMessageAsync($":unlock: Auto **liar** activated.");
+                await SendMessageAsync($":pick: Auto **liar** activated.");
                 Thread.Sleep(2000);
                 await LiarAsync();
             }
@@ -198,7 +205,7 @@ namespace PerudoBot.Modules
             var game = await GetGameAsync(GameState.InProgress);
             var mostRecentBid = GetMostRecentBid(game);
 
-            var players = GetGamePlayers(game);
+            var players = _perudoGameService.GetGamePlayers(game);
 
             if (game.FaceoffEnabled && players.Sum(x => x.NumberOfDice) == 2)
             {
@@ -223,7 +230,7 @@ namespace PerudoBot.Modules
                 if (game.CurrentRound.Actions.Count == 0) return true;
                 if (bid.GamePlayer.NumberOfDice != 1 && bid.Pips != mostRecentBid.Pips)
                 {
-                    await SendMessageAsync("Only players at 1 die can change pips in Palifico round.");
+                    await SendMessageAsync("Only players at 1 die can change pips in the Special Snowflake round.");
                     return false;
                 }
 

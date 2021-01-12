@@ -85,6 +85,8 @@ namespace PerudoBot
             if (message == null) return;
             var context = new SocketCommandContext(_client, message);
 
+            if (IsMessageMine(message)) return;
+
             IResult result = null;
 
             var prefix = _configuration.GetSection("BotCommandPrefix").Value;

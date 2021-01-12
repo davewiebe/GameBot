@@ -30,23 +30,25 @@ namespace PerudoBot.Modules
                 State = 0,
                 DateCreated = DateTime.Now,
                 NumberOfDice = 5,
-                Penalty = 1,
+                Penalty = 0,
                 NextRoundIsPalifico = false,
                 RandomizeBetweenRounds = false,
                 WildsEnabled = true,
                 ExactCallBonus = 0,
                 ExactCallPenalty = 0,
                 CanCallExactAnytime = false,
-                CanCallLiarAnytime = false,
+                CanCallLiarAnytime = true,
                 CanBidAnytime = false,
                 Palifico = true,
                 IsRanked = true,
                 GuildId = Context.Guild.Id,
                 FaceoffEnabled = true,
-                CanCallExactToJoinAgain = true,
+                CanCallExactToJoinAgain = false,
                 StatusMessage = 0,
                 LowestPip = 1,
-                HighestPip = 6
+                HighestPip = 6,
+                PenaltyGainDice = false,
+                TerminatorMode = false
             };
             _db.Games.Add(game);
             _db.SaveChanges();

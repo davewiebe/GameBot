@@ -54,5 +54,9 @@ namespace PerudoBot.Data
         public Round CurrentRound => Rounds.LastOrDefault();
 
         public int CurrentRoundNumber => CurrentRound?.RoundNumber ?? 0;
+
+        public bool PenaltyGainDice { get; internal set; }
+
+        public bool TerminatorMode { get; internal set; }
     }
 }

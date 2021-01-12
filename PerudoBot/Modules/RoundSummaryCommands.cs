@@ -14,7 +14,7 @@ namespace PerudoBot.Modules
     {
         private async Task SendRoundSummaryForBots(Game game)
         {
-            var players = GetGamePlayers(game);
+            var players = _perudoGameService.GetGamePlayers(game);
             if (!players.Any(x => x.Player.IsBot)) return;
 
             var playerDice = players.Where(x => x.NumberOfDice > 0).ToList()
@@ -29,7 +29,7 @@ namespace PerudoBot.Modules
 
         private async Task SendRoundSummary(Game game)
         {
-            var players = GetGamePlayers(game).Where(x => x.Dice != "").Where(x => x.NumberOfDice > 0).ToList();
+            var players = _perudoGameService.GetGamePlayers(game).Where(x => x.Dice != "").Where(x => x.NumberOfDice > 0).ToList();
             var playerDice = players.Select(x => $"{x.Player.Nickname}: {string.Join(" ", x.Dice.Split(",").Select(x => int.Parse(x).GetEmoji()))}".TrimEnd());
 
             var allDice = players.SelectMany(x => x.Dice.Split(",").Select(x => int.Parse(x)));
@@ -52,7 +52,7 @@ namespace PerudoBot.Modules
             }
 
             var builder = new EmbedBuilder()
-                .WithTitle($"Round {game.CurrentRound.RoundNumber} Summary")
+                .WithTitle($":snowflake: Round {game.CurrentRound.RoundNumber} Summary :snowflake:")
                 .AddField("Players", $"{string.Join("\n", playerDice)}", inline: true)
                 .AddField("Dice", $"{string.Join("\n", listOfAllDiceCounts)}", inline: true);
 

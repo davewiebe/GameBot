@@ -13,6 +13,7 @@ namespace PerudoBot.Modules
     public partial class Commands : ModuleBase<SocketCommandContext>
     {
         [Command("exact")]
+        [Alias("nice")]
         public async Task Exact()
         {
             if (await ValidateStateAsync(GameState.InProgress) == false) return;
@@ -20,11 +21,11 @@ namespace PerudoBot.Modules
             var game = await GetGameAsync(GameState.InProgress);
 
             //ghost player rejoin
-            var ghosts = GetGamePlayers(game).Where(x => x.NumberOfDice == 0);
+            var ghosts = _perudoGameService.GetGamePlayers(game).Where(x => x.NumberOfDice == 0);
             var ghostPlayer = ghosts.SingleOrDefault(x => x.Player.Username == Context.User.Username);
             if (ghostPlayer != null)
             {
-                if (GetGamePlayers(game).Where(x => x.NumberOfDice > 0).Count() == 2) return;
+                if (_perudoGameService.GetGamePlayers(game).Where(x => x.NumberOfDice > 0).Count() == 2) return;
                 if (ghostPlayer.GhostAttemptsLeft > 0 && ghostPlayer.GhostAttemptPips == 0)
                 {
                     var lastBid = GetMostRecentBid(game);
@@ -109,7 +110,7 @@ namespace PerudoBot.Modules
 
             var bidObject = previousBid.Pips.GetEmoji();
             var bidName = "dice";
-            if (game.FaceoffEnabled && GetGamePlayers(game).Sum(x => x.NumberOfDice) == 2)
+            if (game.FaceoffEnabled && _perudoGameService.GetGamePlayers(game).Sum(x => x.NumberOfDice) == 2)
             {
                 bidObject = ":record_button:";
                 bidName = "pips";
@@ -122,11 +123,11 @@ namespace PerudoBot.Modules
             {
                 Thread.Sleep(3000);
 
-                await SendMessageAsync($":zany_face: The madman did it! It was exact! :zany_face:");
+                await SendMessageAsync($":snowboarder: The madman did it! It was exact! :snowboarder:");
 
                 exactCall.IsSuccess = true;
 
-                var numPlayersLeft = GetGamePlayers(game).Where(x => x.NumberOfDice > 0).Count();
+                var numPlayersLeft = _perudoGameService.GetGamePlayers(game).Where(x => x.NumberOfDice > 0).Count();
                 if (game.ExactCallBonus > 0 && numPlayersLeft >= 3 && !game.NextRoundIsPalifico && originalBiddingPlayer.Id != biddingPlayer.Id)
                 {
                     biddingPlayer.NumberOfDice += game.ExactCallBonus;
@@ -144,7 +145,7 @@ namespace PerudoBot.Modules
                     await SendRoundSummary(game);
                     await CheckGhostAttempts(game);
 
-                    var otherplayers = GetGamePlayers(game).Where(x => x.NumberOfDice > 0).Where(x => x.Id != biddingPlayer.Id);
+                    var otherplayers = _perudoGameService.GetGamePlayers(game).Where(x => x.NumberOfDice > 0).Where(x => x.Id != biddingPlayer.Id);
                     foreach (var player in otherplayers)
                     {
                         await DecrementDieFromPlayer(player, game.ExactCallPenalty);
@@ -164,14 +165,18 @@ namespace PerudoBot.Modules
                 var penalty = Math.Abs(countOfPips - previousBid.Quantity);
                 if (game.Penalty != 0) penalty = game.Penalty;
 
-                if (PlayerEligibleForSafeguard(game.Penalty == 0, biddingPlayer.NumberOfDice, penalty))
+                if (PlayerEligibleForSafeguard(game, biddingPlayer.NumberOfDice, penalty))
                 {
-                    penalty = biddingPlayer.NumberOfDice - 1;
-                    await SendMessageAsync($":shield: Guardian shield activated. :shield:");
+                    if (game.PenaltyGainDice) penalty = 5 - biddingPlayer.NumberOfDice;
+                    else penalty = biddingPlayer.NumberOfDice - 1;
+
+                    await SendMessageAsync($":shield: Snowball shield activated. :shield:");
                     Thread.Sleep(2000);
                 }
 
-                await SendMessageAsync($"There was actually `{countOfPips}` {bidName}. :fire: {GetUser(biddingPlayer.Player.Username).Mention} loses {penalty} dice. :fire:");
+                var loses = "loses";
+                if (game.PenaltyGainDice) loses = "gains";
+                await SendMessageAsync($"There was actually `{countOfPips}` {bidName}. :candle: {GetUser(biddingPlayer.Player.Username).Mention} {loses} {penalty} dice. :candle:");
 
                 await SendRoundSummaryForBots(game);
                 await SendRoundSummary(game);

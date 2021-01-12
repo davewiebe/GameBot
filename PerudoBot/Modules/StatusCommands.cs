@@ -14,9 +14,9 @@ namespace PerudoBot.Modules
             var game = await GetGameAsync(GameState.Setup);
             if (game != null)
             {
-                var players = GetGamePlayers(game);
-                var options = GetOptions(game);
-                var playersListString = string.Join("\n", players.Select(x => x.Player.Nickname));
+                var players = _perudoGameService.GetGamePlayers(game);
+                var options = _perudoGameService.GetOptions(game);
+                var playersListString = string.Join("\n", players.Select(x => $"{x.PlayerId.GetChristmasEmoji(game.Id)} {x.Player.Nickname}"));
                 if (players.Count() == 0) playersListString = "none";
 
                 var builder = new EmbedBuilder()
@@ -42,6 +42,13 @@ namespace PerudoBot.Modules
 
                 game.StatusMessage = monkey.Id;
                 _db.SaveChanges();
+
+                
+                await monkey.AddReactionsAsync(new[] { 
+                    new Emoji("🔥"),
+                    new Emoji("🤥"),
+                    new Emoji("🙃"),
+                    new Emoji("🏅")}); //new Emoji("🤖") {🤥}{🔥}{🏅}
                 return;
             }
 
@@ -52,7 +59,7 @@ namespace PerudoBot.Modules
                 var bid = GetMostRecentBid(game);
                 await DisplayCurrentStandings(game);
 
-                var options = GetOptions(game);
+                var options = _perudoGameService.GetOptions(game);
                 var builder = new EmbedBuilder()
                                 .WithTitle("Game options")
                                 .AddField("Options", $"{string.Join("\n", options)}", inline: false);
