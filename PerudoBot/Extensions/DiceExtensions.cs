@@ -24,11 +24,11 @@
 
         public static string GetChristmasEmoji(this int playerId, int id)
         {
-            var number = (playerId + id) % 13;
+            var number = (playerId + id) % 25;
 
             switch (number)
             {
-                case 1: return ":cold_face:";
+                case 1: return ":snowman:";
                 case 2: return ":snowman:";
                 case 3: return ":snowboarder:";
                 case 4: return ":skier:";
@@ -36,10 +36,22 @@
                 case 6: return ":snowman:";
                 case 7: return ":skier:";
                 case 8: return ":snowboarder:";
-                case 9: return ":snowflake:";
+                case 9: return ":snowman:";
                 case 10: return ":snowman2:";
-                case 11: return ":scarf:";
+                case 11: return ":snowman:";
                 case 12: return ":snowman:";
+                case 13: return ":cold_face:";
+                case 14: return ":snowman:";
+                case 15: return ":snowboarder:";
+                case 16: return ":skier:";
+                case 17: return ":snowman:";
+                case 18: return ":snowman:";
+                case 19: return ":skier:";
+                case 20: return ":snowboarder:";
+                case 21: return ":snowflake:";
+                case 22: return ":snowman:";
+                case 23: return ":scarf:";
+                case 24: return ":snowman:";
                 default:
                     return ":snowman:";
             }

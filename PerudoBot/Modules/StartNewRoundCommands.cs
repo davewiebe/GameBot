@@ -22,7 +22,7 @@ namespace PerudoBot.Modules
             }
             _db.SaveChanges();
             // IF THERE IS ONLY ONE PLAYER LEFT, ANNOUNCE THAT THEY WIN
-            var gamePlayers = GetGamePlayers(game);
+            var gamePlayers = _perudoGameService.GetGamePlayers(game);
 
             var activeGamePlayers = gamePlayers.Where(x => x.NumberOfDice > 0);
             bool onlyOnePlayerLeft = activeGamePlayers.Count() == 1;
@@ -98,7 +98,11 @@ namespace PerudoBot.Modules
             foreach (var gamePlayer in activeGamePlayers)
             {
                 var dice = new List<int>();
-                for (int i = 0; i < gamePlayer.NumberOfDice; i++)
+                var numberOfDice = gamePlayer.NumberOfDice;
+
+                //if (game.CurrentRoundNumber == 1 && game.PenaltyGainDice) numberOfDice = 1;
+
+                for (int i = 0; i < numberOfDice; i++)
                 {
                     dice.Add(r.Next(game.LowestPip, game.HighestPip + 1));
                 }

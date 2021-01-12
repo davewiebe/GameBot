@@ -30,7 +30,7 @@ namespace PerudoBot.Modules
                 State = 0,
                 DateCreated = DateTime.Now,
                 NumberOfDice = 5,
-                Penalty = 1,
+                Penalty = 0,
                 NextRoundIsPalifico = false,
                 RandomizeBetweenRounds = false,
                 WildsEnabled = true,
@@ -46,7 +46,9 @@ namespace PerudoBot.Modules
                 CanCallExactToJoinAgain = false,
                 StatusMessage = 0,
                 LowestPip = 1,
-                HighestPip = 6
+                HighestPip = 6,
+                PenaltyGainDice = false,
+                TerminatorMode = false
             };
             _db.Games.Add(game);
             _db.SaveChanges();

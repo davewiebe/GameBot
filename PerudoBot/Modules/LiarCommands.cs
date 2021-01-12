@@ -96,7 +96,7 @@ namespace PerudoBot.Modules
             var biddingName = "dice";
 
             // if its faceoff round, and it's enabled, use pips instead
-            if (GetGamePlayers(game).Sum(x => x.NumberOfDice) == 2 && game.FaceoffEnabled)
+            if (_perudoGameService.GetGamePlayers(game).Sum(x => x.NumberOfDice) == 2 && game.FaceoffEnabled)
             {
                 biddingObject = ":record_button:";
                 biddingName = "pips";
@@ -121,15 +121,19 @@ namespace PerudoBot.Modules
                 var penalty = (numberOfDiceMatchingBid - previousBid.Quantity) + 1; // if variable penalty
                 if (game.Penalty != 0) penalty = game.Penalty; // penalty is set to 0 for variable penalty games
 
-                if (PlayerEligibleForSafeguard(game.Penalty == 0, playerWhoseTurnItIs.NumberOfDice, penalty))
+                if (PlayerEligibleForSafeguard(game, playerWhoseTurnItIs.NumberOfDice, penalty))
                 {
-                    penalty = playerWhoseTurnItIs.NumberOfDice - 1;
+                    if (game.PenaltyGainDice) penalty = 5 - playerWhoseTurnItIs.NumberOfDice;
+                    else penalty = playerWhoseTurnItIs.NumberOfDice - 1;
+
                     await SendMessageAsync($":shield: Snowball shield activated. :shield:");
                     Thread.Sleep(2000);
                 }
 
+                var loses = "loses";
+                if (game.PenaltyGainDice) loses = "gains";
                 // send outcome of unsuccessful liar call
-                await SendMessageAsync($"There was actually `{numberOfDiceMatchingBid}` {biddingName}. :candle: {GetUser(playerWhoseTurnItIs.Player.Username).Mention} loses {penalty} dice. :candle:");
+                await SendMessageAsync($"There was actually `{numberOfDiceMatchingBid}` {biddingName}. :candle: {GetUser(playerWhoseTurnItIs.Player.Username).Mention} {loses} {penalty} dice. :candle:");
 
                 // if matching dice is exactly what previous bid was, send that taunt!
                 if (numberOfDiceMatchingBid == previousBid.Quantity)
@@ -157,14 +161,19 @@ namespace PerudoBot.Modules
                 var penalty = previousBid.Quantity - numberOfDiceMatchingBid;
                 if (game.Penalty != 0) penalty = game.Penalty;
 
-                if (PlayerEligibleForSafeguard(game.Penalty == 0, previousBid.GamePlayer.NumberOfDice, penalty))
+                if (PlayerEligibleForSafeguard(game, previousBid.GamePlayer.NumberOfDice, penalty))
                 {
-                    penalty = previousBid.GamePlayer.NumberOfDice - 1;
+                    if (game.PenaltyGainDice) penalty = 5 - previousBid.GamePlayer.NumberOfDice;
+                    else penalty = previousBid.GamePlayer.NumberOfDice - 1;
+
                     await SendMessageAsync($":shield: Snowball shield activated. :shield:");
                     Thread.Sleep(2000);
                 }
 
-                await SendMessageAsync($"There was actually `{numberOfDiceMatchingBid}` {biddingName}. :candle: {GetUser(previousBid.GamePlayer.Player.Username).Mention} loses {penalty} dice. :candle:");
+                var loses = "loses";
+                if (game.PenaltyGainDice) loses = "gains";
+
+                await SendMessageAsync($"There was actually `{numberOfDiceMatchingBid}` {biddingName}. :candle: {GetUser(previousBid.GamePlayer.Player.Username).Mention} {loses} {penalty} dice. :candle:");
 
                 await SendRoundSummaryForBots(game);
                 await SendRoundSummary(game);

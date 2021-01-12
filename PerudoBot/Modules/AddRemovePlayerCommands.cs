@@ -29,68 +29,15 @@ namespace PerudoBot.Modules
         {
             if (message.MentionedUsers.Count == 0)
             {
-                AddUserToGame(game, (SocketGuildUser)message.Author);
+                _perudoGameService.AddUserToGame(game, (SocketGuildUser)message.Author);
             }
             foreach (var userToAdd in message.MentionedUsers)
             {
                 var socketGuildUser = Context.Guild.GetUser(userToAdd.Id);
-                AddUserToGame(game, socketGuildUser);
+                _perudoGameService.AddUserToGame(game, socketGuildUser);
             }
         }
 
-        private void AddUserToGame(Game game, SocketGuildUser user)
-        {
-            if (user == null)
-            {
-                _ = Context.Channel.SendMessageAsync("Can't add user. They aren't online").Result;
-                return;
-            }
-            // TODO: Can't add players if they aren't online (or found in cache)
-            bool userAlreadyExistsInGame = UserAlreadyExistsInGame(user.Username, game);
-            if (userAlreadyExistsInGame)
-            {
-                return;
-            }
-
-            // get player
-            // TODO: replace Username with UserId lookup when all user Ids are populated
-            var player = _db.Players.AsQueryable()
-                .Where(p => p.GuildId == Context.Guild.Id)
-                .Where(p => p.Username == user.Username)
-                .FirstOrDefault();
-
-            if (player != null) // update player
-            {
-                player.Nickname = user.Nickname ?? user.Username;
-                player.UserId = user.Id;
-            }
-            else // create a new player
-            {
-                player = new Player
-                {
-                    Username = user.Username,
-                    Nickname = user.Nickname ?? user.Username,
-                    GuildId = user.Guild.Id,
-                    UserId = user.Id,
-                    IsBot = user.IsBot
-                };
-            }
-
-            _db.GamePlayers.Add(new GamePlayer
-            {
-                Game = game,
-                Player = player
-            });
-
-            _db.SaveChanges();
-        }
-
-        private bool UserAlreadyExistsInGame(string username, Game game)
-        {
-            var players = GetGamePlayers(game);
-            bool userAlreadyExistsInGame = players.FirstOrDefault(x => x.Player.Username == username) != null;
-            return userAlreadyExistsInGame;
-        }
 
         [Command("remove")]
         public async Task RemoveUserFromGame(string user)

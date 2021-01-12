@@ -10,7 +10,7 @@ namespace PerudoBot.Modules
     {
         private async Task CheckGhostAttempts(Data.Game game)
         {
-            var ghosts = GetGamePlayers(game)
+            var ghosts = _perudoGameService.GetGamePlayers(game)
                 .Where(x => x.NumberOfDice == 0)
                 .Where(x => x.GhostAttemptsLeft > 0).ToList();
 
