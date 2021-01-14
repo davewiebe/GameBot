@@ -21,22 +21,29 @@ namespace PerudoBot.Modules
             var game = await GetGameAsync(GameState.InProgress);
 
             var currentPlayer = GetCurrentPlayer(game);
+            //// TO DO.. THIS NEEDS TO BE THE ACTIVE PLAYER, AS THE ACTIVE PLAYER WILL BE THE ONE WHO IS FORCED TO BE THEIR TURN.
+            var activePlayer = GetActivePlayer(game);
 
-            if (!game.CanBidAnytime && currentPlayer.Player.Username != Context.User.Username)
+            if (!game.CanBidAnytime 
+                && activePlayer.Player.Username != Context.User.Username)
             {
-                return;
+                if (!activePlayer.HasActiveDeal) return;
             }
 
+
             var biddingPlayer = _perudoGameService.GetGamePlayers(game).Where(x => x.NumberOfDice > 0).Single(x => x.Player.Username == Context.User.Username);
+
 
             var numberOfDiceLeft = _perudoGameService.GetGamePlayers(game).Sum(x => x.NumberOfDice);
             if (game.FaceoffEnabled && numberOfDiceLeft == 2)
             {
                 await HandleFaceoffBid(bidText, game, biddingPlayer);
+                _db.SaveChanges();
                 return;
             }
 
             await HandlePipBid(bidText, game, biddingPlayer);
+            _db.SaveChanges();
         }
 
         private async Task HandleFaceoffBid(string[] bidText, Game game, GamePlayer biddingPlayer)
@@ -71,7 +78,21 @@ namespace PerudoBot.Modules
             _db.Actions.Add(bid);
             _db.SaveChanges();
 
-            SetNextPlayer(game, biddingPlayer);
+            var currentPlayer = GetCurrentPlayer(game);
+
+
+
+            var activePlayer = GetActivePlayer(game);
+            if (activePlayer.HasActiveDeal && Context.User.Id != activePlayer.Player.UserId)
+            {
+                biddingPlayer.PendingUserDealIds = $"{biddingPlayer.PendingUserDealIds},{activePlayer.Id}";
+
+                await SendMessageAsync($":money_mouth: {biddingPlayer.Player.Nickname} has accepted the deal! {biddingPlayer.Player.Nickname}, on your turn use `!payup @{activePlayer.Player.Nickname}` to force them to take your turn for you.");
+            }
+            RemoveActiveDeals(game);
+            RemovePayupPlayer(game);
+
+            SetNextPlayer(game, currentPlayer);
 
             var nextPlayer = GetCurrentPlayer(game);
 
@@ -80,10 +101,10 @@ namespace PerudoBot.Modules
             var bidderNickname = biddingPlayer.Player.Nickname;
             var nextPlayerMention = GetUser(nextPlayer.Player.Username).Mention;
 
-            var snowflakeRound = "";
-            if (game.CurrentRound is PalificoRound) snowflakeRound = ":snowflake: ";
+            var dealer = "";
+            if (currentPlayer.Id != biddingPlayer.Id) dealer = $" (bidding for {currentPlayer.Player.Nickname})";
 
-            var userMessage = $"{snowflakeRound}{ bidderNickname } bids `{ quantity}` ˣ :record_button:. { nextPlayerMention } is up.";
+            var userMessage = $"{ bidderNickname }{dealer} bids `{ quantity}` ˣ :record_button:. { nextPlayerMention } is up.";
 
             await SendMessageAsync(userMessage);
 
@@ -120,7 +141,9 @@ namespace PerudoBot.Modules
 
             if (await VerifyBid(bid) == false) return;
 
-            if (game.CanBidAnytime && GetCurrentPlayer(game).Player.Username != Context.User.Username)
+            var currentPlayer2 = GetCurrentPlayer(game);
+
+            if (game.CanBidAnytime && currentPlayer2.Player.Username != Context.User.Username)
             {
                 var prevCurrentPlayer = GetCurrentPlayer(game);
 
@@ -151,7 +174,20 @@ namespace PerudoBot.Modules
 
             _db.SaveChanges();
 
-            SetNextPlayer(game, biddingPlayer);
+
+
+            var activePlayer = GetActivePlayer(game);
+            if (activePlayer.HasActiveDeal && Context.User.Id != activePlayer.Player.UserId)
+            {
+                biddingPlayer.PendingUserDealIds = $"{biddingPlayer.PendingUserDealIds},{activePlayer.Id}";
+
+                await SendMessageAsync($":money_mouth: {biddingPlayer.Player.Nickname} has accepted the deal! {biddingPlayer.Player.Nickname}, on your turn use `!payup @{activePlayer.Player.Nickname}` to force them to take your turn for you.");
+            }
+            RemoveActiveDeals(game);
+            RemovePayupPlayer(game);
+
+
+            SetNextPlayer(game, currentPlayer2);
 
             var nextPlayer = GetCurrentPlayer(game);
 
@@ -163,8 +199,13 @@ namespace PerudoBot.Modules
 
             var snowflakeRound = "";
             if (game.CurrentRound is PalificoRound) snowflakeRound = ":snowflake: ";
+            var dealer = "";
+            if (currentPlayer2.Id != biddingPlayer.Id) dealer = $" (bidding for {currentPlayer2.Player.Nickname})";
 
-            var userMessage = $"{snowflakeRound}{ bidderNickname } bids `{ quantity}` ˣ { pips.GetEmoji()}. { nextPlayerMention } is up.";
+            var userMessage = $"{snowflakeRound}{ bidderNickname }{dealer} bids `{ quantity}` ˣ { pips.GetEmoji()}. { nextPlayerMention } is up.";
+
+
+
 
             IUserMessage sentMessage;
 
@@ -184,6 +225,8 @@ namespace PerudoBot.Modules
             }
 
             bid.MessageId = sentMessage.Id;
+
+            activePlayer.HasActiveDeal = false;
             _db.SaveChanges();
 
             await CheckIfNextPlayerHasAutoLiarSetAsync(nextPlayer);

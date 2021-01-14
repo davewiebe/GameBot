@@ -58,5 +58,6 @@ namespace PerudoBot.Data
         public bool PenaltyGainDice { get; internal set; }
 
         public bool TerminatorMode { get; internal set; }
+        public int DealCurrentGamePlayerId { get; internal set; }
     }
 }

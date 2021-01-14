@@ -185,14 +185,43 @@ namespace PerudoBot.Modules
             return allDice.Count(x => x == pips || x == 1);
         }
 
+
+
         private GamePlayer GetCurrentPlayer(Game game)
         {
+            var playerTurnId = game.PlayerTurnId;
+
             return _db.GamePlayers
                 .Include(gp => gp.Player)
                 .Include(gp => gp.GamePlayerRounds)
                 .AsQueryable()
-                .Single(x => x.Id == game.PlayerTurnId);
+                .Single(x => x.Id == playerTurnId);
         }
+
+        private GamePlayer GetActivePlayer(Game game)
+        {
+            var playerTurnId = game.PlayerTurnId;
+            if (game.DealCurrentGamePlayerId != 0) playerTurnId = game.DealCurrentGamePlayerId;
+
+            return _db.GamePlayers
+                .Include(gp => gp.Player)
+                .Include(gp => gp.GamePlayerRounds)
+                .AsQueryable()
+                .Single(x => x.Id == playerTurnId);
+        }
+
+        private void RemoveActiveDeals(Game game)
+        {
+            game.GamePlayers.All(x => x.HasActiveDeal = false);
+            _db.SaveChanges();
+        }
+
+        private void RemovePayupPlayer(Game game)
+        {
+            game.DealCurrentGamePlayerId = 0;
+            _db.SaveChanges();
+        }
+
 
         private void SetNextPlayer(Game game, GamePlayer currentPlayer)
         {

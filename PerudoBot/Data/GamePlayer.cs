@@ -36,5 +36,12 @@ namespace PerudoBot.Data
         }
 
         public int? Rank { get; set; }
+        public bool HasActiveDeal { get; internal set; }
+
+        [DefaultValue("")]
+        public string UserDealIds { get; set; }
+
+        [DefaultValue("")]
+        public string PendingUserDealIds { get; set; }
     }
 }

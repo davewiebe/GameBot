@@ -18,11 +18,8 @@ namespace PerudoBot.Modules
             var totalDice = players.Sum(x => x.NumberOfDice);
 
 
-
-
             var playerList = string.Join("\n", players.Select(x =>
-                $"`{x.NumberOfDice}` {x.PlayerId.GetChristmasEmoji(game.Id)} {x.Player.Nickname} {(x.GhostAttemptsLeft == -1 ? ":ghost:" : "")}"));
-
+                $"`{x.NumberOfDice}` {x.PlayerId.GetChristmasEmoji(game.Id)} {x.Player.Nickname} {GetGhostStatus(x)}{GetDealStatus(x)}"));
 
 
             var diceRange = game.HighestPip - game.LowestPip + 1;
@@ -58,6 +55,31 @@ namespace PerudoBot.Modules
             await Context.Channel.SendMessageAsync(
                 embed: embed)
                 .ConfigureAwait(false);
+        }
+
+        private static string GetGhostStatus(Data.GamePlayer x)
+        {
+            return (x.GhostAttemptsLeft == -1 ? ":ghost:" : "");
+        }
+        private string GetDealStatus(Data.GamePlayer player)
+        {
+            if (player.UserDealIds == null) return "";
+            var monkey = player.UserDealIds.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(y => int.Parse(y)).ToList();
+            var monkey2 = player.PendingUserDealIds.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(y => int.Parse(y)).ToList();
+
+            var returnme = "";
+            foreach (var item in monkey)
+            {
+                var owedPlayer = _db.GamePlayers.SingleOrDefault(x => x.NumberOfDice > 0 && x.Id == item);
+                if (owedPlayer != null) returnme += $":money_with_wings: {owedPlayer.Player.Nickname} ";
+            }
+            foreach (var item in monkey2)
+            {
+                var owedPlayer = _db.GamePlayers.SingleOrDefault(x => x.NumberOfDice > 0 && x.Id == item);
+                if (owedPlayer != null) returnme += $":money_with_wings: {owedPlayer.Player.Nickname} ";
+            }
+
+            return returnme;
         }
 
         private async Task DisplayCurrentStandingsForBots(Game game)

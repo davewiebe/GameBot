@@ -37,6 +37,10 @@ namespace PerudoBot.Modules
 
             //get the player who's turn it is right now
             var playerWhoseTurnItIs = GetCurrentPlayer(game);
+            var originalPlayerWhoseTurnItIs = GetCurrentPlayer(game);
+
+            var activePlayer = GetActivePlayer(game);
+
 
             // create liar call object
             var liarCall = new LiarCall()
@@ -87,9 +91,17 @@ namespace PerudoBot.Modules
                 // make sure player calling liar is the player who should go next
                 if (playerWhoseTurnItIs.Player.Username != Context.User.Username)
                 {
-                    return;
+                    if(!activePlayer.HasActiveDeal) return;
                 }
             }
+
+            var playerWhoCalledLiar = _perudoGameService.GetGamePlayers(game).Where(x => x.NumberOfDice > 0).Single(x => x.Player.Username == Context.User.Username);
+
+            if (activePlayer.HasActiveDeal && Context.User.Id != activePlayer.Player.UserId)
+            {
+                playerWhoCalledLiar.PendingUserDealIds = $"{playerWhoCalledLiar.PendingUserDealIds},{activePlayer.Id}";
+
+                await SendMessageAsync($":money_mouth: {playerWhoCalledLiar.Player.Nickname} has accepted the deal! {playerWhoCalledLiar.Player.Nickname}, on your turn use `!payup @{activePlayer.Player.Nickname}` to force them to take your turn for you.");            }
 
             // set bidding style to dice (for everything but faceoff round)
             var biddingObject = previousBid.Pips.GetEmoji();
@@ -104,7 +116,13 @@ namespace PerudoBot.Modules
 
             DeleteCommandFromDiscord();
             // send message that liar has been called, w/ details
-            await SendMessageAsync($"{playerWhoseTurnItIs.Player.Nickname} called **liar**{(liarCall.IsOutOfTurn ? " (out of turn)" : "")} on `{previousBid.Quantity}` ˣ {biddingObject}.");
+            var dealer = "";
+            if (originalPlayerWhoseTurnItIs.Id != playerWhoCalledLiar.Id &&
+                (originalPlayerWhoseTurnItIs.HasActiveDeal || game.DealCurrentGamePlayerId == playerWhoCalledLiar.Id))
+            {
+                dealer = $" (calling for {originalPlayerWhoseTurnItIs.Player.Nickname})";
+            }
+            await SendMessageAsync($"{playerWhoCalledLiar.Player.Nickname}{dealer} called **liar**{(liarCall.IsOutOfTurn ? " (out of turn)" : "")} on `{previousBid.Quantity}` ˣ {biddingObject}.");
 
             // for the dramatic affect
             Thread.Sleep(4000);
@@ -187,6 +205,9 @@ namespace PerudoBot.Modules
 
             // wait to start new round
             Thread.Sleep(4000);
+
+            RemoveActiveDeals(game);
+            RemovePayupPlayer(game);
 
             await RollDiceStartNewRoundAsync(game);
         }

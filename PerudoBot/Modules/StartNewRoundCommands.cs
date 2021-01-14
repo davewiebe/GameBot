@@ -97,6 +97,29 @@ namespace PerudoBot.Modules
 
             foreach (var gamePlayer in activeGamePlayers)
             {
+                var deals = new List<int>();
+                if (!string.IsNullOrWhiteSpace(gamePlayer.UserDealIds))
+                {
+                    var currentDeals = gamePlayer.UserDealIds
+                        .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                        .ToList()
+                        .Select(x => int.Parse(x));
+
+                    deals.AddRange(currentDeals);
+                }
+
+                if (!string.IsNullOrWhiteSpace(gamePlayer.PendingUserDealIds))
+                {
+                    var pendingDeals = gamePlayer.PendingUserDealIds
+                        .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                        .ToList()
+                        .Select(x => int.Parse(x));
+
+                    deals.AddRange(pendingDeals);
+                }
+                gamePlayer.UserDealIds = string.Join(',', deals);
+                gamePlayer.PendingUserDealIds = "";
+
                 var dice = new List<int>();
                 var numberOfDice = gamePlayer.NumberOfDice;
 
