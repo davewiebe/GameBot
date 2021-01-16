@@ -121,9 +121,16 @@ namespace PerudoBot.Modules
             }
 
             var builder = new EmbedBuilder()
-                .WithTitle(":money_with_wings: Debts :money_with_wings:")
-                .AddField("Current debts", $"{string.Join("\n", deals)}", inline: false)
-                .AddField("Pending debts", $"{string.Join("\n", pendingDeals)}", inline: false);
+                .WithTitle(":money_with_wings: Debts :money_with_wings:");
+
+            if (deals.Count ==0 )
+            {
+                deals.Add("No debts here");
+            }
+
+            if (deals.Count > 0) builder.AddField("Current debts", $"{string.Join("\n", deals)}", inline: false);
+            if (pendingDeals.Count > 0) builder.AddField("Pending debts", $"{string.Join("\n", pendingDeals)}", inline: false);
+
 
             var embed = builder.Build();
 
