@@ -91,7 +91,7 @@ namespace PerudoBot.Modules
             var activePlayer = GetActivePlayer(game);
             var exactingPlayer = _perudoGameService.GetGamePlayers(game).Where(x => x.NumberOfDice > 0).Single(x => x.Player.Username == Context.User.Username);
 
-            if (currentPlayer.Id != exactingPlayer.Id)
+            if (activePlayer.Id != exactingPlayer.Id)
             {
                 if(!activePlayer.HasActiveDeal) return;
             }

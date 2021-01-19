@@ -70,7 +70,7 @@ namespace PerudoBot.Modules
                 if (gamePlayer == null) return;
 
                 // check if calling player is calling out of turn
-                if (game.PlayerTurnId != gamePlayer.Id)
+                if (game.PlayerTurnId != gamePlayer.Id && game.DealCurrentGamePlayerId != gamePlayer.Id)
                 {
                     //player is calling out of turn
 
@@ -89,7 +89,7 @@ namespace PerudoBot.Modules
             else // not liar anytime
             {
                 // make sure player calling liar is the player who should go next
-                if (playerWhoseTurnItIs.Player.Username != Context.User.Username)
+                if (activePlayer.Player.Username != Context.User.Username)
                 {
                     if(!activePlayer.HasActiveDeal) return;
                 }
