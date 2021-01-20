@@ -65,6 +65,7 @@ namespace PerudoBot.Modules
         {
             var baseQuery = _db.Players.AsQueryable()
                 .AsNoTracking()
+                .Include(p => p.EloRatings)
                 .Where(p => p.GuildId == Context.Guild.Id)
                 .Where(p => p.IsBot == false);
 
@@ -74,23 +75,18 @@ namespace PerudoBot.Modules
             if (options.Any(o => o == "suddendeath"))
             {
                 gameMode = "Sudden Death";
-                baseQuery = baseQuery.Where(p => p.GamesPlayed.Any(gp => gp.Game.Penalty == 100))
-                    .OrderByDescending(p => p.EloRatingSuddenDeath);
+                baseQuery = baseQuery.Where(p => p.GamesPlayed.Any(gp => gp.Game.Penalty == 100));
             }
-
-            if (options.Any(o => o == "variable"))
+            else if (options.Any(o => o == "standard"))
+            {
+                gameMode = "Standard Penalty";
+                baseQuery = baseQuery.Where(p => p.GamesPlayed.Any(gp => gp.Game.Penalty == 1));
+            }
+            else
             {
                 gameMode = "Variable Penalty";
                 baseQuery = baseQuery
-                    .Where(p => p.GamesPlayed.Any(gp => gp.Game.Penalty == 0))
-                    .OrderByDescending(p => p.EloRatingVariable);
-            }
-
-            if (options.Any(o => o == "standard"))
-            {
-                gameMode = "Standard Penalty";
-                baseQuery = baseQuery.Where(p => p.GamesPlayed.Any(gp => gp.Game.Penalty == 1))
-                    .OrderByDescending(p => p.EloRatingStandard);
+                    .Where(p => p.GamesPlayed.Any(gp => gp.Game.Penalty == 0));
             }
 
             var result = baseQuery
@@ -98,9 +94,9 @@ namespace PerudoBot.Modules
                 {
                     p.Username,
                     p.Nickname,
-                    p.EloRatingStandard,
-                    p.EloRatingSuddenDeath,
-                    p.EloRatingVariable
+                    EloRatingVariable = p.EloRatings.FirstOrDefault(r => r.GameMode == "Variable").Rating,
+                    EloRatingSuddenDeath = p.EloRatings.FirstOrDefault(r => r.GameMode == "SuddenDeath").Rating,
+                    EloRatingStandard = p.EloRatings.FirstOrDefault(r => r.GameMode == "Standard").Rating,
                 }).ToList();
 
             var usernamePadding = 13;

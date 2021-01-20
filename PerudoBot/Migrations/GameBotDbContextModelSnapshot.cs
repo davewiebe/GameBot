@@ -202,9 +202,6 @@ namespace PerudoBot.Migrations
                     b.Property<string>("Dice")
                         .HasColumnType("text");
 
-                    b.Property<int?>("EloRatingChange")
-                        .HasColumnType("integer");
-
                     b.Property<int>("GameId")
                         .HasColumnType("integer");
 
@@ -319,15 +316,6 @@ namespace PerudoBot.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
                         .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
-
-                    b.Property<int?>("EloRatingStandard")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("EloRatingSuddenDeath")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("EloRatingVariable")
-                        .HasColumnType("integer");
 
                     b.Property<decimal>("GuildId")
                         .HasColumnType("numeric(20,0)");
