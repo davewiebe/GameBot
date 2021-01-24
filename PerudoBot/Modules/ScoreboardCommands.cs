@@ -71,33 +71,26 @@ namespace PerudoBot.Modules
 
             var options = parameters.Select(o => o.ToLower());
             var gameMode = "All Ranked Games";
+            var penalty = 0;
 
             if (options.Any(o => o == "suddendeath"))
             {
                 gameMode = "SuddenDeath";
-                baseQuery = baseQuery.Where(p => p.GamesPlayed.Any(gp => gp.Game.Penalty == 100));
+                penalty = 100;
             }
             else if (options.Any(o => o == "standard"))
             {
                 gameMode = "Standard";
-                baseQuery = baseQuery.Where(p => p.GamesPlayed.Any(gp => gp.Game.Penalty == 1));
+                penalty = 1;
             }
             else
             {
                 gameMode = "Variable";
-                baseQuery = baseQuery
-                    .Where(p => p.GamesPlayed.Any(gp => gp.Game.Penalty == 0));
+                penalty = 0;
             }
 
-            var penalty = gameMode switch
-            {
-                "SuddenDeath" => 100,
-                "Variable" => 0,
-                "Standard" => 1,
-                _ => throw new Exception("Unknown game mode")
-            };
-
             var result = baseQuery
+                .Where(p => p.EloRatings.Any(er => er.GameMode == gameMode))
                 .Select(p => new
                 {
                     p.Username,
@@ -113,7 +106,6 @@ namespace PerudoBot.Modules
                         .Select(gp => gp.EloChange)
                         .Sum(),
                 })
-                .Where(p => p.EloRating != 0)
                 .OrderByDescending(p => p.EloRating)
                 .ToList();
 
@@ -128,7 +120,6 @@ namespace PerudoBot.Modules
             foreach (var item in result)
             {
                 var username = item.Nickname.PadLeft(usernamePadding);
-
                 var eloRating = item.EloRating.ToString().PadLeft(eloRatingPadding);
                 var highestEloRating = item.HighestEloRating.ToString().PadLeft(highestEloRatingPadding);
                 var lowestEloRating = item.LowestEloRating.ToString().PadLeft(lowestEloRatingPadding);
