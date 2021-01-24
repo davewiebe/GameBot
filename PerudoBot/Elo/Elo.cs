@@ -53,7 +53,7 @@ namespace PerudoBot.Elo
         public void CalculateElos()
         {
             int n = players.Count;
-            float K = 32 / (float)(n - 1);
+            float K = 20 / (float)(n - 1);
 
             for (int i = 0; i < n; i++)
             {
