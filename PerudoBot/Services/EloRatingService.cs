@@ -70,9 +70,8 @@ namespace PerudoBot.Services
                             }
 
                             ratings.Add(nickname, currentEloRating?.Rating ?? 1500);
-                            gamePlayer.PreGameEloRating = ratings[nickname];
                         }
-
+                        gamePlayer.PreGameEloRating = ratings[nickname];
                         //Console.WriteLine($"Adding {nickname} with {ratings[nickname]} rating and rank of {gamePlayer.Rank}");
                         match.AddPlayer(nickname, gamePlayer.Rank.Value, ratings[nickname]);
                     }
@@ -85,6 +84,7 @@ namespace PerudoBot.Services
                         ratings[nickname] = match.GetElo(nickname);
 
                         gamePlayer.PostGameEloRating = ratings[nickname];
+                        gamePlayer.EloChange = match.GetEloChange(nickname);
 
                         var currentEloRating = gamePlayer.Player.EloRatings
                             .FirstOrDefault(er => er.GameMode == gameMode.ToString());

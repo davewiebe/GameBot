@@ -30,6 +30,7 @@ namespace PerudoBot.Data
 
         public int? PreGameEloRating { get; set; }
         public int? PostGameEloRating { get; set; }
+        public int? EloChange { get; set; }
 
         public GamePlayerRound CurrentGamePlayerRound
         {
