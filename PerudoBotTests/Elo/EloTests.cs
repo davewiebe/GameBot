@@ -22,109 +22,85 @@ namespace PerudoBotTests
             SuddenDeath = 100,
         }
 
-        //[TestCase(GameMode.Standard)]
-        //[TestCase(GameMode.Variable)]
-        //[TestCase(GameMode.SuddenDeath)]
-        //[Test]
-        //public void GenerateRatings(GameMode gameMode)
-        //{
-        //    ulong guildId = 689504722163335196;
+        [TestCase(GameMode.Standard)]
+        [TestCase(GameMode.Variable)]
+        [TestCase(GameMode.SuddenDeath)]
+        [Test]
+        public void GenerateRatings(GameMode gameMode)
+        {
+            ulong guildId = 689504722163335196;
 
-        //    var db = new PerudoBot.Data.GameBotDbContext();
+            var db = new PerudoBot.Data.GameBotDbContext();
 
-        //    var games = db.Games.AsQueryable()
-        //        .Include(g => g.GamePlayers)
-        //            .ThenInclude(gp => gp.Player)
-        //        .Where(g => g.GuildId == guildId)
-        //        .Where(g => g.Id >= 81)
-        //        .Where(g => g.IsRanked && g.State == 3)
-        //        .Where(g => g.Penalty == (int)(object)gameMode)
-        //        //.Where(g => g.GamePlayers.Count() > 8)//&& g.GamePlayers.Count() < 8)
-        //        .OrderByDescending(g => g.Id)
-        //        //.Take(5)
-        //        .OrderBy(g => g.Id)
-        //        .ToList();
-        //    //Debug.WriteLine($"========================================");
-        //    //Debug.WriteLine($"Generating Elo Ratings for {gameMode}");
+            var games = db.Games.AsQueryable()
+                .Include(g => g.GamePlayers)
+                    .ThenInclude(gp => gp.Player)
+                        .ThenInclude(p => p.EloRatings)
+                .Where(g => g.GuildId == guildId)
+                .Where(g => g.IsRanked && g.State == 3)
+                .Where(g => g.Penalty == (int)(object)gameMode)
+                .Where(g => g.GamePlayers.Count() > 3)//&& g.GamePlayers.Count() < 8)
+                .Where(g => !g.GamePlayers.Any(gp => gp.Rank == null))
+                .OrderByDescending(g => g.Id)
+                //.Take(5)
+                .OrderBy(g => g.Id)
+                .ToList();
+            //Debug.WriteLine($"========================================");
+            //Debug.WriteLine($"Generating Elo Ratings for {gameMode}");
 
-        //    var ratings = new Dictionary<string, int>();
+            var ratings = new Dictionary<string, int>();
 
-        //    games.ForEach(game =>
-        //    {
-        //        //Debug.WriteLine($"========================================");
-        //        //Debug.WriteLine($"Calculating Elo for game {game.Id}");
-        //        var match = new EloMatch();
+            games.ForEach(game =>
+            {
+                Debug.WriteLine($"========================================");
+                Debug.WriteLine($"Calculating Elo for game {game.Id}");
+                var match = new EloMatch();
 
-        //        foreach (var gamePlayer in game.GamePlayers.OrderBy(gp => gp.Rank))
-        //        {
-        //            var nickname = gamePlayer.Player.Nickname;
-        //            if (!ratings.ContainsKey(nickname))
-        //            {
-        //                ratings.Add(nickname, 1500);
-        //                //switch (gameMode)
-        //                //{
-        //                //    case GameMode.Variable:
-        //                //        ratings.Add(nickname, gamePlayer.Player.EloRatingVariable);
-        //                //        break;
+                foreach (var gamePlayer in game.GamePlayers.OrderBy(gp => gp.Rank))
+                {
+                    var nickname = gamePlayer.Player.Nickname;
+                    if (!ratings.ContainsKey(nickname))
+                    {
+                        var currentEloRating = gamePlayer.Player.EloRatings
+                            .FirstOrDefault(er => er.GameMode == gameMode.ToString());
 
-        //                //    case GameMode.SuddenDeath:
-        //                //        ratings.Add(nickname, gamePlayer.Player.EloRatingSuddenDeath);
-        //                //        break;
+                        ratings.Add(nickname, currentEloRating?.Rating ?? 1500);
+                        gamePlayer.PreGameEloRating = ratings[nickname];
+                    }
 
-        //                //    case GameMode.Standard:
-        //                //        ratings.Add(nickname, gamePlayer.Player.EloRatingStandard);
-        //                //        break;
+                    Debug.WriteLine($"Adding {nickname} with {ratings[nickname]} rating and rank of {gamePlayer.Rank}");
+                    match.AddPlayer(nickname, gamePlayer.Rank.Value, ratings[nickname]);
+                }
 
-        //                //    default:
-        //                //        break;
-        //                //}
-        //            }
-        //            //Debug.WriteLine($"Adding {nickname} with {ratings[nickname]} rating and rank of {gamePlayer.Rank}");
-        //            match.AddPlayer(nickname, gamePlayer.Rank.Value, ratings[nickname]);
-        //        }
+                match.CalculateElos();
 
-        //        match.CalculateElos();
+                foreach (var gamePlayer in game.GamePlayers.OrderBy(gp => gp.Rank))
+                {
+                    var nickname = gamePlayer.Player.Nickname;
+                    ratings[nickname] = match.GetElo(nickname);
 
-        //        foreach (var gamePlayer in game.GamePlayers.OrderBy(gp => gp.Rank))
-        //        {
-        //            var nickname = gamePlayer.Player.Nickname;
-        //            ratings[nickname] = match.GetElo(nickname);
-        //            gamePlayer.EloRatingChange = match.GetEloChange(nickname);
+                    gamePlayer.PostGameEloRating = ratings[nickname];
 
-        //            switch (gameMode)
-        //            {
-        //                case GameMode.Variable:
-        //                    gamePlayer.Player.EloRatingVariable = match.GetElo(nickname);
-        //                    break;
+                    var currentEloRating = gamePlayer.Player.EloRatings
+                        .FirstOrDefault(er => er.GameMode == gameMode.ToString()).Rating = match.GetElo(nickname);
 
-        //                case GameMode.SuddenDeath:
-        //                    gamePlayer.Player.EloRatingSuddenDeath = match.GetElo(nickname);
-        //                    break;
+                    Debug.WriteLine($"{nickname} has new rating of {ratings[nickname]} ({match.GetEloChange(nickname)})");
+                }
+            });
 
-        //                case GameMode.Standard:
-        //                    gamePlayer.Player.EloRatingStandard = match.GetElo(nickname);
-        //                    break;
+            var changes = db.SaveChanges();
 
-        //                default:
-        //                    break;
-        //            }
-        //            //Debug.WriteLine($"{nickname} has new rating of {ratings[nickname]} ({match.GetEloChange(nickname)})");
-        //        }
-        //    });
+            Debug.WriteLine($"========================================");
+            Debug.WriteLine($"Final {gameMode} ratings:");
 
-        //    //  var changes = db.SaveChanges();
-
-        //    Debug.WriteLine($"========================================");
-        //    Debug.WriteLine($"Final {gameMode} ratings:");
-
-        //    var i = 1;
-        //    foreach (var rating in ratings.OrderByDescending(x => x.Value))
-        //    {
-        //        Debug.WriteLine($"{i}: {rating.Key}: {rating.Value}");
-        //        i++;
-        //    }
-        //    Debug.WriteLine($"========================================");
-        //}
+            var i = 1;
+            foreach (var rating in ratings.OrderByDescending(x => x.Value))
+            {
+                Debug.WriteLine($"{i}: {rating.Key}: {rating.Value}");
+                i++;
+            }
+            Debug.WriteLine($"========================================");
+        }
 
         //[TestCase(GameMode.Standard)]
         [TestCase(GameMode.Variable)]

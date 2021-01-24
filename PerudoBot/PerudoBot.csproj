@@ -88,6 +88,8 @@
     <Compile Remove="Migrations\20210105043316_AddEloRatingColumns.Designer.cs" />
     <Compile Remove="Migrations\20210105190301_AddEloRatingColumns.cs" />
     <Compile Remove="Migrations\20210105190301_AddEloRatingColumns.Designer.cs" />
+    <Compile Remove="Migrations\20210120060714_AddEloRatingsTablesAndColumns.cs" />
+    <Compile Remove="Migrations\20210120060714_AddEloRatingsTablesAndColumns.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>

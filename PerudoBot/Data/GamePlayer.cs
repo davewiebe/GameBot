@@ -39,7 +39,6 @@ namespace PerudoBot.Data
             }
         }
 
-        public int? Rank { get; set; }
         public bool HasActiveDeal { get; internal set; }
 
         [DefaultValue("")]

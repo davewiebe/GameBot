@@ -79,12 +79,12 @@ namespace PerudoBot.Modules
             }
             else if (options.Any(o => o == "standard"))
             {
-                gameMode = "Standard Penalty";
+                gameMode = "Standard";
                 baseQuery = baseQuery.Where(p => p.GamesPlayed.Any(gp => gp.Game.Penalty == 1));
             }
             else
             {
-                gameMode = "Variable Penalty";
+                gameMode = "Variable";
                 baseQuery = baseQuery
                     .Where(p => p.GamesPlayed.Any(gp => gp.Game.Penalty == 0));
             }
@@ -97,14 +97,29 @@ namespace PerudoBot.Modules
                     EloRatingVariable = p.EloRatings.FirstOrDefault(r => r.GameMode == "Variable").Rating,
                     EloRatingSuddenDeath = p.EloRatings.FirstOrDefault(r => r.GameMode == "SuddenDeath").Rating,
                     EloRatingStandard = p.EloRatings.FirstOrDefault(r => r.GameMode == "Standard").Rating,
-                }).ToList();
+                });
+
+            if (gameMode == "Sudden Death")
+            {
+                result = result.OrderByDescending(r => r.EloRatingSuddenDeath);
+            }
+            else if (gameMode == "Standard")
+            {
+                result = result.OrderByDescending(r => r.EloRatingStandard);
+            }
+            else
+            {
+                result = result.OrderByDescending(r => r.EloRatingVariable);
+            }
+
+            var orderedResult = result.ToList();
 
             var usernamePadding = 13;
             var eloRatingPadding = 8;
 
             var embedString = "Username".PadLeft(usernamePadding) + "Rating".PadLeft(eloRatingPadding) + "\n";
 
-            foreach (var item in result)
+            foreach (var item in orderedResult)
             {
                 var username = item.Nickname.PadLeft(usernamePadding);
 
@@ -121,8 +136,10 @@ namespace PerudoBot.Modules
                 {
                     eloRating = item.EloRatingVariable.ToString().PadLeft(eloRatingPadding);
                 }
-
-                embedString += $"{username}{eloRating}\n";
+                if (eloRating.Trim() != "0")
+                {
+                    embedString += $"{username}{eloRating}\n";
+                }
             }
 
             var builder = new EmbedBuilder()
