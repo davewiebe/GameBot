@@ -74,7 +74,7 @@ namespace PerudoBot.Modules
 
             if (options.Any(o => o == "suddendeath"))
             {
-                gameMode = "Sudden Death";
+                gameMode = "SuddenDeath";
                 baseQuery = baseQuery.Where(p => p.GamesPlayed.Any(gp => gp.Game.Penalty == 100));
             }
             else if (options.Any(o => o == "standard"))
@@ -89,57 +89,52 @@ namespace PerudoBot.Modules
                     .Where(p => p.GamesPlayed.Any(gp => gp.Game.Penalty == 0));
             }
 
+            var penalty = gameMode switch
+            {
+                "SuddenDeath" => 100,
+                "Variable" => 0,
+                "Standard" => 1,
+                _ => throw new Exception("Unknown game mode")
+            };
+
             var result = baseQuery
                 .Select(p => new
                 {
                     p.Username,
                     p.Nickname,
-                    EloRatingVariable = p.EloRatings.FirstOrDefault(r => r.GameMode == "Variable").Rating,
-                    EloRatingSuddenDeath = p.EloRatings.FirstOrDefault(r => r.GameMode == "SuddenDeath").Rating,
-                    EloRatingStandard = p.EloRatings.FirstOrDefault(r => r.GameMode == "Standard").Rating,
-                });
-
-            if (gameMode == "Sudden Death")
-            {
-                result = result.OrderByDescending(r => r.EloRatingSuddenDeath);
-            }
-            else if (gameMode == "Standard")
-            {
-                result = result.OrderByDescending(r => r.EloRatingStandard);
-            }
-            else
-            {
-                result = result.OrderByDescending(r => r.EloRatingVariable);
-            }
-
-            var orderedResult = result.ToList();
+                    EloRating = p.EloRatings.FirstOrDefault(r => r.GameMode == gameMode).Rating,
+                    HighestEloRating = p.GamesPlayed.Where(gp => gp.Game.Penalty == penalty).Select(gp => gp.PostGameEloRating).Max(),
+                    LowestEloRating = p.GamesPlayed.Where(gp => gp.Game.Penalty == penalty).Select(gp => gp.PostGameEloRating).Min(),
+                    EloChangeLastTenGamesPlayed = p.GamesPlayed
+                        .Where(gp => gp.Game.Penalty == penalty)
+                        .Where(gp => gp.EloChange != null)
+                        .OrderByDescending(gp => gp.Id)
+                        .Take(10)
+                        .Select(gp => gp.EloChange)
+                        .Sum(),
+                })
+                .Where(p => p.EloRating != 0)
+                .OrderByDescending(p => p.EloRating)
+                .ToList();
 
             var usernamePadding = 13;
             var eloRatingPadding = 8;
+            var highestEloRatingPadding = 6;
+            var lowestEloRatingPadding = 6;
+            var changeInTimePeriodPadding = 9;
 
-            var embedString = "Username".PadLeft(usernamePadding) + "Rating".PadLeft(eloRatingPadding) + "\n";
+            var embedString = "Username".PadLeft(usernamePadding) + "Rating".PadLeft(eloRatingPadding) + "High".PadLeft(highestEloRatingPadding) + "Low".PadLeft(lowestEloRatingPadding) + "Last 10".PadLeft(changeInTimePeriodPadding) + "\n";
 
-            foreach (var item in orderedResult)
+            foreach (var item in result)
             {
                 var username = item.Nickname.PadLeft(usernamePadding);
 
-                var eloRating = "";
-                if (gameMode == "Sudden Death")
-                {
-                    eloRating = item.EloRatingSuddenDeath.ToString().PadLeft(eloRatingPadding);
-                }
-                else if (gameMode == "Standard")
-                {
-                    eloRating = item.EloRatingStandard.ToString().PadLeft(eloRatingPadding);
-                }
-                else
-                {
-                    eloRating = item.EloRatingVariable.ToString().PadLeft(eloRatingPadding);
-                }
-                if (eloRating.Trim() != "0")
-                {
-                    embedString += $"{username}{eloRating}\n";
-                }
+                var eloRating = item.EloRating.ToString().PadLeft(eloRatingPadding);
+                var highestEloRating = item.HighestEloRating.ToString().PadLeft(highestEloRatingPadding);
+                var lowestEloRating = item.LowestEloRating.ToString().PadLeft(lowestEloRatingPadding);
+                var changeInTimePeriod = item.EloChangeLastTenGamesPlayed.ToString().PadLeft(changeInTimePeriodPadding);
+
+                embedString += $"{username}{eloRating}{highestEloRating}{lowestEloRating}{changeInTimePeriod}\n";
             }
 
             var builder = new EmbedBuilder()
