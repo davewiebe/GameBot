@@ -80,6 +80,16 @@
     <Compile Remove="Migrations\20201122035354_LinkActionToGamePlayerRound.Designer.cs" />
     <Compile Remove="Migrations\20201122040106_LinkActionToGamePlayerRound.cs" />
     <Compile Remove="Migrations\20201122040106_LinkActionToGamePlayerRound.Designer.cs" />
+    <Compile Remove="Migrations\20210105042601_AddEloRatingColumns.cs" />
+    <Compile Remove="Migrations\20210105042601_AddEloRatingColumns.Designer.cs" />
+    <Compile Remove="Migrations\20210105043018_AddEloRatingColumns.cs" />
+    <Compile Remove="Migrations\20210105043018_AddEloRatingColumns.Designer.cs" />
+    <Compile Remove="Migrations\20210105043316_AddEloRatingColumns.cs" />
+    <Compile Remove="Migrations\20210105043316_AddEloRatingColumns.Designer.cs" />
+    <Compile Remove="Migrations\20210105190301_AddEloRatingColumns.cs" />
+    <Compile Remove="Migrations\20210105190301_AddEloRatingColumns.Designer.cs" />
+    <Compile Remove="Migrations\20210120060714_AddEloRatingsTablesAndColumns.cs" />
+    <Compile Remove="Migrations\20210120060714_AddEloRatingsTablesAndColumns.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>

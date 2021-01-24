@@ -33,6 +33,7 @@ namespace PerudoBot.Data
         public DbSet<StandardRound> StandardRounds { get; }
         public DbSet<PalificoRound> PalificoRounds { get; }
         public DbSet<FaceoffRound> FaceoffRounds { get; }
+        public DbSet<EloRating> EloRatings { get; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

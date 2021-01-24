@@ -1,25 +1,20 @@
-﻿using Discord;
-using Discord.Commands;
-using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
-using PerudoBot.Data;
-using PerudoBot.Extensions;
+﻿using Discord.Commands;
 using PerudoBot.Services;
 using System.Linq;
 using System.Threading.Tasks;
-using Game = PerudoBot.Data.Game;
 
 namespace PerudoBot.Modules
 {
     public partial class Commands : ModuleBase<SocketCommandContext>
     {
         [Command("update-ranks")]
-        public async Task UpdateRanksAsync(params string[] parameters)
+        public async Task UpdateRanksAsync(int gameId)
         {
             var gamesWithGamePlayerRounds =
                 _db.Rounds.AsQueryable()
                     .Where(r => r.GamePlayerRounds.Any())
                     .Where(r => r.Game.State == 3)
+                    .Where(r => r.GameId == gameId)
                     .Select(r => r.Game)
                     .Distinct()
                     .ToList();
@@ -32,6 +27,30 @@ namespace PerudoBot.Modules
             {
                 await perudoGameService.UpdateGamePlayerRanksAsync(game.Id);
             }
+
+            await Context.Channel.SendMessageAsync("Done.");
+        }
+
+        [Command("generate-elo-all")]
+        public async Task GenerateEloRatingsForAllGamesAsync()
+        {
+            var eloRatingService = new EloRatingService(_db);
+
+            await Context.Channel.SendMessageAsync("Generating Elo Ratings for All Games...");
+
+            await eloRatingService.GenerateEloRatingsForAllGamesAsync(Context.Guild.Id, true);
+
+            await Context.Channel.SendMessageAsync("Done.");
+        }
+
+        [Command("generate-elo")]
+        public async Task GenerateEloRatingsForGameAsync(int gameId)
+        {
+            var eloRatingService = new EloRatingService(_db);
+
+            await Context.Channel.SendMessageAsync($"Generating Elo Ratings for Game {gameId}...");
+
+            await eloRatingService.GenerateEloRatingsForGameAsync(gameId);
 
             await Context.Channel.SendMessageAsync("Done.");
         }

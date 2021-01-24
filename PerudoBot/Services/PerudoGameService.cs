@@ -48,47 +48,56 @@ namespace PerudoBot.Services
 
         public async Task UpdateGamePlayerRanksAsync(int gameId)
         {
-            var game = await _db.Games.AsQueryable()
-                .Include(g => g.GamePlayers).ThenInclude(gp => gp.Player)
-                .Include(g => g.Rounds).ThenInclude(r => r.GamePlayerRounds)
-                .Where(g => g.Id == gameId)
-                .SingleAsync();
-
-            var rounds = game.Rounds.OrderBy(r => r.RoundNumber);
-
-            var currentRank = game.GamePlayers.Count();
-
-            foreach (var round in game.Rounds)
-            {
-                var playersEliminated = round.GamePlayerRounds
-                    .Where(gpr => gpr.IsEliminated)
-                    .Where(gpr => !gpr.IsGhost)
-                    .Select(gpr => gpr.GamePlayer).ToList();
-
-                foreach (var gamePlayer in playersEliminated)
+            var rankings = _db.GamePlayers.AsQueryable()
+                .Include(gp => gp.GamePlayerRounds)
+                .Where(gp => gp.GameId == gameId)
+                .Select(gp => new
                 {
-                    gamePlayer.Rank = currentRank;
-                    currentRank--;
-                }
-            }
+                    gp.GameId,
+                    GamePlayerId = gp.Id,
+                    gp.Player.Nickname,
+                    HighestRoundPlayed = gp.GamePlayerRounds.OrderByDescending(gpr => gpr.Round.RoundNumber).First()
+                })
+                .Select(gp => new
+                {
+                    gp.GameId,
+                    gp.GamePlayerId,
+                    gp.Nickname,
+                    HighestRoundPlayed = gp.HighestRoundPlayed.Round.RoundNumber,
+                    gp.HighestRoundPlayed.IsEliminated,
+                    gp.HighestRoundPlayed.IsGhost
+                })
+                .OrderByDescending(x => x.HighestRoundPlayed).ThenBy(x => x.IsEliminated ? 1 : 0)
+                .ToList()
+                // The rest must be done in memory
+                .Where(x => x.HighestRoundPlayed != 0)
+                .Select((x, i) => new
+                {
+                    Rank = ++i,
+                    x.GameId,
+                    x.GamePlayerId,
+                    x.Nickname,
+                    x.HighestRoundPlayed,
+                    x.IsEliminated,
+                    x.IsGhost
+                })
+                .ToList();
 
-            var winningGamePlayer = game.GamePlayers
-                .Where(gp => gp.Player.Username == game.Winner)
-                .FirstOrDefault();
+            var gamePlayers = _db.GamePlayers.AsQueryable()
+                .Where(gp => gp.GameId == gameId)
+                .ToList();
 
-            if (winningGamePlayer != null)
+            foreach (var ranking in rankings)
             {
-                winningGamePlayer.Rank = 1;
+                var gamePlayerToUpdate = gamePlayers
+                    .Where(gp => gp.Id == ranking.GamePlayerId)
+                    .Single();
+
+                gamePlayerToUpdate.Rank = ranking.Rank;
             }
 
             await _db.SaveChangesAsync();
         }
-
-        public void Dispose()
-        {
-            _db.Dispose();
-        }
-
 
         public List<string> GetOptions(Game game)
         {
@@ -179,16 +188,16 @@ namespace PerudoBot.Services
             if (game.TerminatorMode) options.Add(":white_check_mark: :robot:");
             return options;
         }
+
         public List<GamePlayer> GetGamePlayers(Game game)
         {
-        return _db.GamePlayers.AsQueryable()
-            .Include(gp => gp.Player)
-            .Include(gp => gp.GamePlayerRounds)
-            .Where(gp => gp.GameId == game.Id)
-            .OrderBy(x => x.TurnOrder)
-            .ToList();
+            return _db.GamePlayers.AsQueryable()
+                .Include(gp => gp.Player)
+                .Include(gp => gp.GamePlayerRounds)
+                .Where(gp => gp.GameId == game.Id)
+                .OrderBy(x => x.TurnOrder)
+                .ToList();
         }
-
 
         public void AddUserToGame(Game game, SocketGuildUser user)
         {
@@ -240,8 +249,13 @@ namespace PerudoBot.Services
         private bool UserAlreadyExistsInGame(string username, Game game)
         {
             var players = GetGamePlayers(game);
-            bool userAlreadyExistsInGame = players.FirstOrDefault(x => x.Player.Username == username) != null;
-            return userAlreadyExistsInGame;
+
+            return players.Any(x => x.Player.Username == username);
+        }
+
+        public void Dispose()
+        {
+            _db.Dispose();
         }
     }
 }

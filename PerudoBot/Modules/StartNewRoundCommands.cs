@@ -3,6 +3,7 @@ using Discord.Commands;
 using Discord.WebSocket;
 using PerudoBot.Data;
 using PerudoBot.Extensions;
+using PerudoBot.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -40,6 +41,9 @@ namespace PerudoBot.Modules
                 game.DateFinished = DateTime.Now;
                 game.Winner = activeGamePlayers.Single().Player.Username;
                 _db.SaveChanges();
+
+                await _perudoGameService.UpdateGamePlayerRanksAsync(game.Id);
+                await new EloRatingService(_db).GenerateEloRatingsForGameAsync(game.Id);
                 return;
             }
 

@@ -59,86 +59,78 @@ namespace PerudoBot.Modules
             }
         }
 
-        [Command("leaderboard")]
-        [Alias("lb")]
-        public async Task Leaderboard(params string[] parameters)
+        [Command("ratings")]
+        [Alias("elo")]
+        public async Task EloRatingsAsync(params string[] parameters)
         {
+            var baseQuery = _db.Players.AsQueryable()
+                .AsNoTracking()
+                .Include(p => p.EloRatings)
+                .Where(p => p.GuildId == Context.Guild.Id)
+                .Where(p => p.IsBot == false);
+
             var options = parameters.Select(o => o.ToLower());
             var gameMode = "All Ranked Games";
-
-            var baseQuery = _db.GamePlayers.AsQueryable().AsNoTracking();
+            var penalty = 0;
 
             if (options.Any(o => o == "suddendeath"))
             {
-                gameMode = "Sudden Death";
-                baseQuery = baseQuery.Where(p => p.Game.Penalty == 100);
+                gameMode = "SuddenDeath";
+                penalty = 100;
             }
-
-            if (options.Any(o => o == "variable"))
+            else if (options.Any(o => o == "standard"))
             {
-                gameMode = "Variable Penalty";
-                baseQuery = baseQuery.Where(p => p.Game.Penalty == 0);
+                gameMode = "Standard";
+                penalty = 1;
             }
-
-            if (options.Any(o => o == "standard"))
+            else
             {
-                gameMode = "Standard Penalty";
-                baseQuery = baseQuery.Where(p => p.Game.Penalty == 1);
+                gameMode = "Variable";
+                penalty = 0;
             }
 
-            var result = baseQuery.Where(p => p.Game.IsRanked)
-                .Where(p => p.Game.State == 3)
-                .Where(p => p.Game.GuildId == Context.Guild.Id)
-                .Where(p => !p.Player.IsBot)
+            var result = baseQuery
+                .Where(p => p.EloRatings.Any(er => er.GameMode == gameMode))
                 .Select(p => new
                 {
-                    GameId = p.Game.Id,
-                    p.Game.IsRanked,
-                    p.Game.State,
-                    p.Game.DateFinished,
-                    p.Player.Username,
-                    p.Player.Nickname,
-                    // TODO: User GameUserId instead, when winner points to GamePlayerId
-                    IsWinner = (p.Player.Username == p.Game.Winner
-                        && p.Player.GuildId == p.Game.GuildId) ? 1 : 0,
-                    PlayerCount = p.Game.GamePlayers.Count()
+                    p.Username,
+                    p.Nickname,
+                    EloRating = p.EloRatings.FirstOrDefault(r => r.GameMode == gameMode).Rating,
+                    HighestEloRating = p.GamesPlayed.Where(gp => gp.Game.Penalty == penalty).Select(gp => gp.PostGameEloRating).Max(),
+                    LowestEloRating = p.GamesPlayed.Where(gp => gp.Game.Penalty == penalty).Select(gp => gp.PostGameEloRating).Min(),
+                    EloChangeLastTenGamesPlayed = p.GamesPlayed
+                        .Where(gp => gp.Game.Penalty == penalty)
+                        .Where(gp => gp.EloChange != null)
+                        .OrderByDescending(gp => gp.Id)
+                        .Take(10)
+                        .Select(gp => gp.EloChange)
+                        .Sum(),
                 })
-                .Where(p => p.PlayerCount >= 3 && p.PlayerCount <= 100)
-                .OrderByDescending(p => p.DateFinished)
-                .GroupBy(g => new { g.Username, g.Nickname })
-                .Select(g => new
-                {
-                    g.Key.Username,
-                    g.Key.Nickname,
-                    GamesPlayed = g.Count(),
-                    Wins = g.Sum(x => x.IsWinner),
-                    WinPercentage = ((double)g.Sum(x => x.IsWinner) / (double)g.Count()) * 100
-                })
-                .OrderByDescending(f => f.WinPercentage)
-                .ThenByDescending(f => f.GamesPlayed);
+                .OrderByDescending(p => p.EloRating)
+                .ToList();
 
             var usernamePadding = 13;
-            var gamesPlayedPadding = 5;
-            var winsPadding = 7;
-            var winPercentagePadding = 8;
+            var eloRatingPadding = 8;
+            var highestEloRatingPadding = 6;
+            var lowestEloRatingPadding = 6;
+            var changeInTimePeriodPadding = 9;
 
-            var embedString = "Username".PadLeft(usernamePadding) + "GP".PadLeft(gamesPlayedPadding)
-                + "Wins".PadLeft(winsPadding) + "Win %".PadLeft(winPercentagePadding) + "\n";
+            var embedString = "Username".PadLeft(usernamePadding) + "Rating".PadLeft(eloRatingPadding) + "High".PadLeft(highestEloRatingPadding) + "Low".PadLeft(lowestEloRatingPadding) + "Last 10".PadLeft(changeInTimePeriodPadding) + "\n";
 
             foreach (var item in result)
             {
                 var username = item.Nickname.PadLeft(usernamePadding);
-                var gamesPlayed = item.GamesPlayed.ToString().PadLeft(gamesPlayedPadding);
-                var wins = item.Wins.ToString().PadLeft(winsPadding);
-                var winPercentage = item.WinPercentage.ToString("0.0").PadLeft(winPercentagePadding);
+                var eloRating = item.EloRating.ToString().PadLeft(eloRatingPadding);
+                var highestEloRating = item.HighestEloRating.ToString().PadLeft(highestEloRatingPadding);
+                var lowestEloRating = item.LowestEloRating.ToString().PadLeft(lowestEloRatingPadding);
+                var changeInTimePeriod = item.EloChangeLastTenGamesPlayed.ToString().PadLeft(changeInTimePeriodPadding);
 
-                embedString += $"{username}{gamesPlayed}{wins}{winPercentage}\n";
+                embedString += $"{username}{eloRating}{highestEloRating}{lowestEloRating}{changeInTimePeriod}\n";
             }
 
             var builder = new EmbedBuilder()
-                                .WithTitle($"Leaderboard")
-                                .AddField(gameMode, $"```{embedString}```", inline: false)
-                                .AddField("Player count", "4+");
+                                .WithTitle($"Elo Ratings")
+                                .AddField(gameMode, $"```{embedString}```", inline: false);
             var embed = builder.Build();
 
             _ = await Context.Channel.SendMessageAsync(embed: embed).ConfigureAwait(false);

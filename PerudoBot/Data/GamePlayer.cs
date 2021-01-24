@@ -26,6 +26,11 @@ namespace PerudoBot.Data
         public int GhostAttemptsLeft { get; internal set; }
         public int GhostAttemptQuantity { get; internal set; }
         public int GhostAttemptPips { get; internal set; }
+        public int? Rank { get; set; }
+
+        public int? PreGameEloRating { get; set; }
+        public int? PostGameEloRating { get; set; }
+        public int? EloChange { get; set; }
 
         public GamePlayerRound CurrentGamePlayerRound
         {
@@ -35,7 +40,6 @@ namespace PerudoBot.Data
             }
         }
 
-        public int? Rank { get; set; }
         public bool HasActiveDeal { get; internal set; }
 
         [DefaultValue("")]
