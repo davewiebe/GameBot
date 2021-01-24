@@ -2,6 +2,7 @@
 using PerudoBot.Services;
 using System.Linq;
 using System.Threading.Tasks;
+using System;
 
 namespace PerudoBot.Modules
 {
@@ -14,7 +15,7 @@ namespace PerudoBot.Modules
                 _db.Rounds.AsQueryable()
                     .Where(r => r.GamePlayerRounds.Any())
                     .Where(r => r.Game.State == 3)
-                    .Where(r => r.GameId == gameId)
+                    .Where(r => r.GameId == gameId || gameId == 0)
                     .Select(r => r.Game)
                     .Distinct()
                     .ToList();
@@ -25,6 +26,7 @@ namespace PerudoBot.Modules
 
             foreach (var game in gamesWithGamePlayerRounds)
             {
+                Console.WriteLine($"Updating ranks for game {game.Id}");
                 await perudoGameService.UpdateGamePlayerRanksAsync(game.Id);
             }
 
