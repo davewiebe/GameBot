@@ -66,10 +66,12 @@ namespace PerudoBot.Services
 
                             if (erasePreviousRatings)
                             {
-                                currentEloRating.Rating = 1500;
+                                ratings.Add(nickname, 1500);
                             }
-
-                            ratings.Add(nickname, currentEloRating?.Rating ?? 1500);
+                            else
+                            {
+                                ratings.Add(nickname, currentEloRating?.Rating ?? 1500);
+                            }
                         }
                         gamePlayer.PreGameEloRating = ratings[nickname];
                         //Console.WriteLine($"Adding {nickname} with {ratings[nickname]} rating and rank of {gamePlayer.Rank}");
