@@ -98,11 +98,11 @@ namespace PerudoBot.Modules
                     EloRating = p.EloRatings.FirstOrDefault(r => r.GameMode == gameMode).Rating,
                     HighestEloRating = p.GamesPlayed.Where(gp => gp.Game.Penalty == penalty).Select(gp => gp.PostGameEloRating).Max(),
                     LowestEloRating = p.GamesPlayed.Where(gp => gp.Game.Penalty == penalty).Select(gp => gp.PostGameEloRating).Min(),
-                    EloChangeLastTenGamesPlayed = p.GamesPlayed
+                    EloChangeLastFiveGamesPlayed = p.GamesPlayed
                         .Where(gp => gp.Game.Penalty == penalty)
                         .Where(gp => gp.EloChange != null)
                         .OrderByDescending(gp => gp.Id)
-                        .Take(10)
+                        .Take(5)
                         .Select(gp => gp.EloChange)
                         .Sum(),
                 })
@@ -123,7 +123,7 @@ namespace PerudoBot.Modules
                 var eloRating = item.EloRating.ToString().PadLeft(eloRatingPadding);
                 var highestEloRating = item.HighestEloRating.ToString().PadLeft(highestEloRatingPadding);
                 var lowestEloRating = item.LowestEloRating.ToString().PadLeft(lowestEloRatingPadding);
-                var changeInTimePeriod = item.EloChangeLastTenGamesPlayed.ToString().PadLeft(changeInTimePeriodPadding);
+                var changeInTimePeriod = item.EloChangeLastFiveGamesPlayed.ToString().PadLeft(changeInTimePeriodPadding);
 
                 embedString += $"{username}{eloRating}{highestEloRating}{lowestEloRating}{changeInTimePeriod}\n";
             }
