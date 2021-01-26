@@ -175,13 +175,19 @@ namespace PerudoBot.Modules
                     p.Game.DateFinished,
                     p.Player.Username,
                     p.Player.Nickname,
+                    p.Rank,
                     // TODO: User GameUserId instead, when winner points to GamePlayerId
-                    IsWinner = (p.Player.Username == p.Game.Winner
-                        && p.Player.GuildId == p.Game.GuildId) ? 1 : 0,
+                    IsWinner = p.Rank == 1 ? 1 : 0,
+                    IsRunnerUp = p.Rank == 2 ? 1 : 0,
+                    WentToFaceOff = p.GamePlayerRounds.Any(gpr => gpr.Round.RoundType == nameof(FaceoffRound)) ? 1 : 0,
+                    HasPostiveElo = p.EloChange > 0 ? 1 : 0,
+                    X = ((double)p.Rank / (double)p.Game.GamePlayers.Count()),
+                    IsTop35Percent = ((double)p.Rank / (double)p.Game.GamePlayers.Count()) <= .35 ? 1 : 0,
                     PlayerCount = p.Game.GamePlayers.Count()
                 })
-                .Where(p => p.PlayerCount >= 3 && p.PlayerCount <= 100)
+                .Where(p => p.PlayerCount >= 4)
                 .OrderByDescending(p => p.DateFinished)
+                .ToList()
                 .GroupBy(g => new { g.Username, g.Nickname })
                 .Select(g => new
                 {
@@ -189,33 +195,46 @@ namespace PerudoBot.Modules
                     g.Key.Nickname,
                     GamesPlayed = g.Count(),
                     Wins = g.Sum(x => x.IsWinner),
-                    WinPercentage = ((double)g.Sum(x => x.IsWinner) / (double)g.Count()) * 100
+                    RunnerUps = g.Sum(x => x.IsRunnerUp),
+                    FaceoffRounds = g.Sum(x => x.WentToFaceOff),
+                    FaceoffWins = g.Where(x => x.WentToFaceOff == 1).Sum(x => x.IsWinner),
+                    FaceOffLosses = g.Where(x => x.WentToFaceOff == 1).Sum(x => x.IsRunnerUp),
+                    GamesWithPositiveElo = g.Sum(x => x.HasPostiveElo),
+                    Top35th = g.Sum(x => x.IsTop35Percent),
+                    WinPercentage = ((double)g.Sum(x => x.IsWinner) / (double)g.Count()) * 100,
+                    PositiveEloPercentage = ((double)g.Sum(x => x.HasPostiveElo) / (double)g.Count()) * 100,
                 })
                 .OrderByDescending(f => f.WinPercentage)
                 .ThenByDescending(f => f.GamesPlayed);
 
+            // Generally the padding is whatever the max width of column (usually the heading) + 2
             var usernamePadding = 13;
             var gamesPlayedPadding = 5;
-            var winsPadding = 7;
+            var winsPadding = 6;
+            var runnerUpsPadding = 6;
+            var faceoffWinLossPadding = 8;
             var winPercentagePadding = 8;
 
             var embedString = "Username".PadLeft(usernamePadding) + "GP".PadLeft(gamesPlayedPadding)
-                + "Wins".PadLeft(winsPadding) + "Win %".PadLeft(winPercentagePadding) + "\n";
+                + "Wins".PadLeft(winsPadding) + "2nds".PadLeft(runnerUpsPadding) + "FO W/L".PadLeft(faceoffWinLossPadding) + "Win %".PadLeft(winPercentagePadding) + "\n";
 
             foreach (var item in result)
             {
                 var username = item.Nickname.PadLeft(usernamePadding);
                 var gamesPlayed = item.GamesPlayed.ToString().PadLeft(gamesPlayedPadding);
                 var wins = item.Wins.ToString().PadLeft(winsPadding);
+                var runnerUps = item.RunnerUps.ToString().PadLeft(runnerUpsPadding);
+                var faceoffWinLoss = $"{item.FaceoffWins}/{item.FaceOffLosses}".PadLeft(faceoffWinLossPadding);
                 var winPercentage = item.WinPercentage.ToString("0.0").PadLeft(winPercentagePadding);
 
-                embedString += $"{username}{gamesPlayed}{wins}{winPercentage}\n";
+                embedString += $"{username}{gamesPlayed}{wins}{runnerUps}{faceoffWinLoss}{winPercentage}\n";
             }
 
             var builder = new EmbedBuilder()
                                 .WithTitle($"Leaderboard")
                                 .AddField(gameMode, $"```{embedString}```", inline: false)
-                                .AddField("Player count", "4+");
+                                .AddField("Player count", "4+")
+                                .AddField("Legend", "FO W/L = Faceoff Wins/Losses");
             var embed = builder.Build();
 
             _ = await Context.Channel.SendMessageAsync(embed: embed).ConfigureAwait(false);
