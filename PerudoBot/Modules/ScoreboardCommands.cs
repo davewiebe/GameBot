@@ -113,9 +113,11 @@ namespace PerudoBot.Modules
             var eloRatingPadding = 8;
             var highestEloRatingPadding = 6;
             var lowestEloRatingPadding = 6;
-            var changeInTimePeriodPadding = 9;
+            var changeInTimePeriodPadding = 8;
 
-            var embedString = "Username".PadLeft(usernamePadding) + "Rating".PadLeft(eloRatingPadding) + "High".PadLeft(highestEloRatingPadding) + "Low".PadLeft(lowestEloRatingPadding) + "Last 10".PadLeft(changeInTimePeriodPadding) + "\n";
+            var embedString = "Username".PadLeft(usernamePadding) + "Rating".PadLeft(eloRatingPadding) 
+                + "High".PadLeft(highestEloRatingPadding) + "Low".PadLeft(lowestEloRatingPadding) 
+                + "Last 5".PadLeft(changeInTimePeriodPadding) + "\n";
 
             foreach (var item in result)
             {
@@ -213,7 +215,7 @@ namespace PerudoBot.Modules
             var winsPadding = 6;
             var runnerUpsPadding = 6;
             var faceoffWinLossPadding = 8;
-            var winPercentagePadding = 8;
+            var winPercentagePadding = 7;
 
             var embedString = "Username".PadLeft(usernamePadding) + "GP".PadLeft(gamesPlayedPadding)
                 + "Wins".PadLeft(winsPadding) + "2nds".PadLeft(runnerUpsPadding) + "FO W/L".PadLeft(faceoffWinLossPadding) + "Win %".PadLeft(winPercentagePadding) + "\n";
