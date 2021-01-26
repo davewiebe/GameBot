@@ -115,8 +115,8 @@ namespace PerudoBot.Modules
             var lowestEloRatingPadding = 6;
             var changeInTimePeriodPadding = 8;
 
-            var embedString = "Username".PadLeft(usernamePadding) + "Rating".PadLeft(eloRatingPadding) 
-                + "High".PadLeft(highestEloRatingPadding) + "Low".PadLeft(lowestEloRatingPadding) 
+            var embedString = "Username".PadLeft(usernamePadding) + "Rating".PadLeft(eloRatingPadding)
+                + "High".PadLeft(highestEloRatingPadding) + "Low".PadLeft(lowestEloRatingPadding)
                 + "Last 5".PadLeft(changeInTimePeriodPadding) + "\n";
 
             foreach (var item in result)
@@ -181,7 +181,7 @@ namespace PerudoBot.Modules
                     // TODO: User GameUserId instead, when winner points to GamePlayerId
                     IsWinner = p.Rank == 1 ? 1 : 0,
                     IsRunnerUp = p.Rank == 2 ? 1 : 0,
-                    WentToFaceOff = p.GamePlayerRounds.Any(gpr => gpr.Round.RoundType == nameof(FaceoffRound)) ? 1 : 0,
+                    WentToFaceOff = (p.Game.Rounds.Any(r => r.RoundType == nameof(FaceoffRound)) && p.Rank <= 2) ? 1 : 0,
                     HasPostiveElo = p.EloChange > 0 ? 1 : 0,
                     X = ((double)p.Rank / (double)p.Game.GamePlayers.Count()),
                     IsTop35Percent = ((double)p.Rank / (double)p.Game.GamePlayers.Count()) <= .35 ? 1 : 0,
