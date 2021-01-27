@@ -24,15 +24,13 @@ namespace PerudoBot.Modules
             //// TO DO.. THIS NEEDS TO BE THE ACTIVE PLAYER, AS THE ACTIVE PLAYER WILL BE THE ONE WHO IS FORCED TO BE THEIR TURN.
             var activePlayer = GetActivePlayer(game);
 
-            if (!game.CanBidAnytime 
+            if (!game.CanBidAnytime
                 && activePlayer.Player.Username != Context.User.Username)
             {
                 if (!activePlayer.HasActiveDeal) return;
             }
 
-
             var biddingPlayer = _perudoGameService.GetGamePlayers(game).Where(x => x.NumberOfDice > 0).Single(x => x.Player.Username == Context.User.Username);
-
 
             var numberOfDiceLeft = _perudoGameService.GetGamePlayers(game).Sum(x => x.NumberOfDice);
             if (game.FaceoffEnabled && numberOfDiceLeft == 2)
@@ -79,8 +77,6 @@ namespace PerudoBot.Modules
             _db.SaveChanges();
 
             var currentPlayer = GetCurrentPlayer(game);
-
-
 
             var activePlayer = GetActivePlayer(game);
             if (activePlayer.HasActiveDeal && Context.User.Id != activePlayer.Player.UserId)
@@ -174,8 +170,6 @@ namespace PerudoBot.Modules
 
             _db.SaveChanges();
 
-
-
             var activePlayer = GetActivePlayer(game);
             if (activePlayer.HasActiveDeal && Context.User.Id != activePlayer.Player.UserId)
             {
@@ -186,7 +180,6 @@ namespace PerudoBot.Modules
             RemoveActiveDeals(game);
             RemovePayupPlayer(game);
 
-
             SetNextPlayer(game, currentPlayer2);
 
             var nextPlayer = GetCurrentPlayer(game);
@@ -196,16 +189,12 @@ namespace PerudoBot.Modules
             var bidderNickname = biddingPlayer.Player.Nickname;
             var nextPlayerMention = GetUser(nextPlayer.Player.Username).Mention;
 
-
             var snowflakeRound = "";
             if (game.CurrentRound is PalificoRound) snowflakeRound = ":snowflake: ";
             var dealer = "";
             if (currentPlayer2.Id != biddingPlayer.Id) dealer = $" (bidding for {currentPlayer2.Player.Nickname})";
 
             var userMessage = $"{snowflakeRound}{ bidderNickname }{dealer} bids `{ quantity}` ˣ { pips.GetEmoji()}. { nextPlayerMention } is up.";
-
-
-
 
             IUserMessage sentMessage;
 
@@ -296,6 +285,7 @@ namespace PerudoBot.Modules
                 return false;
             }
 
+            // first bid of the round
             if (mostRecentBid == null)
             {
                 if (bid.Pips == 1)
@@ -305,16 +295,6 @@ namespace PerudoBot.Modules
                 }
                 return true;
             }
-
-            //if (mostRecentBid is Bid) /// not a bid maybe?
-            //{
-            //    if (bid.Pips == 1)
-            //    {
-            //        await SendMessageAsync("Cannot start the round by bidding on wilds.");
-            //        return false;
-            //    }
-            //    return true;
-            //}
 
             // If last bid was 1s
             if (bid.Pips == 1 && mostRecentBid.Pips == 1)
@@ -339,11 +319,6 @@ namespace PerudoBot.Modules
 
             if (bid.Pips == 1 && mostRecentBid.Pips != 1)
             {
-                var prevRoundId = 0;
-                var prevRound = _db.Bids.AsQueryable().ToList().LastOrDefault();
-
-                if (prevRound != null) prevRoundId = prevRound.Id;
-
                 if (bid.Quantity * 2 <= mostRecentBid.Quantity)
                 {
                     await SendMessageAsync("Bid has to be higher.");
@@ -357,6 +332,7 @@ namespace PerudoBot.Modules
                 await SendMessageAsync("Bid has to be higher.");
                 return false;
             }
+
             if (bid.Quantity == mostRecentBid.Quantity && bid.Pips <= mostRecentBid.Pips)
             {
                 await SendMessageAsync("Bid has to be higher.");
