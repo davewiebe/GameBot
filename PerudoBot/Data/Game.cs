@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PerudoBot.Modules;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
@@ -35,7 +36,7 @@ namespace PerudoBot.Data
 
         public virtual List<Note> Notes { get; set; }
 
-        public DateTime DateStarted { get; set; }
+        public DateTime DateStarted { get; internal set; }
 
         public DateTime DateFinished { get; internal set; }
         public bool CanCallExactToJoinAgain { get; internal set; }
@@ -59,5 +60,13 @@ namespace PerudoBot.Data
 
         public bool TerminatorMode { get; internal set; }
         public int DealCurrentGamePlayerId { get; internal set; }
+
+        public void StartGame()
+        {
+            State = (int)GameState.InProgress;
+            DateStarted = DateTime.Now;
+            PlayerTurnId = GamePlayers.First().Id;
+            RoundStartPlayerId = GamePlayers.First().Id;
+        }
     }
 }
