@@ -18,11 +18,7 @@ namespace PerudoBot.Modules
             ShufflePlayers(game);
             SetDice(game);
 
-            var players = _perudoGameService.GetGamePlayers(game);
-
-            game.State = (int)GameState.InProgress;
-            game.PlayerTurnId = players.First().Id;
-            game.RoundStartPlayerId = players.First().Id;
+            game.StartGame();
 
             await SendMessageAsync($"Starting the game!\nUse `!bid 2 2s` or `!exact` or `!liar` to play.");
 
@@ -56,8 +52,8 @@ namespace PerudoBot.Modules
                 {
                     player.NumberOfDice = 1;
                 }
-                else 
-                { 
+                else
+                {
                     player.NumberOfDice = game.NumberOfDice;
                 }
             }
