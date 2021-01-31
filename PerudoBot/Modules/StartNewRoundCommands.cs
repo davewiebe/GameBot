@@ -44,6 +44,7 @@ namespace PerudoBot.Modules
 
                 await _perudoGameService.UpdateGamePlayerRanksAsync(game.Id);
                 await new EloRatingService(_db).GenerateEloRatingsForGameAsync(game.Id);
+                await GetGameSummaryAsync(game.Id);
                 return;
             }
 
