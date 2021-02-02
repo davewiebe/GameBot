@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using PerudoBot.Data;
+using PerudoBot.Services;
 using Serilog;
 using System;
 using System.IO;
@@ -20,6 +21,7 @@ namespace PerudoBot
 
         private DiscordSocketClient _client;
         private CommandService _commands;
+        private ReactionService _reactions;
         private IServiceProvider _services;
         private IConfigurationRoot _configuration;
 
@@ -33,10 +35,12 @@ namespace PerudoBot
             var config = new DiscordSocketConfig { MessageCacheSize = 100, LogLevel = LogSeverity.Verbose };
             _client = new DiscordSocketClient(config);
             _commands = new CommandService();
+            _reactions = new ReactionService();
 
             _services = new ServiceCollection()
                 .AddSingleton(_client)
                 .AddSingleton(_commands)
+                .AddSingleton(_reactions)
                 .AddSingleton(_configuration)
                 .AddLogging(builder => builder.AddSerilog(dispose: true))
                 .AddEntityFrameworkSqlServer()
@@ -76,7 +80,7 @@ namespace PerudoBot
 
             var context = new CommandContext(_client, message);
             Console.WriteLine($"Handling reaction of {reaction.Emote.Name}");
-            var result = await _commands.ExecuteAsync(context, reaction.Emote.Name, _services);
+            await _reactions.ExecuteAsync(context, reaction.UserId, reaction.Emote.Name, _services);
         }
 
         private async Task HandleCommandAsync(SocketMessage arg)

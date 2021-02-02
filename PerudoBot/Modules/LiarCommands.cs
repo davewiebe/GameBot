@@ -11,8 +11,8 @@ namespace PerudoBot.Modules
     public partial class Commands : ModuleBase<SocketCommandContext>
     {
         [Command("liar")]
-        [Alias("naughty")]
-        public async Task LiarAsync()
+        [Alias("naughty", "Iiar", "li", "lair", "la", "l!ar", "Iair", "llar", "l", "lia", "lai", "llar")]
+        public async Task LiarAsync(params string[] stringArray)
         {
             // check if game is in progress
             if (await ValidateStateAsync(GameState.InProgress) == false) return;
@@ -70,7 +70,7 @@ namespace PerudoBot.Modules
                 if (gamePlayer == null) return;
 
                 // check if calling player is calling out of turn
-                if (game.PlayerTurnId != gamePlayer.Id && game.DealCurrentGamePlayerId != gamePlayer.Id)
+                if (game.PlayerTurnId != gamePlayer.Id)
                 {
                     //player is calling out of turn
 
@@ -89,7 +89,7 @@ namespace PerudoBot.Modules
             else // not liar anytime
             {
                 // make sure player calling liar is the player who should go next
-                if (activePlayer.Player.Username != Context.User.Username)
+                if (playerWhoseTurnItIs.Player.Username != Context.User.Username)
                 {
                     if(!activePlayer.HasActiveDeal) return;
                 }

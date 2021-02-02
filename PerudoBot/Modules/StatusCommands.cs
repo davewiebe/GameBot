@@ -44,11 +44,15 @@ namespace PerudoBot.Modules
                 _db.SaveChanges();
 
                 
-                await monkey.AddReactionsAsync(new[] { 
+                await monkey.AddReactionsAsync(new[] {
+                    new Emoji("➕"),
                     new Emoji("🔥"),
-                    new Emoji("🤥"),
-                    new Emoji("🙃"),
-                    new Emoji("🏅")}); //new Emoji("🤖") {🤥}{🔥}{🏅}
+                   // new Emoji("🤥"),
+                   // new Emoji("🙃"),➖
+                    //new Emoji("🏅"),
+                    new Emoji("➖"),
+
+                }); //new Emoji("🤖") {🤥}{🔥}{🏅}
                 return;
             }
 

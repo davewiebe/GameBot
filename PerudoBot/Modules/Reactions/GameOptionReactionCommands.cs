@@ -11,24 +11,41 @@ using Discord.WebSocket;
 
 namespace PerudoBot.Modules
 {
-    public partial class ReactionCommands : ModuleBase<CommandContext>
+    public partial class ReactionCommands// : ModuleBase<CommandContext>
     {
-        [Command("➕")]
-        public async Task AddPlayer()
+        //[Command("➕")]
+        public async Task AddPlayer(CommandContext context, ulong userid)
         {
-            var game = await GetGameAsync(GameState.Setup);
-            if (Context.User.IsBot) return;
+            var game = await _perudoGameService.GetGameAsync(context.Channel.Id, GameState.Setup);
+            //if (context.User.IsBot) return;
 
-            _perudoGameService.AddUserToGame(game, (SocketGuildUser)Context.User);
+            var user = await context.Guild.GetUserAsync(userid);
 
-            await UpdateStatus(game);
+            _perudoGameService.AddUserToGame(game, (SocketGuildUser)user);
+
+            await UpdateStatus(context, game);
+        }
+        public async Task RemovePlayer(CommandContext context, ulong userid)
+        {
+            var game = await _perudoGameService.GetGameAsync(context.Channel.Id, GameState.Setup);
+            //if (context.User.IsBot) return;
+
+            var user = await context.Guild.GetUserAsync(userid);
+
+            var userToRemove = _db.GamePlayers.FirstOrDefault(x => x.GameId == game.Id && x.Player.UserId == userid);
+            if (userToRemove == null) return;
+
+            _db.GamePlayers.Remove(userToRemove);
+            _db.SaveChanges();
+
+            await UpdateStatus(context, game);
         }
 
         [Command("🔥")]
-        public async Task DiceOption()
+        public async Task DiceOption(CommandContext context)
         {
-            var game = await GetGameAsync(GameState.Setup);
-            if (Context.Message.Id != game.StatusMessage) return;
+            var game = await _perudoGameService.GetGameAsync(context.Channel.Id, GameState.Setup);
+            if (context.Message.Id != game.StatusMessage) return;
 
             if (game.Penalty == 0)
             {
@@ -39,9 +56,9 @@ namespace PerudoBot.Modules
                 game.Penalty = 0;
             }
             _db.SaveChanges();
-            await UpdateStatus(game);
+            await UpdateStatus(context, game);
         }
-
+        /*
         [Command("🤥")]
         public async Task LiarAnytimeOption()
         {
@@ -90,8 +107,8 @@ namespace PerudoBot.Modules
             await UpdateStatus(game);
         }
 
-
-        private async Task UpdateStatus(Game game)
+        */
+        private async Task UpdateStatus(CommandContext context, Game game)
         {
             var players = _perudoGameService.GetGamePlayers(game);
             var options = _perudoGameService.GetOptions(game);
@@ -105,7 +122,7 @@ namespace PerudoBot.Modules
             var embed = builder.Build();
 
 
-            await Context.Message.ModifyAsync(x => x.Embed = embed);
+            await context.Message.ModifyAsync(x => x.Embed = embed);
 
             //var monkey = await Context.Channel.SendMessageAsync(
             //    embed: embed)
@@ -114,6 +131,6 @@ namespace PerudoBot.Modules
             //game.StatusMessage = monkey.Id;
             //_db.SaveChanges();
         }
-
+        
     }
 }

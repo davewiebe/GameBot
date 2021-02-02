@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using PerudoBot.Extensions;
 using Discord;
+using Discord.WebSocket;
 
 namespace PerudoBot.Modules
 {
@@ -65,6 +66,114 @@ namespace PerudoBot.Modules
             }
 
             await _db.SaveChangesAsync();
+        }
+
+        [Command("mahtg", RunMode =RunMode.Async)]
+        public async Task Mahtg(params string[] stringArray)
+        {
+            await Context.Message.AddReactionAsync(new Emoji("Ⓜ️"));
+            await Context.Message.AddReactionAsync(new Emoji("🅰"));
+            await Context.Message.AddReactionAsync(new Emoji("🇭"));
+            await Context.Message.AddReactionAsync(new Emoji("🇹"));
+            await Context.Message.AddReactionAsync(new Emoji("🇬"));
+        }
+
+        [Command("hot", RunMode = RunMode.Async)]
+        public async Task hot(params string[] stringArray)
+        {
+            await SendCustomEmojAsync("BIGCAT");
+        }
+
+        [Command("rtr", RunMode = RunMode.Async)]
+        public async Task Rtr(params string[] stringArray)
+        {
+            await SendCustomEmojAsync("ezgif29c70deda4b1c");
+        }
+
+        [Command("spook")]
+        public async Task spook(params string[] stringArray)
+        {
+            await SendCustomEmojAsync("spook");
+        }
+        [Command("nah")]
+        public async Task nah(params string[] stringArray)
+        {
+            await SendCustomEmojAsync("nah");
+        }
+
+        [Command("sus")]
+        public async Task sus(params string[] stringArray)
+        {
+            await SendCustomEmojAsync("sus");
+        }
+
+        [Command("fire")]
+        public async Task fire(params string[] stringArray)
+        {
+            await SendEmojAsync(new Emoji("🔥"));
+        }
+
+        [Command("ice")]
+
+        public async Task ice(params string[] stringArray)
+        {
+            await SendEmojAsync(new Emoji("🧊"));
+        }
+        [Command("baloon")]
+        [Alias("bal", "lb", "load", "baloons", "lob", "loadofbaloons")]
+        public async Task lob(params string[] stringArray)
+        {
+            await SendCustomEmojAsync("lob");
+        }
+
+        [Command("vpn")]
+        public async Task vpn(params string[] stringArray)
+        {
+            IEmote up = Context.Guild.Emotes.First(e => e.Name == "vpn");
+            IEmote down = Context.Guild.Emotes.First(e => e.Name == "novpn");
+            await Context.Message.AddReactionsAsync(new[] { up, down});
+        }
+
+        [Command("vote")]
+        public async Task vote(params string[] stringArray)
+        {
+            await Context.Message.AddReactionsAsync(new[] { new Emoji("👍"), new Emoji("👎") });
+        }
+
+        private async Task SendCustomEmojAsync(string v)
+        {
+            DeleteCommandFromDiscord();
+
+            IEmote emote = Context.Guild.Emotes.First(e => e.Name == v);
+
+            // Reacts to the message with the Emote.
+            var game = await GetGameAsync(GameState.InProgress);
+
+
+            var lastBid = GetMostRecentBid(game);
+            if (lastBid == null) return;
+            if (lastBid.Quantity == 0) return;
+
+            var lastBidMessage = await Context.Channel.GetMessageAsync(lastBid.MessageId);
+
+            await lastBidMessage.AddReactionAsync(emote);
+        }
+
+        private async Task SendEmojAsync(IEmote emote)
+        {
+            DeleteCommandFromDiscord();
+
+            // Reacts to the message with the Emote.
+            var game = await GetGameAsync(GameState.InProgress);
+
+
+            var lastBid = GetMostRecentBid(game);
+            if (lastBid == null) return;
+            if (lastBid.Quantity == 0) return;
+
+            var lastBidMessage = await Context.Channel.GetMessageAsync(lastBid.MessageId);
+
+            await lastBidMessage.AddReactionAsync(emote);
         }
     }
 }

@@ -7,22 +7,45 @@ using PerudoBot.Services;
 
 namespace PerudoBot.Modules
 {
-    public partial class ReactionCommands : ModuleBase<CommandContext>
+    public partial class ReactionCommands// : ModuleBase<CommandContext>
     {
         private readonly GameBotDbContext _db;
         private readonly PerudoGameService _perudoGameService;
 
-        public ReactionCommands()
+        public ReactionCommands(GameBotDbContext db)
         {
-            //TODO: Let DI handle instantiation
-            _db = new GameBotDbContext();
+            _db = db;
             _perudoGameService = new PerudoGameService(_db);
         }
 
-        [Command("➡️")]
-        public async Task Next()
+        public async Task ReactToThis(CommandContext context, ulong userid, string emoji)
         {
-            var message = Context.Message;
+            switch (emoji)
+            {
+                case "➡️": 
+                    await Next(context);
+                    break;
+                case "⬅️":
+                    await Prev(context);
+                    break;
+                case "🔥":
+                    await DiceOption(context);
+                    break;
+                case "➕":
+                    await AddPlayer(context, userid);
+                    break;
+                case "➖":
+                    await RemovePlayer(context, userid);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        //[Command("➡️")]
+        public async Task Next(CommandContext context)
+        {
+            var message = context.Message;
 
             int currentPage = GetCurrentPage(message);
 
@@ -30,7 +53,7 @@ namespace PerudoBot.Modules
 
             var gamelogService = new GamelogService(_db);
 
-            var embedString = gamelogService.GetGamelog(Context.Guild.Id, newPage, -1);
+            var embedString = gamelogService.GetGamelog(context.Guild.Id, newPage, -1);
 
             var builder = new EmbedBuilder()
                                 .WithTitle($"Game logs - Page {newPage}")
@@ -38,7 +61,7 @@ namespace PerudoBot.Modules
             var embed = builder.Build();
 
             await message.RemoveAllReactionsAsync();
-            await Context.Message.ModifyAsync(x => x.Embed = embed);
+            await context.Message.ModifyAsync(x => x.Embed = embed);
 
             if (newPage != 1)
             {
@@ -61,10 +84,10 @@ namespace PerudoBot.Modules
             return currentPage;
         }
 
-        [Command("⬅️")]
-        public async Task Prev()
+        //[Command("⬅️")]
+        public async Task Prev(CommandContext context)
         {
-            var message = Context.Message;
+            var message = context.Message;
             int currentPage = GetCurrentPage(message);
 
             var newPage = currentPage - 1;
@@ -72,7 +95,7 @@ namespace PerudoBot.Modules
 
             var gamelogService = new GamelogService(_db);
 
-            var embedString = gamelogService.GetGamelog(Context.Guild.Id, newPage, -1);
+            var embedString = gamelogService.GetGamelog(context.Guild.Id, newPage, -1);
 
             var builder = new EmbedBuilder()
                                 .WithTitle($"Game logs - Page {newPage}")
@@ -81,7 +104,7 @@ namespace PerudoBot.Modules
             var embed = builder.Build();
 
             await message.RemoveAllReactionsAsync();
-            await Context.Message.ModifyAsync(x => x.Embed = embed);
+            await context.Message.ModifyAsync(x => x.Embed = embed);
 
             if (newPage != 1)
             {
