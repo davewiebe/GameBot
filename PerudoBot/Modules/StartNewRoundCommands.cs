@@ -37,7 +37,8 @@ namespace PerudoBot.Modules
                     await SendMessageAsync(rattles.Winrattle);
                 }
 
-                game.EndGame();
+                game.State = (int)GameState.Finished;
+                game.DateFinished = DateTime.Now;
                 game.Winner = activeGamePlayers.Single().Player.Username;
                 _db.SaveChanges();
 
