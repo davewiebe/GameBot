@@ -68,5 +68,13 @@ namespace PerudoBot.Data
             PlayerTurnId = GamePlayers.First().Id;
             RoundStartPlayerId = GamePlayers.First().Id;
         }
+
+        public void EndGame()
+        {
+            State = (int)GameState.Finished;
+            DateFinished = DateTime.Now;
+            DurationInSeconds = (DateFinished - DateStarted).TotalSeconds;
+            Winner = GamePlayers.Single(gp => gp.NumberOfDice > 1).Player.Username;
+        }
     }
 }
