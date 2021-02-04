@@ -65,8 +65,14 @@ namespace PerudoBot.Data
         {
             State = (int)GameState.InProgress;
             DateStarted = DateTime.Now;
-            PlayerTurnId = GamePlayers.First().Id;
-            RoundStartPlayerId = GamePlayers.First().Id;
+
+            var startplayerId = GamePlayers
+                .OrderBy(gp => gp.TurnOrder)
+                .First()
+                .Id;
+
+            PlayerTurnId = startplayerId;
+            RoundStartPlayerId = startplayerId;
         }
 
         public void EndGame()

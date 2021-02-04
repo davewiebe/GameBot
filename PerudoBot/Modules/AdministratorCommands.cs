@@ -90,6 +90,27 @@ namespace PerudoBot.Modules
             await SendCustomEmojAsync("ezgif29c70deda4b1c");
         }
 
+        [Command("monkaS", RunMode = RunMode.Async)]
+        public async Task monkas(params string[] stringArray)
+        {
+            await SendCustomEmojAsync("monkaS");
+        }
+        [Command("poggers", RunMode = RunMode.Async)]
+        public async Task poggers(params string[] stringArray)
+        {
+            await SendCustomEmojAsync("poggers");
+        }
+        [Command("feelsbadman", RunMode = RunMode.Async)]
+        public async Task feelsbadman(params string[] stringArray)
+        {
+            await SendCustomEmojAsync("FeelsBadMan");
+        }
+
+        [Command("kekw", RunMode = RunMode.Async)]
+        public async Task kekw(params string[] stringArray)
+        {
+            await SendCustomEmojAsync("kekw");
+        }
         [Command("spook")]
         public async Task spook(params string[] stringArray)
         {

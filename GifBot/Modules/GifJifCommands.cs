@@ -22,6 +22,14 @@ namespace PerudoBot.Modules
             await TenorSearch($"{word} {string.Join(" ", stringArray)}");
         }
 
+        [Command("gifbotxyz")]
+        public async Task Gifbotxyz(params String[] stringArray)
+        {
+            if (_botType != "gif") return;
+
+            await ReplyAsync("`2.0` baby! Less fun, but better gif results");
+        }
+
         [Command("gifxyz")]
         public async Task Gif(params String[] stringArray)
         {
@@ -33,9 +41,9 @@ namespace PerudoBot.Modules
         private async Task TenorSearch(params string[] stringArray)
         {
             var tenor = new TenorClient(_tenorToken);
-            tenor.SetContentFilter(TenorSharp.Enums.ContentFilter.high);
+            tenor.SetContentFilter(TenorSharp.Enums.ContentFilter.medium);
             GifObject[] gifs = new GifObject[0];
-            var range = 20;
+            var range = 10;
             while (range > 1)
             {
                 try
@@ -55,7 +63,7 @@ namespace PerudoBot.Modules
             }
 
             var r = new Random();
-            var gif = gifs.ElementAt(r.Next(0, gifs.Count()));
+            var gif = gifs.ElementAt(r.Next(0, Math.Min(5, gifs.Count())));
 
             await ReplyAsync(gif.Url.OriginalString);
         }

@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Serilog;
 using Microsoft.Extensions.Logging;
+using System.Linq;
 
 namespace PerudoBot
 {
@@ -85,6 +86,10 @@ namespace PerudoBot
                 if (message.Content.StartsWith("!gif"))
                 {
                     result = await _commands.ExecuteAsync(context, "gifxyz" + message.Content.Substring(4), _services);
+                }
+                if (message.MentionedUsers.FirstOrDefault()?.Id == context.Client.CurrentUser.Id)
+                {
+                    result = await _commands.ExecuteAsync(context, "gifbotxyz", _services);
                 }
             }
 
