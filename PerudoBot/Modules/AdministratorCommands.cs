@@ -79,6 +79,7 @@ namespace PerudoBot.Modules
         }
 
         [Command("hot", RunMode = RunMode.Async)]
+        [Alias("bigcat", "cat")]
         public async Task hot(params string[] stringArray)
         {
             await SendCustomEmojAsync("BIGCAT");
@@ -122,6 +123,11 @@ namespace PerudoBot.Modules
             await SendCustomEmojAsync("nah");
         }
 
+        [Command("otg")]
+        public async Task otg(params string[] stringArray)
+        {
+            await SendCustomEmojAsync("otg");
+        }
         [Command("sus")]
         public async Task sus(params string[] stringArray)
         {
