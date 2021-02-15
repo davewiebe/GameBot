@@ -34,9 +34,9 @@ namespace PerudoBot.Modules
                 NextRoundIsPalifico = false,
                 RandomizeBetweenRounds = false,
                 WildsEnabled = true,
-                ExactCallBonus = 0,
+                ExactCallBonus = 1,
                 ExactCallPenalty = 0,
-                CanCallExactAnytime = false,
+                CanCallExactAnytime = true,
                 CanCallLiarAnytime = true,
                 CanBidAnytime = false,
                 Palifico = true,
@@ -76,6 +76,8 @@ namespace PerudoBot.Modules
             }
 
             await Status();
+            await ReplyAsync("PS: Special Snowflake (Palifico) rounds _now count wilds_");
+            await ReplyAsync("PPS: Exact will get you a die back _even when it's your turn_");
         }
     }
 }

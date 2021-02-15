@@ -56,8 +56,8 @@ namespace PerudoBot.Modules
                 .AddField("Players", $"{string.Join("\n", playerDice)}", inline: true)
                 .AddField("Dice", $"{string.Join("\n", listOfAllDiceCounts)}", inline: true);
 
-            if (game.CurrentRound is StandardRound)
-                builder.AddField("Totals", $"{string.Join("\n", totals)}", inline: true);
+            //if (game.CurrentRound is StandardRound)
+            builder.AddField("Totals", $"{string.Join("\n", totals)}", inline: true);
 
             var embed = builder.Build();
 

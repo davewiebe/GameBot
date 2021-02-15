@@ -141,7 +141,8 @@ namespace PerudoBot.Modules
                 exactCall.IsSuccess = true;
 
                 var numPlayersLeft = _perudoGameService.GetGamePlayers(game).Where(x => x.NumberOfDice > 0).Count();
-                if (game.ExactCallBonus > 0 && numPlayersLeft >= 3 && !game.NextRoundIsPalifico && originalBiddingPlayer.Id != exactingPlayer.Id)
+                //if (game.ExactCallBonus > 0 && numPlayersLeft >= 3 && !game.NextRoundIsPalifico && originalBiddingPlayer.Id != exactingPlayer.Id)
+                if (game.ExactCallBonus > 0)
                 {
                     exactingPlayer.NumberOfDice += game.ExactCallBonus;
                     exactingPlayer.CurrentGamePlayerRound.Penalty = -1;
@@ -150,7 +151,8 @@ namespace PerudoBot.Modules
                     await SendMessageAsync($"\n:crossed_swords: As a bonus, they gain `{game.ExactCallBonus}` dice :crossed_swords:");
                 }
 
-                if (game.ExactCallPenalty > 0 && numPlayersLeft >= 3 && !game.NextRoundIsPalifico && originalBiddingPlayer.Id != exactingPlayer.Id)
+                //if (game.ExactCallPenalty > 0 && numPlayersLeft >= 3 && !game.NextRoundIsPalifico && originalBiddingPlayer.Id != exactingPlayer.Id)
+                if (game.ExactCallPenalty > 0)
                 {
                     await SendMessageAsync($":crossed_swords: As a bonus, everyone else loses `{game.ExactCallPenalty}` dice :crossed_swords:");
 

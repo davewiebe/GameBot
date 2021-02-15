@@ -50,6 +50,8 @@ namespace PerudoBot.Modules
 
         public bool PlayerEligibleForSafeguard(Game game, int numberOfDice, int penalty)
         {
+            return false;
+
             if (game.PenaltyGainDice && game.Penalty == 0 && numberOfDice < 5 && penalty + numberOfDice > 5) return true;
             if (game.PenaltyGainDice) return false;
 
@@ -178,10 +180,10 @@ namespace PerudoBot.Modules
 
             var allDice = players.Where(x => x.Dice != "").SelectMany(x => x.Dice.Split(",").Select(x => int.Parse(x)));
 
-            if (game.NextRoundIsPalifico)
-            {
-                return allDice.Count(x => x == pips);
-            }
+            //if (game.NextRoundIsPalifico)
+            //{
+            //    return allDice.Count(x => x == pips);
+            //}
             return allDice.Count(x => x == pips || x == 1);
         }
 

@@ -266,17 +266,17 @@ namespace PerudoBot.Modules
                     return false;
                 }
 
-                if (bid.Quantity < mostRecentBid.Quantity)
-                {
-                    await SendMessageAsync("Bid has to be higher.");
-                    return false;
-                }
-                if (bid.Quantity == mostRecentBid.Quantity && bid.Pips <= mostRecentBid.Pips)
-                {
-                    await SendMessageAsync("Bid has to be higher.");
-                    return false;
-                }
-                return true;
+                //if (bid.Quantity < mostRecentBid.Quantity)
+                //{
+                //    await SendMessageAsync("Bid has to be higher.");
+                //    return false;
+                //}
+                //if (bid.Quantity == mostRecentBid.Quantity && bid.Pips <= mostRecentBid.Pips)
+                //{
+                //    await SendMessageAsync("Bid has to be higher.");
+                //    return false;
+                //}
+                //return true;
             }
 
             if (game.WildsEnabled == false && bid.Pips == 1)

@@ -86,7 +86,7 @@ namespace PerudoBot.Modules
                 };
 
                 await SendMessageAsync($":snowflake: Special Snowflake Round :snowflake: {GetUser(GetCurrentPlayer(game).Player.Username).Mention} goes first.\n" +
-                    $"`!exact` will only reset the round - no bonuses.");
+                    $"`wilds count now` `only players at 1 die can change the pips`");
             }
             else
             {

@@ -23,9 +23,9 @@ namespace PerudoBot.Modules
 
 
             var diceRange = game.HighestPip - game.LowestPip + 1;
-            var wildsEnabled = game.LowestPip == 1;
+            //var wildsEnabled = game.LowestPip == 1;
             var probability = diceRange * 1.0;
-            if (wildsEnabled) probability = probability / 2.0;
+            //if (wildsEnabled) probability = probability / 2.0;
 
             var probabilityString = $"{probability:F1}";
             if (probability == Math.Floor(probability))

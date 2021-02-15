@@ -20,6 +20,12 @@ namespace PerudoBot.Modules
                 return;
             }
 
+            if (Context.Message.MentionedUsers.Count == 0)
+            {
+                await SendMessageAsync($"Command deprecated. Press that `+` instead.");
+                return;
+            }
+
             AddUsers(game, Context.Message);
 
             await Status();
@@ -29,7 +35,7 @@ namespace PerudoBot.Modules
         {
             if (message.MentionedUsers.Count == 0)
             {
-                _perudoGameService.AddUserToGame(game, (SocketGuildUser)message.Author);
+                //_perudoGameService.AddUserToGame(game, (SocketGuildUser)message.Author);
             }
             foreach (var userToAdd in message.MentionedUsers)
             {

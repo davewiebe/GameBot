@@ -123,6 +123,38 @@ namespace PerudoBot.Modules
             await SendCustomEmojAsync("nah");
         }
 
+
+        [Command("r")]
+        public async Task r(string emoji)
+        {
+            DeleteCommandFromDiscord();
+
+            if (emoji.Contains(":"))
+            {
+                emoji = emoji.Split(":")[1];
+            }
+
+            IEmote emote = Context.Guild.Emotes.FirstOrDefault(e => e.Name == emoji);
+
+            if (emote == null)
+            {
+                await SendEmojAsync(new Emoji(emoji));
+                return;
+            }
+
+            // Reacts to the message with the Emote.
+            var game = await GetGameAsync(GameState.InProgress);
+
+
+            var lastBid = GetMostRecentBid(game);
+            if (lastBid == null) return;
+            if (lastBid.Quantity == 0) return;
+
+            var lastBidMessage = await Context.Channel.GetMessageAsync(lastBid.MessageId);
+
+            await lastBidMessage.AddReactionAsync(emote);
+        }
+
         [Command("otg")]
         public async Task otg(params string[] stringArray)
         {
