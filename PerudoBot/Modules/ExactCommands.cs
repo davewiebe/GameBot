@@ -174,6 +174,11 @@ namespace PerudoBot.Modules
                 }
 
                 SetTurnPlayerToRoundStartPlayer(game);
+                if (GetCurrentPlayer(game).NumberOfDice > 1)
+                {
+                    game.NextRoundIsPalifico = false;
+                    _db.SaveChanges();
+                }
             }
             else
             {
