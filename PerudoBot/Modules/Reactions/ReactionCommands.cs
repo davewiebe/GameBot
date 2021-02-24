@@ -31,6 +31,9 @@ namespace PerudoBot.Modules
                 case "🔥":
                     await DiceOption(context);
                     break;
+                case "🪓":
+                    await DiceOption(context);
+                    break;
                 case "➕":
                     await AddPlayer(context, userid);
                     break;

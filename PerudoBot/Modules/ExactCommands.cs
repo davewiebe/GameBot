@@ -136,7 +136,7 @@ namespace PerudoBot.Modules
             {
                 Thread.Sleep(3000);
 
-                await SendMessageAsync($":snowboarder: The madman did it! It was exact! :snowboarder:");
+                await SendMessageAsync($":rainbow: The madman did it! It was exact! :rainbow:");
 
                 exactCall.IsSuccess = true;
 
@@ -196,7 +196,7 @@ namespace PerudoBot.Modules
 
                 var loses = "loses";
                 if (game.PenaltyGainDice) loses = "gains";
-                await SendMessageAsync($"There was actually `{countOfPips}` {bidName}. :candle: {GetUser(exactingPlayer.Player.Username).Mention} {loses} {penalty} dice. :candle:");
+                await SendMessageAsync($"There was actually `{countOfPips}` {bidName}. :axe: {GetUser(exactingPlayer.Player.Username).Mention} {loses} {penalty} dice. :axe:");
 
                 await SendRoundSummaryForBots(game);
                 await SendRoundSummary(game);

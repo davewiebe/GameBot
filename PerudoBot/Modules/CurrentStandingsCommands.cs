@@ -53,7 +53,7 @@ namespace PerudoBot.Modules
             //if (game.LowestPip != 1 || game.HighestPip != 6)  quickmaths = "Quickmaths: :upside_down:";
 
             var builder = new EmbedBuilder()
-                .WithTitle(":snowflake: Current standings :snowflake:")
+                .WithTitle(":four_leaf_clover: Current standings :four_leaf_clover:")
                 .AddField("Players", $"{playerList}\n\nTotal dice left: `{totalDice}`\n{quickmaths}", inline: false);
             var embed = builder.Build();
 

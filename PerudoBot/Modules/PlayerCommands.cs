@@ -76,7 +76,7 @@ namespace PerudoBot.Modules
             {
                 player.CurrentGamePlayerRound.IsEliminated = true;
 
-                await SendMessageAsync($":candle::droplet::candle: {player.Player.Nickname} melted :candle::droplet::candle:");
+                await SendMessageAsync($":wood::axe: {player.Player.Nickname} was cut down :wood::axe:");
                 var deathrattle = _db.Rattles.SingleOrDefault(x => x.Username == player.Player.Username);
                 if (deathrattle != null)
                 {
@@ -139,7 +139,7 @@ namespace PerudoBot.Modules
             {
                 player.CurrentGamePlayerRound.IsEliminated = true;
 
-                await SendMessageAsync($":candle::droplet::candle: {player.Player.Nickname} melted :candle::droplet::candle:");
+                await SendMessageAsync($":wood::axe: {player.Player.Nickname} was cut down :wood::axe:");
                 var deathrattle = _db.Rattles.SingleOrDefault(x => x.Username == player.Player.Username);
                 if (deathrattle != null)
                 {

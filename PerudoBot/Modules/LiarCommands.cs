@@ -151,7 +151,7 @@ namespace PerudoBot.Modules
                 var loses = "loses";
                 if (game.PenaltyGainDice) loses = "gains";
                 // send outcome of unsuccessful liar call
-                await SendMessageAsync($"There was actually `{numberOfDiceMatchingBid}` {biddingName}. :candle: {GetUser(playerWhoseTurnItIs.Player.Username).Mention} {loses} {penalty} dice. :candle:");
+                await SendMessageAsync($"There was actually `{numberOfDiceMatchingBid}` {biddingName}. :axe: {GetUser(playerWhoseTurnItIs.Player.Username).Mention} {loses} {penalty} dice. :axe:");
 
                 // if matching dice is exactly what previous bid was, send that taunt!
                 if (numberOfDiceMatchingBid == previousBid.Quantity)
@@ -191,7 +191,7 @@ namespace PerudoBot.Modules
                 var loses = "loses";
                 if (game.PenaltyGainDice) loses = "gains";
 
-                await SendMessageAsync($"There was actually `{numberOfDiceMatchingBid}` {biddingName}. :candle: {GetUser(previousBid.GamePlayer.Player.Username).Mention} {loses} {penalty} dice. :candle:");
+                await SendMessageAsync($"There was actually `{numberOfDiceMatchingBid}` {biddingName}. :axe: {GetUser(previousBid.GamePlayer.Player.Username).Mention} {loses} {penalty} dice. :axe:");
 
                 await SendRoundSummaryForBots(game);
                 await SendRoundSummary(game);

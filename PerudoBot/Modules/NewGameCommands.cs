@@ -76,7 +76,7 @@ namespace PerudoBot.Modules
             }
 
             await Status();
-            await ReplyAsync("PS: Special Snowflake (Palifico) rounds _now count wilds_");
+            await ReplyAsync("PS: Palifico rounds _now count wilds_");
             await ReplyAsync("PPS: Exact will get you a die back _even when it's your turn_");
         }
     }

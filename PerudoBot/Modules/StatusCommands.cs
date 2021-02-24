@@ -46,7 +46,9 @@ namespace PerudoBot.Modules
                 
                 await monkey.AddReactionsAsync(new[] {
                     new Emoji("➕"),
-                    new Emoji("🔥"),
+                    //new Emoji("🔥"),
+                    new Emoji("🪓"), // Axe
+
                    // new Emoji("🤥"),
                    // new Emoji("🙃"),➖
                     //new Emoji("🏅"),
