@@ -74,18 +74,18 @@ namespace PerudoBot.Modules
 
             var isOutOfTurn = false;
             var originalBiddingPlayer = GetCurrentPlayer(game);
-            if (game.CanCallExactAnytime)
-            {
-                var player = _db.GamePlayers.AsQueryable().Where(x => x.GameId == game.Id).OrderBy(x => x.TurnOrder)
-                    .Where(x => x.NumberOfDice > 0)
-                    .SingleOrDefault(x => x.Player.Username == Context.User.Username);
-                if (player == null) return;
+            //if (game.CanCallExactAnytime)
+            //{
+            //    var player = _db.GamePlayers.AsQueryable().Where(x => x.GameId == game.Id).OrderBy(x => x.TurnOrder)
+            //        .Where(x => x.NumberOfDice > 0)
+            //        .SingleOrDefault(x => x.Player.Username == Context.User.Username);
+            //    if (player == null) return;
 
-                isOutOfTurn = true;
+            //    isOutOfTurn = true;
 
-                game.PlayerTurnId = player.Id;
-                _db.SaveChanges();
-            }
+            //    game.PlayerTurnId = player.Id;
+            //    _db.SaveChanges();
+            //}
 
             var currentPlayer = GetCurrentPlayer(game);
             var activePlayer = GetActivePlayer(game);
@@ -173,12 +173,9 @@ namespace PerudoBot.Modules
                     await CheckGhostAttempts(game);
                 }
 
-                SetTurnPlayerToRoundStartPlayer(game);
-                if (GetCurrentPlayer(game).NumberOfDice > 1)
-                {
-                    game.NextRoundIsPalifico = false;
-                    _db.SaveChanges();
-                }
+                game.NextRoundIsPalifico = false;
+                _db.SaveChanges();
+                SetNextPlayer(game, exactingPlayer);
             }
             else
             {
