@@ -14,9 +14,16 @@ namespace PerudoBot.Modules
             var game = await GetGameAsync(GameState.Setup);
             if (game != null)
             {
-                var players = _perudoGameService.GetGamePlayers(game);
+                var gamemode = "Variable";
+                if (game.Penalty > game.NumberOfDice)
+                {
+                    gamemode = "SuddenDeath";
+                }
+
+                var players = _perudoGameService.GetGamePlayers(game).OrderByDescending(x => x.Player.EloRatings.FirstOrDefault(x => x.GameMode == gamemode)?.Rating);
                 var options = _perudoGameService.GetOptions(game);
-                var playersListString = string.Join("\n", players.Select(x => $"{x.PlayerId.GetChristmasEmoji(game.Id)} {x.Player.Nickname}"));
+                var playersListString = string.Join("\n", players.Select(x => $"{x.PlayerId.GetChristmasEmoji(game.Id)} `{x.Player.EloRatings.FirstOrDefault(x => x.GameMode == gamemode)?.Rating}` {x.Player.Nickname}"));
+
                 if (players.Count() == 0) playersListString = "none";
 
                 var builder = new EmbedBuilder()
