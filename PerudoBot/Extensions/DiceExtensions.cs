@@ -24,36 +24,39 @@
 
         public static string GetChristmasEmoji(this int playerId, int id)
         {
-            var number = (playerId + id) % 25;
+            var number = (playerId + id) % 28;
 
             switch (number)
             {
-                case 1: return ":snowman:";
-                case 2: return ":snowman:";
-                case 3: return ":snowboarder:";
-                case 4: return ":skier:";
-                case 5: return ":mountain_snow:";
-                case 6: return ":snowman:";
-                case 7: return ":skier:";
-                case 8: return ":snowboarder:";
-                case 9: return ":snowman:";
-                case 10: return ":snowman2:";
-                case 11: return ":snowman:";
-                case 12: return ":snowman:";
-                case 13: return ":cold_face:";
-                case 14: return ":snowman:";
-                case 15: return ":snowboarder:";
-                case 16: return ":skier:";
-                case 17: return ":snowman:";
-                case 18: return ":snowman:";
-                case 19: return ":skier:";
-                case 20: return ":snowboarder:";
-                case 21: return ":snowflake:";
-                case 22: return ":snowman:";
-                case 23: return ":scarf:";
-                case 24: return ":snowman:";
+                case 1: return ":rabbit2:";
+                case 2: return ":sunflower:";
+                case 3: return ":butterfly:";
+                case 4: return ":hedgehog:";
+                case 5: return ":rainbow:";
+                case 6: return ":lady_beetle:";
+                case 7: return ":sun_with_face:";
+                case 8: return ":rose:";
+                case 9: return ":duck:";
+                case 10: return ":bee:";
+                case 11: return ":tulip:";
+                case 12: return ":sheep:";
+                case 13: return ":swan:";
+                case 14: return ":hatched_chick:";
+                case 15: return ":rabbit:";
+                case 16: return ":herb:";
+                case 17: return ":ear_of_rice:";
+                case 18: return ":blossom:";
+                case 19: return ":cherry_blossom:";
+                case 20: return ":snail:";
+                case 21: return ":four_leaf_clover:";
+                case 22: return ":leaves:";
+                case 23: return ":seedling:";
+                case 24: return ":beetle:";
+                case 25: return ":bug:";
+                case 26: return ":cricket:";
+                case 27: return ":spider:";
                 default:
-                    return ":snowman:";
+                    return ":rabbit2:";
             }
         }
 

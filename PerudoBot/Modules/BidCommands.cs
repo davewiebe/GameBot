@@ -190,7 +190,7 @@ namespace PerudoBot.Modules
             var nextPlayerMention = GetUser(nextPlayer.Player.Username).Mention;
 
             var snowflakeRound = "";
-            if (game.CurrentRound is PalificoRound) snowflakeRound = ":snowflake: ";
+            if (game.CurrentRound is PalificoRound) snowflakeRound = ":four_leaf_clover: ";
             var dealer = "";
             if (currentPlayer2.Id != biddingPlayer.Id) dealer = $" (bidding for {currentPlayer2.Player.Nickname})";
 
@@ -226,7 +226,7 @@ namespace PerudoBot.Modules
             if (nextPlayer.CurrentGamePlayerRound.IsAutoLiarSet)
             {
                 Thread.Sleep(1000);
-                await SendMessageAsync($":pick: Auto **liar** activated.");
+                await SendMessageAsync($":hatching_chick: Auto **liar** activated.");
                 Thread.Sleep(2000);
                 await LiarAsync();
             }
@@ -262,7 +262,7 @@ namespace PerudoBot.Modules
                 if (game.CurrentRound.Actions.Count == 0) return true;
                 if (bid.GamePlayer.NumberOfDice != 1 && bid.Pips != mostRecentBid.Pips)
                 {
-                    await SendMessageAsync("Only players at 1 die can change pips in the Special Snowflake round.");
+                    await SendMessageAsync("Only players at 1 die can change pips in a Palifico round.");
                     return false;
                 }
 

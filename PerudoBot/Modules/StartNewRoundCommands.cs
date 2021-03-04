@@ -73,8 +73,8 @@ namespace PerudoBot.Modules
                     StartingPlayerId = GetCurrentPlayer(game).Id
                 };
 
-                await SendTempMessageAsync("!gif snowball fight");
-                await SendMessageAsync($":face_with_monocle: Faceoff Round :face_with_monocle: {GetUser(GetCurrentPlayer(game).Player.Username).Mention} goes first. Bid on total pips only (eg. `!bid 4`)");
+                await SendTempMessageAsync("!gif lumberjack");
+                await SendMessageAsync($":carpentry_saw: Faceoff Round :carpentry_saw: {GetUser(GetCurrentPlayer(game).Player.Username).Mention} goes first. Bid on total pips only (eg. `!bid 4`)");
             }
             else if (game.NextRoundIsPalifico)
             {
@@ -85,7 +85,7 @@ namespace PerudoBot.Modules
                     StartingPlayerId = GetCurrentPlayer(game).Id
                 };
 
-                await SendMessageAsync($":snowflake: Special Snowflake Round :snowflake: {GetUser(GetCurrentPlayer(game).Player.Username).Mention} goes first.\n" +
+                await SendMessageAsync($":four_leaf_clover: Palifico Round :four_leaf_clover: {GetUser(GetCurrentPlayer(game).Player.Username).Mention} goes first.\n" +
                     $"`wilds count now` `only players at 1 die can change the pips`");
             }
             else

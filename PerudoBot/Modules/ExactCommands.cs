@@ -74,18 +74,18 @@ namespace PerudoBot.Modules
 
             var isOutOfTurn = false;
             var originalBiddingPlayer = GetCurrentPlayer(game);
-            if (game.CanCallExactAnytime)
-            {
-                var player = _db.GamePlayers.AsQueryable().Where(x => x.GameId == game.Id).OrderBy(x => x.TurnOrder)
-                    .Where(x => x.NumberOfDice > 0)
-                    .SingleOrDefault(x => x.Player.Username == Context.User.Username);
-                if (player == null) return;
+            //if (game.CanCallExactAnytime)
+            //{
+            //    var player = _db.GamePlayers.AsQueryable().Where(x => x.GameId == game.Id).OrderBy(x => x.TurnOrder)
+            //        .Where(x => x.NumberOfDice > 0)
+            //        .SingleOrDefault(x => x.Player.Username == Context.User.Username);
+            //    if (player == null) return;
 
-                isOutOfTurn = true;
+            //    isOutOfTurn = true;
 
-                game.PlayerTurnId = player.Id;
-                _db.SaveChanges();
-            }
+            //    game.PlayerTurnId = player.Id;
+            //    _db.SaveChanges();
+            //}
 
             var currentPlayer = GetCurrentPlayer(game);
             var activePlayer = GetActivePlayer(game);
@@ -136,7 +136,7 @@ namespace PerudoBot.Modules
             {
                 Thread.Sleep(3000);
 
-                await SendMessageAsync($":snowboarder: The madman did it! It was exact! :snowboarder:");
+                await SendMessageAsync($":rainbow: The madman did it! It was exact! :rainbow:");
 
                 exactCall.IsSuccess = true;
 
@@ -173,7 +173,9 @@ namespace PerudoBot.Modules
                     await CheckGhostAttempts(game);
                 }
 
-                SetTurnPlayerToRoundStartPlayer(game);
+                game.NextRoundIsPalifico = false;
+                _db.SaveChanges();
+                SetNextPlayer(game, exactingPlayer);
             }
             else
             {
@@ -191,7 +193,7 @@ namespace PerudoBot.Modules
 
                 var loses = "loses";
                 if (game.PenaltyGainDice) loses = "gains";
-                await SendMessageAsync($"There was actually `{countOfPips}` {bidName}. :candle: {GetUser(exactingPlayer.Player.Username).Mention} {loses} {penalty} dice. :candle:");
+                await SendMessageAsync($"There was actually `{countOfPips}` {bidName}. :axe: {GetUser(exactingPlayer.Player.Username).Mention} {loses} {penalty} dice. :axe:");
 
                 await SendRoundSummaryForBots(game);
                 await SendRoundSummary(game);

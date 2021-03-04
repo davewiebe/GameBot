@@ -6,7 +6,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("PerudoBotTests.PerudoGameServiceTests")]
-
 namespace PerudoBot.Data
 {
     public class Game
@@ -80,7 +79,7 @@ namespace PerudoBot.Data
             State = (int)GameState.Finished;
             DateFinished = DateTime.Now;
             DurationInSeconds = (DateFinished - DateStarted).TotalSeconds;
-            Winner = GamePlayers.Single(gp => gp.NumberOfDice >= 1).Player.Username;
+            Winner = GamePlayers.Single(gp => gp.NumberOfDice > 0).Player.Username;
         }
     }
 }
