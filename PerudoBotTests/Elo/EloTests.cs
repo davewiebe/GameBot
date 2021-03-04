@@ -22,11 +22,84 @@ namespace PerudoBotTests
             SuddenDeath = 100,
         }
 
-        [TestCase(GameMode.Standard)]
-        [TestCase(GameMode.Variable)]
-        [TestCase(GameMode.SuddenDeath)]
         [Test]
-        public void GenerateRatings(GameMode gameMode)
+        public void Manual()
+        {
+            //            Calculating Elo for game 356
+            //Jon has new rating of 1564(8)
+            //Cody has new rating of 1524(6)
+            //mj has new rating of 1464(6)
+            //Josh has new rating of 1464(3)
+            //Calvin has new rating of 1478(-1)
+            //Mo has new rating of 1530(-6)
+            //Dave has new rating of 1508(-8)
+            //Em has new rating of 1443(-9)
+
+            Debug.WriteLine("Ties at bottom");
+            var match = new EloMatch();
+
+            match.AddPlayer("Jon", 1, 1556);
+            match.AddPlayer("Cody", 2, 1518);
+            match.AddPlayer("mj", 3, 1458);
+            match.AddPlayer("Josh", 4, 1461);
+            match.AddPlayer("Calvin", 5, 1479);
+            match.AddPlayer("Mo", 6, 1536);
+            match.AddPlayer("Dave", 7, 1516);
+            match.AddPlayer("Em", 8, 1452);
+
+            match.CalculateElos(20);
+
+            Debug.WriteLine($"Jon: {match.GetElo("Jon")} ({match.GetEloChange("Jon")})");
+            Debug.WriteLine($"Cody: {match.GetElo("Cody")} ({match.GetEloChange("Cody")})");
+            Debug.WriteLine($"mj: {match.GetElo("mj")} ({match.GetEloChange("mj")})");
+            Debug.WriteLine($"Josh: {match.GetElo("Josh")} ({match.GetEloChange("Josh")})");
+            Debug.WriteLine($"Calvin: {match.GetElo("Calvin")} ({match.GetEloChange("Calvin")})");
+            Debug.WriteLine($"Mo: {match.GetElo("Mo")} ({match.GetEloChange("Mo")})");
+            Debug.WriteLine($"Dave: {match.GetElo("Dave")} ({match.GetEloChange("Dave")})");
+            Debug.WriteLine($"Em: {match.GetElo("Em")} ({match.GetEloChange("Em")})");
+
+            //Debug.WriteLine($"Em: {match.GetElo("Em")} ({match.GetEloChange("Em")})");
+
+            //Debug.WriteLine("Regular rankings");
+            //var match2 = new EloMatch();
+            //match2.AddPlayer("Jon", 1, 1500);
+            //match2.AddPlayer("Dave", 2, 1500);
+            //match2.AddPlayer("Ed", 3, 1500);
+            //match2.AddPlayer("Em", 4, 1500);
+            //match2.AddPlayer("Cody", 5, 1500);
+            //match2.AddPlayer("MJ", 6, 1500);
+            //match2.AddPlayer("Andrey", 7, 1500);
+            //match2.AddPlayer("Lauren", 8, 1500);
+            //match2.AddPlayer("Autumn", 9, 1500);
+
+            //match2.CalculateElos(20);
+
+            //Debug.WriteLine($"Jon: {match2.GetElo("Jon")} ({match2.GetEloChange("Jon")})");
+            //Debug.WriteLine($"Dave: {match2.GetElo("Dave")} ({match2.GetEloChange("Dave")})");
+            //Debug.WriteLine($"Ed: {match2.GetElo("Ed")} ({match2.GetEloChange("Ed")})");
+            //Debug.WriteLine($"Em: {match2.GetElo("Em")} ({match2.GetEloChange("Em")})");
+            //Debug.WriteLine($"Cody: {match2.GetElo("Cody")} ({match2.GetEloChange("Cody")})");
+            //Debug.WriteLine($"MJ: {match2.GetElo("MJ")} ({match2.GetEloChange("MJ")})");
+            //Debug.WriteLine($"Andrey: {match2.GetElo("Andrey")} ({match2.GetEloChange("Andrey")})");
+            //Debug.WriteLine($"Lauren: {match2.GetElo("Lauren")} ({match2.GetEloChange("Lauren")})");
+            //Debug.WriteLine($"Autumn: {match2.GetElo("Autumn")} ({match2.GetEloChange("Autumn")})");
+        }
+
+        //[TestCase(GameMode.Standard)]
+        //[TestCase(GameMode.SuddenDeath, 5)]
+        //[TestCase(GameMode.SuddenDeath, 10)]
+        //[TestCase(GameMode.Variable, 20)]
+        //[TestCase(GameMode.Variable, 30)]
+        //[TestCase(GameMode.Variable, 40)]
+        //[TestCase(GameMode.Variable, 50)]
+        //[TestCase(GameMode.Variable, 60)]
+        //[TestCase(GameMode.SuddenDeath)]
+
+        [TestCase(GameMode.Variable, 20)]
+        //[TestCase(GameMode.Standard, 20)]
+        //[TestCase(GameMode.SuddenDeath, 20)]
+        [Test]
+        public void GenerateRatings(GameMode gameMode, int initialK)
         {
             ulong guildId = 689504722163335196;
 
@@ -40,9 +113,10 @@ namespace PerudoBotTests
                 .Where(g => g.IsRanked && g.State == 3)
                 .Where(g => g.Penalty == (int)(object)gameMode)
                 .Where(g => g.GamePlayers.Count() > 3)//&& g.GamePlayers.Count() < 8)
+                                                      // .Where(g => g.Id == 338)
                 .Where(g => !g.GamePlayers.Any(gp => gp.Rank == null))
-                .OrderByDescending(g => g.Id)
-                //.Take(5)
+                //.OrderByDescending(g => g.Id)
+                //.Take(10)
                 .OrderBy(g => g.Id)
                 .ToList();
             //Debug.WriteLine($"========================================");
@@ -52,6 +126,9 @@ namespace PerudoBotTests
 
             games.ForEach(game =>
             {
+                //var outputGame = false;
+                //if (games.OrderByDescending(g => g.Id).Take(5).ToList().Contains(game.Id))
+
                 Debug.WriteLine($"========================================");
                 Debug.WriteLine($"Calculating Elo for game {game.Id}");
                 var match = new EloMatch();
@@ -62,17 +139,16 @@ namespace PerudoBotTests
                     if (!ratings.ContainsKey(nickname))
                     {
                         var currentEloRating = gamePlayer.Player.EloRatings
-                            .FirstOrDefault(er => er.GameMode == gameMode.ToString());
+                            .FirstOrDefault(er => er.GameMode == gameMode.ToString() && 1 == 2);
 
                         ratings.Add(nickname, currentEloRating?.Rating ?? 1500);
-                        gamePlayer.PreGameEloRating = ratings[nickname];
                     }
-
-                    Debug.WriteLine($"Adding {nickname} with {ratings[nickname]} rating and rank of {gamePlayer.Rank}");
+                    gamePlayer.PreGameEloRating = ratings[nickname];
+                    //Debug.WriteLine($"Adding {nickname} with {ratings[nickname]} rating and rank of {gamePlayer.Rank}");
                     match.AddPlayer(nickname, gamePlayer.Rank.Value, ratings[nickname]);
                 }
 
-                match.CalculateElos();
+                match.CalculateElos(initialK);
 
                 foreach (var gamePlayer in game.GamePlayers.OrderBy(gp => gp.Rank))
                 {
@@ -80,18 +156,19 @@ namespace PerudoBotTests
                     ratings[nickname] = match.GetElo(nickname);
 
                     gamePlayer.PostGameEloRating = ratings[nickname];
+                    gamePlayer.EloChange = gamePlayer.PostGameEloRating - gamePlayer.PreGameEloRating;
 
                     var currentEloRating = gamePlayer.Player.EloRatings
                         .FirstOrDefault(er => er.GameMode == gameMode.ToString()).Rating = match.GetElo(nickname);
 
-                    Debug.WriteLine($"{nickname} has new rating of {ratings[nickname]} ({match.GetEloChange(nickname)})");
+                    Debug.WriteLineIf(game.Id == games.Max(x => x.Id) || 1 == 2, $"{nickname} has new rating of {ratings[nickname]} ({match.GetEloChange(nickname)})");
                 }
             });
 
-            var changes = db.SaveChanges();
-
+            // var changes = db.SaveChanges();
+            // Debug.WriteLine($"Wrote {changes} to the db");
             Debug.WriteLine($"========================================");
-            Debug.WriteLine($"Final {gameMode} ratings:");
+            Debug.WriteLine($"Final {gameMode} ratings: K={initialK}");
 
             var i = 1;
             foreach (var rating in ratings.OrderByDescending(x => x.Value))
@@ -119,14 +196,14 @@ namespace PerudoBotTests
                 //.Where(g => g.Id >= 81)
                 .Where(g => g.IsRanked && g.State == 3)
                 .Where(g => g.Penalty == (int)(object)gameMode)
-                .Where(g => g.GamePlayers.Count() > 2)//&& g.GamePlayers.Count() < 8)
-                .OrderByDescending(g => g.Id)
-                //.Take(5)
+                .Where(g => g.GamePlayers.Count() >= 4)//&& g.GamePlayers.Count() < 8)
+                                                       //.OrderByDescending(g => g.Id)
+                                                       //.Take(5)
                 .OrderBy(g => g.Id)
                 //.Take(2)
                 .ToList();
             //Debug.WriteLine($"========================================");
-            Debug.WriteLine($"Generating Elo Ratings for {gameMode}");
+            Debug.WriteLine($"Generating Glicko Ratings for {gameMode}");
 
             var ratings = new Dictionary<string, GlickoRating>();
             var players = new Dictionary<string, GlickoPlayer>();
@@ -145,7 +222,7 @@ namespace PerudoBotTests
 
                     if (!players.ContainsKey(nickname))
                     {
-                        players.Add(nickname, new GlickoPlayer(ratingDeviation: 80));
+                        players.Add(nickname, new GlickoPlayer(ratingDeviation: 60));
                     }
 
                     //create a copy
@@ -159,7 +236,7 @@ namespace PerudoBotTests
                 foreach (var gamePlayer in game.GamePlayers.OrderBy(gp => gp.Rank))
                 {
                     var nickname = gamePlayer.Player.Nickname;
-                    Debug.WriteLine($"Adding {nickname} with {preGameRatings[nickname].Rating} rating and rank of {gamePlayer.Rank}");
+                    //       Debug.WriteLine($"Adding {nickname} with {preGameRatings[nickname].Rating} rating and rank of {gamePlayer.Rank}");
 
                     //if (!ratings.ContainsKey(nickname))
                     //{
