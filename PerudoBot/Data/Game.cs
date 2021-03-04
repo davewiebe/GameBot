@@ -6,7 +6,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("PerudoBotTests.PerudoGameServiceTests")]
-
 namespace PerudoBot.Data
 {
     public class Game
