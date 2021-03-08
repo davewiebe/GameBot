@@ -31,7 +31,7 @@ namespace PerudoBot.Modules
                 case "🔥":
                     await DiceOption(context);
                     break;
-                case "🪓":
+                case "🪓": // axe
                     await DiceOption(context);
                     break;
                 case "➕":

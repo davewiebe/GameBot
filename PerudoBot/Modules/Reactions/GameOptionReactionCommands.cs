@@ -42,6 +42,7 @@ namespace PerudoBot.Modules
         }
 
         [Command("🔥")]
+        [Alias("🪓")] // axe
         public async Task DiceOption(CommandContext context)
         {
             var game = await _perudoGameService.GetGameAsync(context.Channel.Id, GameState.Setup);
