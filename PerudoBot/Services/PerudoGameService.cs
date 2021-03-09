@@ -192,9 +192,9 @@ namespace PerudoBot.Services
         public List<GamePlayer> GetGamePlayers(Game game)
         {
             return _db.GamePlayers.AsQueryable()
-                .Include(gp => gp.Player)
                 .Include(gp => gp.GamePlayerRounds)
-                .Include(gp => gp.Player.EloRatings)
+                .Include(gp => gp.Player)
+                .ThenInclude(x => x.EloRatings)
                 .Where(gp => gp.GameId == game.Id)
                 .OrderBy(x => x.TurnOrder)
                 .ToList();
