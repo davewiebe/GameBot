@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Game = PerudoBot.Data.Game;
+using Newtonsoft.Json;
 
 namespace PerudoBot.Modules
 {
@@ -64,7 +65,7 @@ namespace PerudoBot.Modules
 
             Round round;
 
-            if (activeGamePlayers.Sum(x => x.NumberOfDice) == 2 && game.FaceoffEnabled)
+            if (activeGamePlayers.Sum(x => x.NumberOfDice) == 2 && game.FaceoffEnabled && !AreBotsInGame(game))
             {
                 round = new FaceoffRound()
                 {
@@ -76,7 +77,7 @@ namespace PerudoBot.Modules
                 await SendTempMessageAsync("!gif lumberjack");
                 await SendMessageAsync($":carpentry_saw: Faceoff Round :carpentry_saw: {GetUser(GetCurrentPlayer(game).Player.Username).Mention} goes first. Bid on total pips only (eg. `!bid 4`)");
             }
-            else if (game.NextRoundIsPalifico)
+            else if (game.NextRoundIsPalifico && !AreBotsInGame(game))
             {
                 round = new PalificoRound()
                 {
@@ -97,6 +98,18 @@ namespace PerudoBot.Modules
                     StartingPlayerId = GetCurrentPlayer(game).Id
                 };
                 await SendMessageAsync($"A new round has begun. {GetUser(GetCurrentPlayer(game).Player.Username).Mention} goes first.");
+
+                if (AreBotsInGame(game))
+                {
+                    var botMessage = new
+                    {
+                        nextPlayer = GetUser(GetCurrentPlayer(game).Player.Username).Id.ToString(),
+                        diceCount = _perudoGameService.GetGamePlayers(game).Sum(x => x.NumberOfDice),
+                        round = round.RoundNumber
+                    };
+
+                    await SendMessageAsync($"||`@bots update {JsonConvert.SerializeObject(botMessage)}`||");
+                }
             }
             _db.Rounds.Add(round);
 
@@ -154,23 +167,15 @@ namespace PerudoBot.Modules
 
                 var botKey = botKeys.FirstOrDefault(x => x.Username == gamePlayer.Player.Username);
 
-                if (botKey == null)
-                {
-                    // TODO: use IsBot property to determine if DM can be sent
-                    try
-                    {
-                        var requestOptions = new RequestOptions()
-                        { RetryMode = RetryMode.RetryRatelimit };
-                        await user.SendMessageAsync(message, options: requestOptions);
-                    }
-                    catch (Exception e)
-                    {
-                        await SendEncryptedDiceAsync(gamePlayer, user, gamePlayer.Player.Username);
-                    }
+                if (user.IsBot) {
+                    var botKeyString = (botKey != null) ? botKey.BotAesKey : gamePlayer.Player.Username;
+                    await SendEncryptedDiceAsync(gamePlayer, user, botKeyString);
                 }
                 else
                 {
-                    await SendEncryptedDiceAsync(gamePlayer, user, botKey.BotAesKey);
+                    var requestOptions = new RequestOptions()
+                    { RetryMode = RetryMode.RetryRatelimit };
+                    await user.SendMessageAsync(message, options: requestOptions);
                 }
             }
 
@@ -181,7 +186,7 @@ namespace PerudoBot.Modules
         {
             var diceText = $"{player.Dice.Replace(",", " ")}";
             var encoded = SimpleAES.AES256.Encrypt(diceText, botKey);
-            await SendMessageAsync($"{user.Mention}'s dice: ||{encoded}||");
+            await SendMessageAsync($"{user.Mention} ||`deal {encoded}`||");
         }
     }
 }

@@ -89,6 +89,7 @@ namespace PerudoBot.Modules
 
         private async Task DisplayCurrentStandingsForBots(Game game)
         {
+            return; // Andrey: Don't need bot standings for now, disabled to message spam
             var gamePlayers = _perudoGameService.GetGamePlayers(game);
             if (!gamePlayers.Any(x => x.Player.IsBot)) return;
 
