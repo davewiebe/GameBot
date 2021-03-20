@@ -97,20 +97,9 @@ namespace PerudoBot.Modules
                     RoundNumber = (game.CurrentRound?.RoundNumber ?? 0) + 1,
                     StartingPlayerId = GetCurrentPlayer(game).Id
                 };
-                await SendMessageAsync($"A new round has begun. {GetUser(GetCurrentPlayer(game).Player.Username).Mention} goes first.");
-
-                if (AreBotsInGame(game))
-                {
-                    var botMessage = new
-                    {
-                        nextPlayer = GetUser(GetCurrentPlayer(game).Player.Username).Id.ToString(),
-                        diceCount = _perudoGameService.GetGamePlayers(game).Sum(x => x.NumberOfDice),
-                        round = round.RoundNumber
-                    };
-
-                    await SendMessageAsync($"||`@bots update {JsonConvert.SerializeObject(botMessage)}`||");
-                }
+                await SendMessageAsync($"A new round has begun. {GetUser(GetCurrentPlayer(game).Player.Username).Mention} goes first.");                
             }
+            
             _db.Rounds.Add(round);
 
             foreach (var gamePlayer in activeGamePlayers)
@@ -177,6 +166,18 @@ namespace PerudoBot.Modules
                     { RetryMode = RetryMode.RetryRatelimit };
                     await user.SendMessageAsync(message, options: requestOptions);
                 }
+            }
+
+            if (AreBotsInGame(game) && round is StandardRound)
+            {
+                var botMessage = new
+                {
+                    nextPlayer = GetUser(GetCurrentPlayer(game).Player.Username).Id.ToString(),
+                    diceCount = _perudoGameService.GetGamePlayers(game).Sum(x => x.NumberOfDice),
+                    round = round.RoundNumber,
+                };
+
+                await SendMessageAsync($"||`@bots update {JsonConvert.SerializeObject(botMessage)}`||");
             }
 
             await _db.SaveChangesAsync();
