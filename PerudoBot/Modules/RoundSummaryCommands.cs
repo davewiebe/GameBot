@@ -14,6 +14,7 @@ namespace PerudoBot.Modules
     {
         private async Task SendRoundSummaryForBots(Game game)
         {
+            return; // Andrey: Don't need bot summary for now, disabled to message spam
             var players = _perudoGameService.GetGamePlayers(game);
             if (!players.Any(x => x.Player.IsBot)) return;
 

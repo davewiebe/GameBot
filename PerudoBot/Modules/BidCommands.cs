@@ -187,8 +187,9 @@ namespace PerudoBot.Modules
             DeleteCommandFromDiscord();
 
             var bidderNickname = biddingPlayer.Player.Nickname;
-            var nextPlayerMention = GetUser(nextPlayer.Player.Username).Mention;
-
+            var nextUser = GetUser(nextPlayer.Player.Username);
+            var nextPlayerMention = nextUser.Mention;
+            
             var snowflakeRound = "";
             if (game.CurrentRound is PalificoRound) snowflakeRound = ":four_leaf_clover: ";
             var dealer = "";
@@ -198,19 +199,17 @@ namespace PerudoBot.Modules
 
             IUserMessage sentMessage;
 
-            if (AreBotsInGame(game))
-            {
-                var botMessage = new
-                {
-                    U = bidderNickname,
-                    P = pips,
-                    Q = quantity
+            sentMessage = await SendMessageAsync(userMessage);
+
+            if (AreBotsInGame(game)) {
+                var botMessage = new {
+                    nextPlayer = nextUser.Id.ToString(),
+                    diceCount = _perudoGameService.GetGamePlayers(game).Sum(x => x.NumberOfDice),
+                    round = game.Rounds.Count,
+                    action = BidToActionIndex(bid),
                 };
-                sentMessage = await SendMessageAsync($"{userMessage} || {JsonConvert.SerializeObject(botMessage)}||");
-            }
-            else
-            {
-                sentMessage = await SendMessageAsync(userMessage);
+
+                await SendMessageAsync($"||`@bots update {JsonConvert.SerializeObject(botMessage)}`||");
             }
 
             bid.MessageId = sentMessage.Id;
@@ -339,6 +338,21 @@ namespace PerudoBot.Modules
                 return false;
             }
             return true;
+        }
+
+        // Unwrap bid to it's action index where 0:1x2, 1:1x3, 2:1x4, etc.
+        private int BidToActionIndex(Bid bid) {
+            if (bid.Pips != 1) 
+            {
+                int nonWildcard = ((bid.Quantity - 1) * 5);
+                int wildcard = bid.Quantity / 2;
+                return nonWildcard + wildcard + (bid.Pips - 2);
+            }
+            else
+            {
+                // starting at 5, every 11 actions there is a wildcard action
+                return 5 + ((bid.Quantity - 1) * 11); 
+            }
         }
 
         private Bid GetMostRecentBid(Game game)
